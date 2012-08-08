@@ -1,0 +1,1139 @@
+scatterBrain - Written by : Stephen T. Mudie, Australian Synchrotron
+SAXS15ID  -  Written by : David J. Cookson,  ChemMatCARS / ASRP
+
+Version 1.23 **************************************************************************
+Many updates since I last added to this list, including but not limited to:
+
+
+
+(Cracked Glass jepg from pause button easter egg from http://everythingisinstock.deviantart.com/art/Cracked-Glass-Texture-I-118379839)
+
+Version 1.15 **************************************************************************
+Create experiment from scratch, including in new folders. Control version sets 
+appropriate PVs.
+Introduced settings file, which in subsequent versions will enable saving session settings
+(e.g., working path, anything under the "general settings" menu, etc. 
+Significantly improved file saving speed for experiments with thousands of images
+Various other bug fixes.
+
+Version 1.10 **************************************************************************
+Online update now reports progress
+Dedicated Beamstop mask
+Fixed bug related to summing images
+Fixed error in choosing q-range for absolute calibration
+Fixed crash for ignore live mode (control version only).
+
+Version 1.03 **************************************************************************
+Added ability to update scatterBrain from the software.
+
+Version 1.02 **************************************************************************
+Fixed small bugs, such as crash when saving. Small fixes in control version for file
+overwrite checking.
+
+Version 1.01 **************************************************************************
+Fixed bugs, particular image summing.
+
+Version 1.0 ***************************************************************************
+
+Version 0.9 ***************************************************************************
+Numerous bug fixes and feature adds including:
+File existence checking
+Mosaics
+Contour/Surface plotting
+Etc, Etc
+
+Version 0.8 ***************************************************************************
+First version used on beamline by users.
+
+
+SAXS15ID Version Notes:
+
+Version 3.299 *****************************************************************************
+
+Version 3.298 *****************************************************************************
+
+Version 3.297 *****************************************************************************
+
+Version 3.296 *****************************************************************************
+
+12-May-08 (STM) Top level base can now be dynamically resized, with the plot
+		and image both resizing to match. Currently in either GUI layout,
+		half the change in xsize is added or subtracted from both the plot 
+		and image.
+
+24-Apr-08 (DJC)	Large improvements in the TOOLS -> Output Images sub-
+		window.  What you see is now really what you get when 
+		saving zoomed images or mosaics for standard 8 bit 
+		color-interleaved formats like PNG and JPG.  For 16 bit
+		TIF and FITS formats, the outputs are straight 16 bit unsigned
+		data (2 bytes per pixel).
+
+28-Mar-08 (DJC)	Improved functionality of auto-level in OPTIONS -> Main Display
+		ROI used to define intensity levels and level/contrast tweak 
+		can now be independently reset.
+
+12-Mar-08 (DJC)	Image intensity auto-balance now based on intensity range
+		range found in the currently selected profile in the q-range
+		ROI specified in the OPTIONS -> Main Window sub-window.
+
+11-Mar-08 (DJC)	FILES -> Save Profiles -> Save Profile Summary  function
+		improved to save more relevant detail for each profiles
+
+03-Feb-08 (DJC)	FILES -> Restore Profiles/Session now upgraded to allow old
+		versions of parameter (*.sax) files to be used with latest version
+		of Saxs15id
+
+Version 3.295 *****************************************************************************
+
+26-Dec-07 (DJC)	Auto-process can now be actuated in both BATCH and 
+		MONITOR modes.  In batch mode a series of image file 
+		names are selected by the user and a nominated auto-process 
+		analysis sequence like SAXS_HERMAN_ORIENT executed on the 
+		ensemble.  In MONITOR mode the software checks a nominated 
+		sub-directory periodically for the presence of new image files 
+		and processes them automatically soon after they appear.  
+		Polling frequency and other parameters for this function can 
+		be found in:
+		OPTIONS -> AutoProcess -> Configure sub-window.
+
+18-Dec-07 (DJC)	Major improvement to the contour and surface plots of series
+		integrated data.  X-scale of image is now in correct proportion
+		for all displayed x-ordinates (pixel, 2theta and q).
+
+Version 3.294 *****************************************************************************
+
+19-Oct-07 (DJC)	Fixed bug with TOOLS -> Output Images window
+		FITS format output files now have correct linear intensities.
+
+03-Oct-07 (DJC)	Added a new feature to the Adjust Normalizations sub-window
+		of the Integration Series window.  This allows the user to
+		insert a whole profile into an existing slot of a previously
+		generated series.  The profile is taken from a nominated
+		channel of the main window display area.
+
+02-Oct-07 (DJC)	Fixed bug that gave strange response to mouse click after
+		killing some of the sub-windows.
+
+01-Oct-07 (DJC)	ROI image intensities are now defined as average SAXS
+		intensity in nominated q-range rather than integrated
+		intensity
+
+30-Sep-07 (DJC)	Improved error trapping on loading of *.SAXS file when
+		stored number is undefined
+
+Version 3.293 *****************************************************************************
+
+27-Sep-07 (DJC)	Improved restore function to help with saving and restoring
+		between sessions on different computers with different 
+		path structures.
+
+27-Sep-07 (DJC)	Improved calibration factor calculation in Normalization
+		window
+
+Version 3.292 *****************************************************************************
+
+21-Sep-07 (DJC)	Fixed bug when averaging images in file series window.
+		Negative file number increments (indicating that every
+		N files should be averaged) works again.
+
+21-Sep-07 (DJC)	Improved session restore command to update more fields on
+		the main window.
+
+Version 3.291 *****************************************************************************
+
+18-Aug-07 (DJC)	DATA -> Normalization window has the option of applying 
+		global parameters (such as the absolute calibration factor)
+		with or without a global MULT and OFFSET factor when using
+		the TO ALL PROFILES button.
+
+18-Aug-07 (DJC)	Bugs cleaned up.  Dark/background file is now automatically
+		loaded with the *.sax parameter file if it was being used
+		at the time the *.sax file was created.
+
+
+Version 3.29  *****************************************************************************
+
+16-Aug-07 (DJC)	Users now have a choice of two main screens.  The original
+		screen is more oriented towards 1D profiles while the new 
+		screen has a larger frame-drawing area and is better for 
+		users working with 2D (anisotropic) images.
+		For the normal (original) screen answer YES to the first
+		dialog box that appears after starting Saxs15id, for the 
+		2D screen answer NO. 
+
+Version 3.28  *****************************************************************************
+
+15-Aug-07 (DJC)	Improvement of 2D background subtraction using dark frames.
+
+07-Aug-07 (DJC)	Major re-write and improvement on the auto-intensity level
+		setting on displayed images.  Much more consistent algorithm
+		incorporating intensity level and contrast as two separate
+		controllable parameters.
+
+30-Jul-07 (DJC)	Few more bug fixes with the masking control window
+
+28-Jul-07 (DJC)	Improved configuration window for autoprocess
+		OPTIONS -> Auto-Processing -> Configure
+		Parameter names specific to selected autoprocess are now
+		explicitely stated.
+
+12-Jun-07 (DJC)	Bug fix of normalization of series data.  Problem seen when
+		selecting a sub-range of processed images.  This problem
+		did NOT affect data when using a sub-range of the q-axis.
+
+08-Jun-07 (DJC)	User can now repair a botched process series by deleting
+		all scans after (and including) the current maximum scan
+		displayed.  This command is accessed from the series scan 
+		window using the menu Process SAXS Images -> Truncate Series
+
+08-Jun-07 (DJC)	New feature that allows users to directly manipulate
+		the MULT and Offset (OS) parameters for all the
+		profiles in a scan sequence.  'Adjust Normalization' 
+		can be found on the sub-window
+		FILES -> Process SAXS Image -> Image Series
+
+06-Jun-07 (DJC)	Fixed bug with UPDATE SCAN in the subwindow
+		FILES -> Process SAXS Image -> Image Series
+		This now works with ALL supported filename types.
+
+24-May-07 (DJC)	Auto-process with and without batch file capability
+		implemented in a more consistent way.  Currently there
+		are 3 processing options for archaeometry, fiber
+		analysis and Herman orientation function calculations.
+
+23-May-07 (DJC)	Major improvements to the masking routines.  In the
+		window DETECTOR -> Area Masks the user now has the 
+		option of designating each of the 10 masks as 'Auto'
+		or 'not Auto'.  In Auto mode - the circle, sector, 
+		qz or qy masks will automatically move to follow the
+		beam center if and when it is updated.  
+		Note: masks defined by absolute pixel values
+		(as in the case of cursor-defined) do not move when
+		the beam center updates.
+
+10-May-07 (DJC)	FILE -> Output Images, Save Mosaic Image
+		Text file with names of images in mosaic image
+		is automatically output as well.
+
+24-Apr-07 (DJC)	FILE -> Output Images, image intensity offsets
+		(set in DATA -> Normalization sub-window) are now
+		automatically subtracted from each image while 
+		constructing a mosaic.
+
+09-Mar-07 (DJC)	Fixed bug with FILE -> Save Profiles
+		Binning compensation now applied to all exported
+		profiles (but not shown in displayed plots - to
+		save processing time).
+
+01-Mar-07 (DJC)	Fixed 2 bugs with output under Image Series window
+		Output Data -> Output Image As -> TIFF 
+		now gives correct color table
+
+		Output Data -> Single Ascii File -> ROI Map Data
+		now gives x, y, Intensity in simple Ascii file
+
+23-Feb-07 (DJC)	Power law test pattern function improved.
+		TOOLS -> Generate Image -> Power Law Pattern
+		Intensity at min and max q, as well as power law
+		exponent (=-4 for Porod slope) is set in the 
+		DATA -> Plot Range subwindow.  The image must
+		be generated with a q-range pixel bin set to 1, but
+		can be re-binned later (DATA -> q-range). 
+
+23-Feb-07 (DJC)	Better pixel size check when reading in new images
+		with no *.sax parameter file available.
+
+23-Feb-07 (DJC)	Fixed bug with in Q-range subwindow - updates the
+		beam stop mask as soon as you right click, also
+		updates main window image when exiting subwindow.
+
+23-Feb-07 (DJC)	Fixed annoying bug with zoom control on plot after
+		exiting the mask setup subwindow 
+
+07-Feb-07 (DJC)	Fixed bug with output of multiple-profile ASCII data file
+
+07-Feb-07 (DJC)	In File -> Image Series -> Process SAXS Images window
+		When user outputs series data to many single-profile 
+		files, a single ASCII file called '*_Info.dat' is also
+		written with a summary of data (original image filenames
+		etc) for these new files.
+
+07-Feb-07 (DJC)	In File -> Image Series -> Process SAXS Images window
+		User can now do a series of averaged files.  This is
+		achieved by setting the file increment value negative.
+		Ie. File increment = -5 means that rather than only 
+		processing every 5th file, the program now averages
+		5 sequential files then integrates the averaged image.
+
+29-Jan-07 (DJC)	User can now change the maximum change of scale factor
+		allowed between consecutive images in an integration
+		series.  A threshold factor of 2.0 will trigger a
+		warning if any SF varies by more than 200% of its
+		predessor.
+
+23-Jan-07 (DJC)	A new option is now available for 'Type of Averaging'
+		in the DETECTOR -> Frame Parameters window.  The option
+		'Min' results in a profile made up of the minimum
+		annular intensities.  The lowest 1% of intensities are
+		discard prior to returning each annular minimum. 
+
+20-Jan-07 (DJC)	User can now change current profile from within the 
+		DATA -> Normalization window.  This saves lots of mouse
+		clicks when playing with individual profile normalizations.
+
+05-Jan-07 (DJC)	New feature: User can now save an entire Saxs15id session
+		(ie all profiles in memory, settings etc) using command
+
+		FILE -> Save Profiles -> Save complete session.
+
+		This makes a large binary file (> 4Mbytes) that can be
+		read in as a complete session later using the command
+
+		FILE -> Restore profiles/session
+
+04-Dec-06 (DJC)	New capability on trial.  In OPTIONS -> Main Display
+		User now has additional controls to adjust the intensity
+		range displayed for images on the left hand screen.
+		Recommendation is to use the 'Contrast' control in either
+		log or linear scaling first - then fine tune the Imax
+		and Imin controls.
+
+02-Dec-06 (DJC)	Fixed bug seen when making a mosaic image using the first
+		named image file in the currently loaded log file
+
+13-Nov-06 (DJC)	Fixed bug with multiple filename handling for some detector
+		formats.
+
+03-Nov-06 (DJC)	Major upgrade to area masking subwindow
+		DETECTOR -> Area Masks
+		User now has up to 8 user-defineable masks or 10 if you
+		include the frame border and beam stop masks.  All of these
+		can be fully defined from this window now.
+
+03-Nov-06 (DJC)	New function for applying different masks sequentially...
+		Once you have defined the user masks in the masking subwindow
+		use the command TOOLS -> Profile -> Mask Sequence.  This will
+		deposit a profile in each channel starting from channel 1 with
+		a single mask applied each time.  Ie. Channel 1 will show
+		the results of applying only User Mask #1, Channel 2 will show
+		the result of applying only User Mask #2 and so on.  This will
+		generate a maximum of eight different profiles in channels 1-8
+		depending on which masks you have defined and activated.
+
+29-Oct-06 (DJC)	Fixed the bugs that inevitably come with a major version
+		upgrade...  Problems with saving profiles solved.
+
+26-Oct-06 (DJC)	New CCD image file format supported - ADC (also AVIEX) CCD
+		images can now be read.  Just select this option in 
+		DETECTOR -> Frame Parameters
+
+25-Oct-06 (DJC)	New option availiable in DATA -> Q-Range submenu for finding
+		the beam center.  This partitions the image into 4 azimuthal
+		regions.  The user then 'tweaks' the beam center to align 
+		features on the four different sector profiles.
+
+18-Oct-06 (DJC)	Final shakedown of control version for operating a MAR-165
+		CCD detector.  This detector outputs *.tif files in 16 bit
+		resolution.
+
+06-Oct-06 (DJC)	User can now read files generated by the MAR-345 imaging
+		plate detector.  The decompression of these files requires
+		an extra file (in addition to the saxs15id.sav file) called
+		mar345_IDL.dll.  If this file is not on the same directory
+		as the saxs15id.sav file, the decompression will still
+		be possible, but at an excruciatingly slow rate (90 secs)
+		for a full resolution image.
+
+01-Oct-06 (DJC)	Further fixes for the absolute calibration algorithm
+		to give intensity correctly calibrated to cm-1, using
+		the DATA -> Normalization -> Abs Calibration window.
+		User now has an extra button to automatically optimize
+		the calibration offset value - this is useful when using
+		weakly-scattering calibration standards (eg water).
+
+13-Jul-06 (DJC)	Added zoom button to q and image number range so that now
+		the subrange can be selected by cursor
+		(Files -> Process SAXS Image -> Image Series)
+
+12-Jul-06 (DJC)	Added the ability to do a ridge fit with up to 3 gaussians
+		simultaneously.
+
+12-Jul-06 (DJC)	User can now output contour image, surface image and ROI
+		map images as a TIFF format file
+		(Files -> Process SAXS Image -> Image Series -> Output Data)
+
+12-Jul-06 (DJC) Fixed bug with the auto file-load slider bar which
+		cropped up occasionally when using certain CCD file
+		name formats.
+
+06-Jul-06 (DJC)	Fixed bug with image masking when in GiSAXS mode
+
+23-May-06 (DJC)	Fixed bug encountered when writing out ROI map as an
+		ascii file.  Access this command from the SERIES 
+		window (FILE -> Process SAXS Image -> Image Series).
+		Within the Image Series window use:
+		Output Data -> Single ASCII File -> ROI Map Data		
+
+Version 3.27   *****************************************************************************
+
+23-Apr-06 (DJC)	Added the ability in TOOLS -> Output Images to override
+		the softwares automatic choice of number of images per
+		row.
+
+21-Apr-06 (DJC)	Added the ability with mosaic images in the window
+		TOOLS -> Output Images to left click on any image tile
+		and find what its file name was.
+
+15-Apr-06 (DJC)	Fixed bug in FILE -> Import Profile command
+
+15-Apr-06 (DJC)	Fixed bug in sector integrate function, introduced by last
+		major revision.
+
+20-Mar-06 (DJC)	Re-vamped the absolute calibration code, finally removed
+		some persistent bugs with book-keeping.  User can now
+		enter different thicknesses for calibrant and specimen
+
+20-Mar-06 (DJC)	Random selection of images can now be averaged & processed 
+		using:  FILES -> Process SAXS Image -> Average Images 
+		Select individual or blocks of images from file input window
+
+12-Mar-06 (DJC)	Software can now read in and processIRAF FITS format 
+		image files.  Files can also be written in this format as
+		well via the TOOLS -> Output Images Screen 
+
+10-Mar-06 (DJC)	Fixed bug with reading in BAS image plates
+
+10-Mar-06 (DJC)	Added the ability to automatically subtract a whole-image 
+		background derived from a boxcar average of the image as 
+		it is being read in.
+
+10-Mar-06 (DJC)	User can now adjust the median smooth and boxcar background 
+		subtraction boxes from the DETECTOR -> Parameters subwindow
+
+01-Mar-06 (DJC)	Fixed nasty little bug that showed up when reading in 
+		different image sizes concurrently.
+
+02-Feb-06 (DJC)	Fixed bug with log file search algorithm.  Filenames with 
+		similar names no-longer cause intermittent problems.
+
+26-Jan-06 (DJC)	Fixed bug with normalization of series data.  Changing 
+		normalization type used to cause problems after a series 
+		integration.
+
+Version 3.26  *****************************************************************************
+
+20-Jan-06 (DJC)	Some compiled versions of saxs15id now have an 
+		<Auto-Process> button, allowing a pre-programmed series 
+		of processing steps to be executed with one click.
+
+15-Jan-06 (DJC)	Slider bar (over plot area) is now disabled when the 
+		read-in file has no valid number.
+
+10-Jan-06 (DJC)	New file type added to list of allowed image formats 
+		from Bruker GADDS program.  These files have filenames 
+		like <test021.gfrm>.
+
+05-Jan-06 (DJC)	Fixed some bugs with absolute calibration in main screen 
+		profiles and image series processing.  When absolute 
+		calibration is applied it should now be consistent no 
+		matter what format is chosen.
+
+24-Nov-05 (DJC)	Fixed introduced bug in Output Image (Mosaic) sub-menu
+
+11-Aug-05 (DJC)	Fixed small bug in 
+		FILES -> Save Profiles -> N Profiles to 1 File
+
+11-Aug-05 (DJC)	Added the ability to unwarp files using a correctly loaded
+		unwarping polynomial (this will be present after a spatial 
+		unwarping file has been calculated in X-Y coordinates.  
+		TOOLS -> Modify Image -> Unwarp Image
+
+15-Aug-05 (DJC)	In control version user can now elect to save SMART CCD
+		image without flood and/or spatial correction.  This is 
+		selected in the ACQUIRE -> Setup sub window.
+
+15-Aug-05 (DJC)	In control version user can now define PV parameters 
+		for 'User Defined' positioner control and PV monitoring.  
+		User can access these through the ACQUIRE -> User PVs 
+		sub-window.
+
+15-Aug-05 (DJC)	DATA -> Plot Range sub-window now has an option to
+		inhibit the plotting of error bars on the currently 
+		selected profile.
+
+15-Aug-05 (DJC)	FILES -> Save Profiles -> N Images to N files
+		fixed a bug seen when channel #10 was read to a 
+		separate file.
+
+15-Aug-05 (DJC)	TOOLS -> Output Images sub-window now has improved 
+		algorithm for constructing mosaic images and maps.  They 
+		are now assembled starting from the bottom left rather 
+		than the top left.
+
+07-Aug-05 (DJC)	Normalization of intensities to compensate for differences
+		errors caused by the non-linear relation between radial
+		distance and q at higher angles has been made much more
+		rigorous.
+
+06-Aug-05 (DJC)	User can now bin pixels in a psuedo-logarithmic way
+		greatly reducing the number of data points in the
+		integrated saxs profiles at higher q (angle) while 
+		maintaining the resolution at lower angles.  This makes
+		data handling easier (~ 180 points rather than ~1000)
+		and drastically reduces the noise in higher q points.
+		Binning method is set in the DATA -> Q-range sub window.
+
+02-Aug-05 (DJC)	Minor bugs removed - in spatial correction for 
+		beam center off the frame and in q-scaling procedures.
+
+Version 3.25  *****************************************************************************
+
+22-Jul-05 (DJC)	The intensity calibration code has been rewritten
+		to give a more reliable and easy to use normalization to
+		absolute scattering in cm-1. As suitable intensity
+		standards are found they will be added to a hard-wired
+		list accessible by DATA -> Normalization
+
+12-Jul-05 (DJC)	Saxs15id now has the ability to subtract a complete
+		2D image from any image read in.  Just read in an
+		image to be used as the background (using the 
+		FILE -> Process Image) command and then go to the
+		DETECTOR -> Frame Parameters sub-window to load 
+		this current frame as the background frame.  The
+		background image will be normalized prior to 
+		subtraction according to the setting in the
+		DATA -> Normalization sub-window.
+
+12-Jul-05 (DJC)	Added the capability to load a previously saved
+		mosaic image (Tools -> Output Images).  Note that
+		it is assumed that the mosaic was saved as a 16-bit
+		monochrome TIF file (T16 format).  Also allow
+		the overall contrast of the mosaic image (recently
+		generated or read in from disk) to be altered.
+
+08-Jul-05 (DJC)	Added the option of saving errors (or not) in the
+		multiple-profile output ascii file.
+		File -> Process SAXS Image -> Image Series 
+		-> Output Data -> Single Ascii File
+
+05-Jul-05 (DJC)	Added spatial distortion load and enable buttons to
+		the Detector -> Frame Parameters Sub-window in order
+
+01-Jul-05 (DJC)	Improved spot finding procedure
+		Detector -> Spatial Correction
+
+27-Jun-05 (DJC)	Fixed bug with saving multi-profile ascii data
+		in File -> Process SAXS Image -> Image Series
+
+Version 3.24   *****************************************************************************
+
+13-May-05 (DJC)	Removed some of the clutter in the TOOLS menu.
+		Most pattern simulation commands removed. Q-range
+		window modified for clarity.
+
+13-May-05 (DJC)	Added ability to create psuedo flood-field frame
+		which can be read in later and applied to remove
+		blemishes.  This function uses a profile already
+		existing in memory to sweep out a smooth surface
+		which is compared with an actual image.
+		TOOLS -> Modify Data -> Make Psuedo Flood Field
+		then load it later from the DETECTOR -> Parameters
+		sub-window.
+
+11-May-05 (DJC)	Added menu item to OPTIONS menu.  This window allows
+		control of the frame display in the main window.
+		OPTIONS -> Main Display
+
+10-May-05 (DJC)	Added ability to normalize images that are read in
+		to either Io or Ibs.  
+		TOOLS -> Modify Image -> Normalize Image 
+		Note that this uses parameters
+		from the DATA -> Normalization sub-window
+
+08-May-05 (DJC)	Added the ability to read 16-Bit TIFF format files
+		as a whole new detector format.
+
+08-May-05 (DJC)	Added the ability to read 16-Bit TIFF format files
+		as a whole new detector format.
+
+		Full resolution 16-Bit TIFF format files can now
+		also be written to file from the current frame in 
+		memory with the TOOLS -> Output Images window. Just
+		select the T16 option in output formats.  Note that
+		this is different to the TIF option, which only
+		outputs 8-bit semi-compressed TIF files.
+
+05-May-05 (DJC)	Improved normalization for mosaic image generator.
+		All images are normalized to Io as defined by the
+		last image that was read in via the command
+		FILE -> Process SAXS Image -> Single Image.
+
+25-Apr-05 (DJC)	Fixed some bugs with dealing with Roper format (.SPE)
+		files.  Filename formats etc are now handled as
+		smoothly as for Bruker SMART format files.
+
+24-Apr-05 (DJC)	Added a Median Smooth option to the detector setup
+		menu (DETECTOR -> Frame Parameters).  This applies
+		the median filter (3 pixel average) to the current
+		frame as soon as it is read in prior to processing.
+
+23-Apr-05 (DJC)	Some re-positioning of menu items.  Moved the monitor
+		counter check routines to the TOOLS submenu.  Added a
+		few options as well:  TOOLS -> Modify Image
+		TOOLS -> Modify Image -> Median Smooth 
+			smooths the current frame with a median filter
+			with a width of 3 pixels to remove salt&pepper
+		TOOLS -> Modify Image -> Boxcar Subtract
+			subtracts a background frame derived from a 
+			boxcar smoothed frame with width = 40 pixels
+
+22-Apr-05 (DJC)	Fixed some bugs with how Fuji Bas Image Plate images
+		were handled.  All saxs15id functionality now available
+		for BAS images.  It just takes a bit longer with these
+		large (10 Mbyte) files.		
+
+14-Apr-05 (DJC)	New capability added.  FILE -> Import Profile allows
+		a previously saved (ASCII) profile to be imported into
+		a display channel.  The profile is interpolated such
+		that it fits in with the current q-data vector in
+		memory.  For this reason it is important that there
+		already be at least one processed profile in memory.
+
+13-Apr-05 (DJC)	Whole new capability added.  User can now construct
+		maps or mosaics of entire miniature SAXS frames. This
+		map can (if selected) insert space between the tiles
+		of the mosaic - giving a true scale map.  All this
+		is accessed via the TOOLS -> Output Images window
+
+11-Apr-05 (DJC)	Fixed bug with masks in Qy, Qz GiSAXS integration mode
+		occuring when pixel binning greater than 1 used.
+
+Version 3.23  *****************************************************************************
+
+06-Apr-05 (DJC)	Added a new window to allow user to save currently
+		displayed image, or a whole series of images on disk
+		in popular 8-bit formats such as PNG, JPG and TIF
+		This screen is accessed via: TOOLS -> Output Images
+
+03-Apr-05 (DJC)	In control mode - the log line window is now cleared 
+		when a new or existing log file is read in.
+
+02-Apr-05 (DJC)	MPA format image files (created in single column ascii
+		format by Molecular Metrology Wire detectors) can now
+		be read in.  Care must be taken to select the appropriate
+		pixel resolution.
+
+29-Mar-05 (DJC)	Useful feature added in DATA -> Q-Range window. User
+		can enter a calibrant peak position, and by pressing
+		a button re-calibrate the camera length to a previously
+		fitted calibrant peak.
+
+29-Mar-05 (DJC)	Improved the auto-contrast for displayed saxs images
+
+25-Mar-05 (DJC)	Improved halt procedure - when user presses 'STOP'
+		on the action buttons, any image still acquiring
+		on the CCD will be properly recorded and logged.
+
+22-Mar-05 (DJC)	Fixed a bug with Acquire -> Setup, CCD initialization
+
+20-Mar-05 (DJC)	Fixed a bug with reading/writing *.sax file mask polygons
+
+19-Mar-05 (DJC)	Increased maximum exposure number in series from 100
+		to 500 in both positioners
+
+17-Mar-05 (DJC)	Added an extra positioner group <User Defined>
+
+Version 3.22  *****************************************************************************
+
+12-Mar-05 (DJC)	Fixed bug that occurs when saving *.sax file - spatial
+		distortion file name.
+
+07-Mar-05 (DJC)	Fixed bug that occurs when attempting a sector azimuthal
+		integration with active user masks
+
+04-Mar-05 (DJC)	Added legend to plot window output showing file names
+
+03-Mar-05 (DJC)	Cleared up bug with auto-load of spatial file when one is
+		named in the *.SAXS file 
+
+18-Feb-05 (DJC)	Detector -> Frame Parameters, added the option to use median
+		instead of mean for average intensity value at a given Q.
+
+17-Feb-05 (DJC)	Included warning when user attempts to batch process filenames
+		that are not included in the current log file.
+
+16-Feb-05 (DJC)	File -> Image Series -> Process SAXS Images -> Ridge Fitting
+		-> Apply Normalization : fixed problem with applying 
+		normalization derived from ridge fit
+
+27-Jan-05 (DJC)	TOOLS -> Log File -> Override Log Values -> Generate
+		New Psuedo Log : user can now save this psuedo log as
+		a log file to be loaded at a later date.  Using the
+		command FILE -> Get Log File
+
+27-Jan-05 (DJC)	FILE -> Image Series : fixed a bug when using angle as
+		as the x-ordinate on series integration views. User can
+		now can change angle range without problems.
+
+Version 3.21  *****************************************************************************
+
+29-Dec-04 (DJC)	FILE -> Image Series-> Output Data -> Multiple ASCII files
+		When users output the results of an image series integration,
+		they can nominate a single root name - which will have the
+		integration number appended to each filename, or they can
+		choose to use the original file names of the images which
+		will be terminated by '_nnn.dat'
+
+06-Dec-04 (DJC)	Ironed out most remaining bugs from spatial distortion
+		correction window. Users can now have the spatial distortion
+		filename in the *.sax file - if the file is present at the
+		path given in the sax file it will be loaded automatically.
+
+06-Dec-04 (DJC)	Improved ascii output from Ridge Fitting routine
+		(FILES -> Image Series)
+
+03-Dec-04 (DJC)	Fixed some formatting problems with multiple image output
+		to single file (FILES -> Image Series).
+
+Version 3.20  *****************************************************************************
+
+05-Nov-04 (DJC)	Whole new window for Spatial correction of images using the
+		menu  DETECTOR -> Spatial Correction.  This allows either
+		fiducial spots or Debye Scherrer rings to be used to correct
+		spatial distortion in raw image frames.  Usually this is not needed
+		when images are un-warped before saving.
+
+01-Nov-04 (DJC)	New calibrate function included into run-time control version
+		allows us to use calibration arm at the back of the camera.
+
+29-Oct-04 (DJC)	Control version now works completely with Roper detector
+		using WinView - now all we need is a working Roper detector.
+
+20-Sep-04 (DJC)	Large number of upgrades, including new Q-range window that
+		makes life much easier when finding a new beam center etc
+
+Version 3.17  *****************************************************************************
+
+07-Sep-04 (DJC)	Saxs15id can now handle GiSAXS (Glancing-incidence SAXS)
+		analysis.  In the new DATA -> Q-range submenu we now have
+		3 options:  
+		- Isotropic Q (constant radial Q integration) 
+		- Out-of-plane Qz momentum transfer (constant Qy integration) 
+		- In-plane Qy momentum (constant Qz integration) 
+
+01-Sep-04 (DJC)	Large amount of code added for simulations of diffraction 
+		(2D gaussian) peaks and power law (porod) slopes.  Also point
+		spread function (PSF) simulations added.  These are primarily to 
+		test aspects of the integration algorithms of saxs15id.  All these
+		functions can be found in the TOOLS -> Test Patterns submenu
+
+
+Version 3.16  *****************************************************************************
+
+12-Aug-04 (DJC)	Auto-scale function improved for surface plot visualization in
+		FILE -> Image Series window
+
+12-Aug-04 (DJC)	v3.163 Exported series scans now include the applied iso-normal
+		correction (when iso-normal correction is 'Applied')
+
+10-Aug-04 (DJC)	v3.162 Added a window to allow overriding of log file data such
+		as Io counter offsets etc.  Checking the appropriate box selects
+		which defined values will be substituted for log file values.
+
+02-Aug-04 (DJC)	v3.161 Corrected a long-standing small error in normalization due 
+		to extra 'blank' time on the seconds acquire. Exposure seconds are
+		kept as they are for dark current correction but rounded to the
+		nearest integer for calculation of final Io scale factor.
+
+30-Jul-04 (DJC)	Added a reference window for calibration standard peak q-values
+		(Lanthanum Hexaboride, Silver Behenate and Rat Tail Collagen).
+		Access this from DATA -> Q-Range window. 
+
+28-Jul-04 (DJC)	In File -> Image Series fixed a bug that made surface or roimap
+		views fail after doing an azimuth integration series.  Also
+		improved the log scale representation (vertical axis) in 
+		roimap (1D) and surface views.
+
+20-Jul-04 (DJC)	In File -> Image Series user can now fit a gaussian to
+		the same region over a range of images.  The series of gaussian
+		fit parameters can be output to an ascii file, and/or used to 
+		normalize a subsequent series of profiles (used with ASAXS).
+
+15-Jul-04 (DJC)	User can now fit a single line.  Using the 'zoom in' button 
+		in the main window select a q range which only includes the one
+		peak of interest.  Then hit 'Zoom In' button again and left click
+		twice on the peak of interest.  This auto-fits a gaussian peak
+		and displays an intensity, position and width. 
+
+10-Jul-04 (DJC)	File -> Image Series added the ability to read in up to  
+		2 independent ordinates (eg sample x & y position). This allows
+		region of interests (ROI) maps to be displayed.  The intensity
+		shown against (say) sample position is the profile intensity 
+		integrated over a nominated q range.  Eg. a normal radiography
+		image would be the q=0 intensity mapped against x,y postion 
+		of the sample.
+
+Version 3.15 ******************************************************************************
+
+04-Jul-04 (DJC)	One additional normalization added - Io only.  This
+		only normalizes profiles to constant Io (not transmission)
+
+01-Jul-04 (DJC)	Added extra buttons to ACQUIRE -> Move window to allow
+		the user to import previously stored positioner values
+		from an ascii file.  The format of these files is one
+		value per line - the first line holds an integer count
+		of the total floating point values to be read.  If this
+		integer count is positive, the values are loaded directly
+		into the positioner value array list.  If the integer
+		count is negative - these imported values are taken to
+		be relative to the current positioner value.
+
+28-Jun-04 (DJC)	Added an extra button to ACQUIRE -> Setup window to allow
+		special batch files to be executed (eg multiple dark
+		frames etc).
+
+21-Jun-04 (DJC)	Internal improvements to code - it should be easier now
+		to incorporate other CCD detectors into the control
+		version.
+
+19-Jun-04 (DJC)	In control version an additional Initialize button to tell the
+		CCD to electronically determine the gain bias.
+
+18-Jun-04 (DJC)	In control version it is simple to change from 512 x 512 to 
+		1024 x 1024 pixel mode (SMART CCD).  Just use the
+		the Browse button in ACQUIRE -> Setup window to select
+		the relevant *.ini file.  Then hit the Initialize button to 
+		initialize the CCD software. 
+
+Version 3.14 ******************************************************************************
+
+02-Jun-04 (DJC)	Major new feature - user can now select 'Auto' in the
+		exposure time selector.  This allows the execution of 
+		an arbitrary number of transmissions, and exposures of
+		the same or different duration at the current set of motor
+		positions.  
+
+		This command 'queue' is programmed in the ACQUIRE -> Setup
+		menu and consists of 1 to 3 alphanumeric subcommands
+		separated by commas.  For example, the string 't,e1,e2,e10'
+		queues a transmission measurement followed by three
+		SAXS exposures (1sec, 2sec and 10sec) at the current
+		sample position.
+
+27-May-04 (DJC) New window added  ACQUIRE -> Setup
+		This makes setting the system up on any workstation
+		much easier - even when the image file storage server
+		and the workstation running saxs15id are one and the same.
+		Extra code has been added to ensure that no problems arise
+		as a result of differently mapped directories.
+
+15-May-04 (DJC)	Fixed a bug in FILE -> Save Profiles which gave incorrect
+		subtraction if the blank was in zero (blank) channel.
+
+Version 3.13 ******************************************************************************
+
+16-Apr-04 (DJC)	Now in control mode the log update is included in this 
+		program - doing away with the need for the separate 
+		saxs logger program.  This keeps everything in sync and
+		drastically reduces the bandwidth required when subdirs get
+		filled with image files.
+
+12-Apr-04 (DJC)	New absolute calibration panel created.  This allows a much
+		more accurate calibration using empty and empty + calibrant
+		exposures taken with varying exposure times.  Access this 
+		window via:  
+		DATA -> Normalization -> 'Calibrate from Standard'
+
+Version 3.12 ******************************************************************************
+
+28-Mar-04 (DJC)	Fixed bug seen by users when first starting up with new log 
+		file without any scan data.
+
+27-Mar-04 (DJC)	Put exposure time on main panel to reduce mouse click
+		operations.  Also we now have replaced 30sec time option
+		with 2second time option.
+
+26-Mar-04 (DJC)	Fixed problem with q-data output in ascii profile files.
+		Small q values were having truncation issues.
+
+
+Version 3.11 ******************************************************************************
+
+23-Mar-04 (DJC)	Bug with image zoom in fixed.  Zoom now centers correctly
+		on beam center even when center is far right or top of frame.
+
+23-Mar-04 (DJC)	FILE -> Image Series : if there is a trouble with transmission
+		data in log file - user is warned.  User can then attempt to
+		process images using Beam Stop (Ibs) normalization.
+
+23-Mar-04 (DJC)	ACQUIRE -> Move Expose : fixed a bug where the waiting
+		time would improperly be set to one even if user wanted
+		no wait time between exposures.  Program in control mode
+		now continously updates the number of expired wait seconds 
+		before it starts another exposure sequence.
+
+21-Mar-04 (DJC)	FILE -> Image Series: background subtraction selector now
+		works properly.  As long as a valid blank profile exists in 
+		channel 0 (blank channel) on the main screen, this should work
+		in the image series window.  Note:  if current channel is currently
+		zero, the image series processor will increment it to one to 
+		avoid overwriting the blank channel profile as it processes a 
+		file series.
+
+16-Mar-04 (DJC)	FILE -> Image Series : fixed bug where time in integer seconds 
+		would go negative if the day changed during the scans.
+
+16-Mar-04 (DJC)	FILE -> Save Profiles : user can now save N profiles to a 
+		single ASCII file or N separate ASCII files
+
+16-Mar-04 (DJC)	DETECTOR -> Detector Masks : user can not open this window 
+		until there is a real saxs image frame in memory
+
+16-Mar-04 (DJC)	DETECTOR -> Detector Masks : user can not open this window 
+		until there is a real saxs image frame in memory
+
+14-Mar-04 (DJC)	Now can increment file number by greater than 1 in the
+		FILE -> Image Series window
+
+14-Mar-04 (DJC)	Time stamp on multi-scan output (FILE -> Image Series)
+		is now integer seconds starting from zero at the first 
+		profile shown in the scan range.  This time is also output
+		in the ASCII dump.
+
+11-Mar-04 (DJC)	FILE -> Image Series
+		New layout for image series integration window.  Now allows
+		azimuthal integrations over an arbitrary angle range with as
+		many angle increment bins as needed.  Also includes the 
+		ability to display 3D surface
+
+11-Mar-04 (DJC)	Fixed a bug with auto-range on Q axis
+
+Version 3.10 ******************************************************************************
+
+05-Mar-04 (DJC)	Massive rewrite of control version.  Program now allows 
+		up to a 2 dimensional nested scan of variables such as motor
+		positions, temperature etc coupled with sequential SAXS
+		exposures.
+
+09-Mar-04 (DJC)	Analysis version now hides the Acquire main menu option.
+
+09-Mar-04 (DJC)	Added an extra user definable mask (now there are 4)
+
+10-Mar-04 (DJC)	Adjusted default q-min for all new plots and 'Un-Zoom'
+
+10-Mar-04 (DJC)	Saved plot profiles (FILE -> Save Profiles) now outputs only
+		the q-range shown on the profile window (WYSIWYG)
+
+11-Mar-04 (DJC)	FILE -> Image Series -> Output Data
+		Now can choose single or multiple file ASCII output.  Single
+		file output shows each scan as a separate column with q-values
+		increasing with row number.  Multi-file output writes only one
+		profile (and estimated errors) to a series of files.
+
+Version 3.08 ******************************************************************************
+
+17-Feb-04 (DJC)	FILE -> Image Series -> Process SAXS Images
+		After prompting the user to abort or continue after a bad
+		normalization is detected, the software asks the user if
+		further normalization warnings should be ignored.  This stops
+		many mouse clicks when there are a number of missing log file
+		entries in a scan series.
+
+14-Jan-04 (DJC)	Fixed a bug where the series integration would fail when
+		changing the mask.
+
+Version 3.07 ******************************************************************************
+
+14-Jan-04 (DJC)	User can add one or all of the following to the header of the 
+		ascii file of the multi-scan output: image file name,
+		scale factor and/or time stamp.
+
+12-Jan-04 (DJC)	We now have a mouse defined mask maker! This greatly facilitates
+		defining masks as the mouse can be used to position a maximum
+		of 20 polygon defining vertex positions.  All this is found under
+		DETECTOR -> Detector Masks
+
+10-Jan-04 (DJC)	User can now define the zoom via push button in the mask defining
+		screen.  Also fixed bug that gave error when some zoom ratios were
+		used.
+
+10-Jan-04 (DJC)	Fixed bug in masking program where users could not apply more
+		than one excluding mask.
+
+10-Jan-04 (DJC)	Fixed a bug in FILE -> Image Series -> Save ASCII Output, user
+		can now output multi-scan data with more than 98 images.
+
+02-Jan-04 (DJC)	User can output the image series 2D plot as a postscript file.
+
+29-Dec-03 (DJC)	Now possible to append more images to an existing 2D plot.
+
+26-Dec-03 (DJC)	Modification to allow correct intensity normalization to scattered 
+		data when converting between different ordinate systems (ie. pixels, 
+		q, 2theta or d).  This does not apply when using pixels as the 
+		x-ordinate as the integration algorithm inherently bins to constant 
+		pixel size.  For q, 2th or d (angstroms) the x-ordinate bin sizes 
+		become non-constant which without correction can lead to intensity 
+		errors of > 10% at higher angles. With this correction we now 
+		effectively have intensity given as: 
+			1) I per pixel bin increment
+			2) I per minimum angle increment
+			3) I per minimum q increment
+			4) I per minimum d increment
+
+24-Dec-03 (DJC)	Added more functionality to the FILE -> Process Image Series 
+		window. User can now specify q, 2theta or pixel ranges to display 
+		as well as sub ranges of the frame numbers.  One can output this 
+		region of interest as an ASCII file.
+
+Version 3.06 ******************************************************************************
+
+09-Dec-03 (DJC)	Fixed bug with the FILE -> Clear Profiles command
+
+01-Dec-03 (DJC)	Added a utility SAMPLES -> Frame Header Summary which 
+		creates an ascii output file of header summaries.  The user inputs 
+		the first and last filenames of a sequence - currently this only 
+		works for SMART format frames.
+
+01-Dec-03 (DJC)	Added a batch file processing utility which allows large numbers
+		of saxs images to be converted to saxs profiles and displayed
+		as a multi-dimensional plot.  This is especially useful for time
+		evolving studies taken over prolonged periods with many 
+		exposures.
+
+Version 3.05 ******************************************************************************
+
+
+27-Nov-03 (DJC)	Included 're-process' buttons in the detector parameters,
+		q-range and  detector mask sub-windows.  This button allows
+		the user to re-integrate the frame currently stored in memory
+		ie.  the frame does not to be re-loaded from disk.
+
+		Note 1: If the user changes any camera parameters prior to
+			hitting the re-process button all the other profiles will 
+			be erased, as their q-axis will no longer be valid.
+
+		Note 2:	Changing mask data prior to hitting the re-process
+			button will only affect the profile corresponding to the
+			last image frame loaded into memory.  Any other 
+			profiles on display will not be affected.
+
+		Note 3:	After hitting the re-process button the channel select
+			display will be set to the channel that was selected 
+			when the last frame image was loaded.
+
+27-Nov-03 (DJC)	Fixed bug in saxs_draw.  Now we see the correctly positioned
+		masks for SMART format 512x512 pixel frames
+
+27-Nov-03 (DJC)	Improved the infrastructure for creating *.sav files for distribution.
+		Saxs_init now detects whether ezcaIDL or bogus_epics is in the
+		current procedure name space and behaves accordingly.  When
+		calling the procedures from a licenced version of IDL the user still
+		needs to specify a keyword to get the analyse, epics or debug
+		version going.
+
+24-Nov-03 (DJC)	Using the command 'saxs_embed_text' one can now convert a 
+		text file (like this one) to a procedure such as 'saxs_show_version'.  
+		This allows thetext file to be fully incorporated into the 
+		saxs15id.sav file as a routine, making it available to users of IDL
+		running in VM mode.
+
+19-Nov-03 (DJC)	Corrected rounding error on frame average on multiple frame
+		processing.
+
+18-Nov-03 (DJC)	Save profiles now saves the x-ordinate (ie. q, angle or pixels) in 
+		the same way as it is shown on the main panel plots 
+
+17-Nov-03 (DJC)	Slider bar now updates to the current frame number selected by 
+		the 'Current Read In' channel selector.
+
+16-Nov-03 (DJC)	Spatial correction capability added. The user can generate x 
+		and spatial correction arrays using previously calculated spot 
+		center errors taken from an irradiated mask exposure, or read 
+		in pre-calculated correction arrays from disk.
+
+Version 3.04 ******************************************************************************
+
+11-Nov-03 (DJC)	Now can set the x-axis range in the units specified by the x-axis 
+		type selector.  Eg input reciprocal angstoms, degrees or pixels.
+
+10-Nov-03 (DJC)	Added a new button in normalization panel. With a water minus 
+		empty profile in the current channel - hitting the Auto-calc 
+		button will deposit the correct calibration factor for absolute 
+		calibration.
+
+09-Nov-03 (DJC)	Automatic check for suspicious normalization data.  If a frame in 
+		an averaging sequence has an Io value that differs from its 
+		predecessor by more than 10% then ask the user whether or 
+		not to skip the frame in the sequence.
+
+09-Nov-03 (DJC)	New debug mode in program - allows a simulated control mode 
+		with bogus calls to EPICS.  This allows easy offline testing of 
+		the control aspects of saxs15id.
+
+09-Nov-03 (DJC)	saxs15id can now be invoked with the flags /EPICS or /DEBUG 
+		these give the same affect (and in fact override) as changing 
+		the poll.epics value in saxs_init.pro
+
+06-Nov-03 (DJC)	Added a feature to make muliple frame averaging easier - after 
+		selecting the first frame to process, only frames with the same 
+		root name are shown in the second file selection menu.  In 
+		addition, only file numbers within the same century (eg:  
+		test.203,...test.299) are presented as a choice for sequence-
+		ending filename.  If the user wants to cross over centuries (eg. 
+		test.298 - test.303) they will have to select the '*.*' filter  in the 
+		file selection window.
+
+Version 3.03 ******************************************************************************
+
+06-Nov-03 (DJC)	Included ability to plot intensity against Q, Angle or Pixels
+
+06-Nov-03 (DJC)	Removed annoying bug that made the saxs_draw routing show 
+		the previous rather than the current beam-stop mask.
+
+06-Nov-03 (DJC)	Added 'Re-process Image' button to allow user to re-load the 
+		last image used for that profile channel.  No need to go back to 
+		FILE menu.
+
+06-Nov-03 (DJC)	Added 'Log File Update' button to main panel to allow quick re-
+		loading of the log file.  Very useful when monitoring the images 
+		generated from a currently-executing CCD batch file.
+
+06-Nov-03 (DJC)	Fixed bug with loading BAS2000 image plate files
+
+Version 3.02 ******************************************************************************
+
+20-Oct-03 (DJC)	Various bugs cleared up.
+
+Version 3.01 ******************************************************************************
+
+10-Oct-03 (DJC)	We can now read Princeton instruments format images (*.SPE) 
+		files produced by WinView with Roper detectors.
+
+Version 3.00 ******************************************************************************
+
+01-Oct-03 (DJC)	Introduced (slightly) more rigorous version control for saxs15id.  
+		Note that in order for sav files to be built, one has to invoke the 
+		correct version of saxs15id (control or analyse version).  Then 
+		has to:
+
+                     	1) make sure that the main window has come up and looks ok
+                     	2) kill the main window - but stay inside the IDL environment
+                     	3) type:  'resolve_all,/continue_on_error'
+                     	4) type:  'save, filename='..\saxs15id.sav',/routines'
+
+Version 2.00 ******************************************************************************
+
+01-Jan-03 (DJC)	Control version of saxs15id that allows direct control of the saxs 
+		camera - making it automatically handle all the configuration 
+		changes required to change from transmission mode to 
+		exposure mode.
+
+Version 1.00 ******************************************************************************
+
+01-Sep-02 (DJC)	First version of saxs15id - written by David J. Cookson.  This 
+		program allows raw frames to be cake integrated using an 
+		efficient algorithm. Normalization data for each profile stored in 
+		memory (up to 10 profiles at once) is obtained from a log file in 
+		which all the details of the exposure are recorded.
+
+End of file ***************************************************************

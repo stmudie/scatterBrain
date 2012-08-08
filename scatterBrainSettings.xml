@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<scatterBrainSettings>
+
+  <GENERALSETTINGS BINSIZE="       2" STARTINGDIRECTORY="C:\Documents and Settings\mudies\My Documents\kluth\testExp\images\" ZINGERTHRESH="      3.00000"></GENERALSETTINGS>
+
+  <CAMERAPVS LENGTHPV="" WAVELENGTHPV="" WAXSANGLEPV=""></CAMERAPVS>
+
+  <DETECTORLIST>
+    <DETECTOR BASEPV="13PIL1:" CAMPV="cam1:" FILEPV="" I0PV="I0" IBSPV="IBS" IMAGEPV="image1:" ITPV="IT" LOCALFILEPATH="" LOGPV="" LUTPV="" NORMPV="" QVECTORPV="" REMOTEFILEPATH=""></DETECTOR>
+  </DETECTORLIST>
+
+  <RECENTFILELIST>
+    <RECENTFILE>C:\Documents and Settings\mudies\My Documents\kluth\testExp\testExp.xml</RECENTFILE>
+    <RECENTFILE>C:\Documents and Settings\mudies\exptest\exptest.xml</RECENTFILE>
+    <RECENTFILE>C:\Documents and Settings\mudies\My Documents\kluth\saxs\short\Kluth_4181_fridaynight_short_SAXS.xml</RECENTFILE>
+    <RECENTFILE>C:\Documents and Settings\mudies\My Documents\kluth\waxs\short\fridayshortWAXS.xml</RECENTFILE>
+    <RECENTFILE>C:\Documents and Settings\mudies\My Documents\Thibaut\Pilatus2_1m\ThibautSAXS.xml</RECENTFILE>
+    <RECENTFILE>S:\Science\SAXSWAXS\Rochfort_5190\images\RochFortSAXSExperimentEdit.xml</RECENTFILE>
+    <RECENTFILE>S:\Science\SAXSWAXS\Rochfort_5190\images\RochFortSAXSExperiment.xml</RECENTFILE>
+    <RECENTFILE>C:\Documents and Settings\mudies\Rochfort_5190\images\RochFortSAXSExperiment.xml</RECENTFILE>
+  </RECENTFILELIST>
+
+</scatterBrainSettings>
