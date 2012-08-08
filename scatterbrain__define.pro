@@ -1355,6 +1355,8 @@ PRO scatterBrain::newXML, event, DATA = data
   OpenW, fileLUN, 'livelogfile.log', /GET_LUN
   Free_LUN, fileLUN
   OpenW, fileLUN, 'livelogfile-comments.log', /GET_LUN
+    PrintF, fileLUN, '<?xml version="1.0"?>'
+    PrintF, fileLUN, '<root></root>'
   Free_LUN, fileLUN
   CD, CURRENT = current
   
@@ -1405,7 +1407,7 @@ PRO scatterBrain::newXML, event, DATA = data
   self.profiles_obj.NewParams, self.scatterXMLGUI_obj
   result = self.qCalibGUI()
   self.frame_obj->ReSize, BUFFER = self.aux_base_size + [50,50]
-  self.frame_obj.SetProperty, PATH=current
+  self.frame_obj.SetProperty, PATH=current + Path_Sep()
 
 END
 
