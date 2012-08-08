@@ -473,7 +473,7 @@ PRO as_scatterXMLFile::SaveFile, fileName, EMPTY = empty, FILELIST = fileList, T
     IF N_Elements(fileList) GT 0 THEN BEGIN
       logLinesTemp = Replicate((*self.loglines)[0],N_Elements(fileList))
       fileListTemp = List()
-      FOREACH logline, (*self.loglines).logline DO fileListTemp.add, as_fnamestripdir(logline, /CROSSPLAT)
+      FOREACH logline, (*self.loglines).logline DO fileListTemp.add, File_Basename(logline)
       FOREACH file, fileList, key DO loglinesTemp[key] = (*self.loglines)[Where(fileListTemp.toarray() EQ file)]
     ENDIF ELSE loglinesTemp = *self.loglines 
     ;self->NewFromStruct, STRUCT = loglinesTemp, ATTSTRUCT = *self.attLogline, APPENDTO=experiment

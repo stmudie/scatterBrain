@@ -7,7 +7,7 @@ class = List()
 
 ; Compile project files
 
-CD, '../ADA/IDL/'
+CD, 'C:\Perforce\mudies_AS013455_Win\Personal\mudies\ADA\IDL'
 .COMPILE 'ezcaIDL.pro'
 
 class.add, 'epics_ad_base'
@@ -19,11 +19,11 @@ class.add, 'epics_ndplugin_base'
 
 RESOLVE_ALL, class = class.toArray(), /CONTINUE_ON_ERROR
 
-CD, '../../scatterBrain/ 
+CD, 'C:\Documents and Settings\mudies\My Documents\code\scatterBrain' 
 
-.COMPILE '../epicscontrol/drawButton.pro'
-.COMPILE 'C:\Perforce\mudies_AS013455_Win\Personal\mudies\scatterBrain\scatterbrainanalysis.pro'
-;.COMPILE 'C:\Perforce\mudies_AS013455_Win\Personal\mudies\scatterBrain\scatterbraincontrol.pro'
+.COMPILE 'drawButton.pro'
+.COMPILE 'scatterbrainanalysis.pro'
+;.COMPILE 'scatterbraincontrol.pro'
 
 class = List()
 
@@ -77,17 +77,17 @@ class.add, 'idlgrlegend'
 class.add, 'progressbar'
 
 ; Resolve all routines
-RESOLVE_ALL, class = class.toArray(), /CONTINUE_ON_ERROR
+RESOLVE_ALL, class = class.toArray();, /CONTINUE_ON_ERROR
 
 ; Create the project save file
-SAVE, /ROUTINES, FILENAME='c:\scatterbrainanalysis.sav', /VERBOSE
+;SAVE, /ROUTINES, FILENAME='c:\scatterbrainanalysis.sav', /VERBOSE
 ;SAVE, /ROUTINES, FILENAME='c:\scatterbraincontrol.sav', /VERBOSE
 
-MAKE_RT, 'scatterBrainAnalysis', 'c:\scatterBrain\runtime\', SAVEFILE = 'c:\scatterbrainanalysis.sav', /WIN32,/WIN64, /overwrite,/VM
+;MAKE_RT, 'scatterBrainAnalysis', 'c:\scatterBrain\runtime\', SAVEFILE = 'c:\scatterbrainanalysis.sav', /WIN32,/WIN64, /overwrite,/VM
 ;MAKE_RT, 'scatterBrainControl', 'c:\scatterBrain\runtime\', SAVEFILE = 'c:\scatterbraincontrol.sav', /WIN32,/WIN64, /overwrite,/VM
 
 ;SPAWN, 'copy scatterColourTable.tbl c:\scatterBrain\runtime\scatterBrainControl\'
 ;SPAWN, 'copy scatterBrainResources.sav c:\scatterBrain\runtime\scatterBrainControl\'
 
-SPAWN, 'copy scatterColourTable.tbl c:\scatterBrain\runtime\scatterBrainAnalysis\'
-SPAWN, 'copy scatterBrainResources.sav c:\scatterBrain\runtime\scatterBrainAnalysis\'
+;SPAWN, 'copy scatterColourTable.tbl c:\scatterBrain\runtime\scatterBrainAnalysis\'
+;SPAWN, 'copy scatterBrainResources.sav c:\scatterBrain\runtime\scatterBrainAnalysis\'

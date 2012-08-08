@@ -118,9 +118,7 @@ PRO scatterbrain::realise, wBaseCntl
         WIDGET_CONTROL, Widget_Info(self.wBaseCntl, FIND_BY_UNAME='LOGLINECOUNT') $
                                 , set_value = string(n_elements(log_data.fname[*]), format='(I4)')
         IF N_Tags(log_data) EQ 0 THEN BEGIN
-            ; Call to renamed, AS updated function.
-        AS__SaxsLogMakeHeader, log_data   ; create new log_data structure
-            ; -- 
+        
             WIDGET_CONTROL, Widget_Info(self.wBaseCntl, FIND_BY_UNAME='LOGTEXT') $
                           , set_value = 'No log data in memory', /append, set_text_top_line=2000
         ENDIF
@@ -274,7 +272,7 @@ PRO scatterbrain::event, event
         
           file = Dialog_Pickfile(PATH = self.imagesDir, /MUST_EXIST,filter = '*.log')
           self.liveLog = file 
-          path = AS_FileNameDir(self.liveLog)
+          path = File_DirName(self.liveLog, /MARK_DIRECTORY)
           self.frame_obj.SetProperty, PATH=path
           
           IF self.pollEpics EQ 0 THEN BEGIN
@@ -688,8 +686,8 @@ PRO scatterbrain::event, event
                           self.frame_obj.GetProperty, IMAGEPATH = imagePath
                           IF self.checkAllFilesExistence EQ 1 THEN fileList = StrArr(numImages) ELSE fileList = ''
                           FOR i = 0, self.checkAllFilesExistence * (numimages - 1) DO BEGIN
-                            IF fileTemplate EQ '%s%s.tif' THEN fileList[i] = AS_FNameStripDir(String(format = '(%"' + fileTemplate + '")', filePath, fileName), separator = '/') $
-                                                          ELSE fileList[i] = AS_FNameStripDir(String(format = '(%"' + fileTemplate + '")', filePath, fileName, fileNumber + i), separator = '/') 
+                            IF fileTemplate EQ '%s%s.tif' THEN fileList[i] = File_Basename(String(format = '(%"' + fileTemplate + '")', filePath, fileName)) $
+                                                          ELSE fileList[i] = File_Basename(String(format = '(%"' + fileTemplate + '")', filePath, fileName, fileNumber + i)) 
                           ENDFOR
                           existingFileList = File_Test(imagePath + fileList)
                           existingFileCount = Total(existingFileList, /INTEGER)
@@ -950,9 +948,9 @@ PRO scatterbrain::loadXML, xmlFile
   ENDIF ELSE xmlFile = ''
   IF ~File_Test(xmlFile) THEN xmlFile = Dialog_Pickfile(filter = '*.xml', PATH = path, TITLE = 'Select Experiment File', /READ, /MUST_EXIST)
   IF xmlFile EQ '' THEN RETURN
-  self.experimentDir = File_DirName(xmlFile)
+  self.experimentDir = File_DirName(xmlFile, /MARK_DIRECTORY)
   
-  imagesDir = self.experimentDir + Path_Sep() + 'images'
+  imagesDir = self.experimentDir + 'images'
   self.imagesDir = File_Test(imagesDir, /DIRECTORY) ? imagesDir : self.experimentDir
 
   self.scatterXMLGUI_obj->ParseFile, FILENAME = xmlFile
@@ -1331,10 +1329,10 @@ END
 
 FUNCTION scatterbrain::GetUserDir
   path = ''
-  IF self.experimentDir NE '' THEN path = File_DirName(self.experimentDir, /MARK)
+  IF self.experimentDir NE '' THEN path = File_DirName(self.experimentDir, /MARK_DIRECTORY)
   IF ~file_test(path) THEN BEGIN
    CD, CURRENT = path
-   IF StrUpCase(File_Basename(path)) EQ 'IMAGES' THEN path = File_Dirname(File_Dirname(path),/MARK)
+   IF StrUpCase(File_Basename(path)) EQ 'IMAGES' THEN path = File_Dirname(File_Dirname(path),/MARK_DIRECTORY)
   ENDIF
   RETURN, path
 END

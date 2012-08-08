@@ -163,9 +163,9 @@ IF n_elements(control_str) GT 0 THEN must_exist = 0 ELSE must_exist=1
 
   IF n_elements(template) NE 0 THEN BEGIN
         CASE self.frame.fext OF
-            '001'   : filt = AS_FileNameRoot(AS_FNameStripDir(template),self.frame.nameformat,/NUM)+'.*'
-            ''      : filt = AS_FileNameRoot(AS_FNameStripDir(template),self.frame.nameformat,/NUM)+'*'
-            ELSE    : filt = AS_FileNameRoot(AS_FNameStripDir(template),self.frame.nameformat,/NUM)+'???.'+self.frame.fext
+            '001'   : filt = AS_FileNameRoot(File_Basename(template),self.frame.nameformat,/NUM)+'.*'
+            ''      : filt = AS_FileNameRoot(File_Basename(template),self.frame.nameformat,/NUM)+'*'
+            ELSE    : filt = AS_FileNameRoot(File_Basename(template),self.frame.nameformat,/NUM)+'???.'+self.frame.fext
         ENDCASE
   ENDIF
 
@@ -176,9 +176,9 @@ IF n_elements(control_str) GT 0 THEN must_exist = 0 ELSE must_exist=1
         f_name1 = dialog_pickfile(/READ,PATH=self.frame.path,must_exist=must_exist, /multiple_files $
             , filter = filt, TITLE = strprompt)
         IF f_name1[0] EQ '' THEN return;, 'NULL'
-        self.frame.path = AS_FileNameDir(f_name1[0])
+        self.frame.path = File_DirName(f_name1[0],/MARK_DIRECTORY)
         self.frame.fext2 = AS_FileNameRoot(f_name1[0],/EXT)
-        self.frame.fnamelist = AS_FNameStripDir(f_name1[0])
+        self.frame.fnamelist = File_Basename(f_name1[0])
         return
     ENDIF
 
@@ -188,14 +188,14 @@ IF n_elements(control_str) GT 0 THEN must_exist = 0 ELSE must_exist=1
     IF f_name1[0] EQ '' THEN return;, 'NULL'
     ;IF f_name1[0] EQ self.frame.path + control_str THEN return, control_str
     self.frame.fext2 = AS_FileNameRoot(f_name1[0],/ext)
-    self.frame.path = AS_FileNameDir(f_name1[0])
+    self.frame.path = File_DirName(f_name1[0],/MARK_DIRECTORY)
 
     IF n_elements(f_name1) EQ 1 THEN BEGIN
         f_name1 = f_name1[0]
         CASE self.frame.fext OF
-            '001'   : filt = AS_FileNameRoot(AS_FNameStripDir(f_name1),self.frame.nameformat,/NUM)+'.*'
-            ''      : filt = AS_FileNameRoot(AS_FNameStripDir(f_name1),self.frame.nameformat,/NUM)+'*'
-            ELSE    : filt = AS_FileNameRoot(AS_FNameStripDir(f_name1),self.frame.nameformat,/NUM)+'???.'+self.frame.fext
+            '001'   : filt = AS_FileNameRoot(File_Basename(f_name1),self.frame.nameformat,/NUM)+'.*'
+            ''      : filt = AS_FileNameRoot(File_Basename(f_name1),self.frame.nameformat,/NUM)+'*'
+            ELSE    : filt = AS_FileNameRoot(File_Basename(f_name1),self.frame.nameformat,/NUM)+'???.'+self.frame.fext
         ENDCASE
         f_name2 = dialog_pickfile(/READ, PATH=self.frame.path, /must_exist $
               , TITLE = 'Select last image file in sequence' $

@@ -191,7 +191,7 @@ END
 PRO as_scatterXMLGUI::NewLogLine, fname, exptime, i0, it, ibs, _REF_EXTRA = extra
 
   self.as_scatterXMLFile::NewLogLine, fname, exptime, i0, it, ibs, _extra = extra
-  fname = as_fnamestripdir(fname,/CROSSPLAT)
+  fname = File_Basename(fname)
   void = Widget_Tree(self.fileTree, VALUE = fname, INDEX = 0)
 
 END
@@ -230,13 +230,13 @@ PRO as_scatterXMLGUI::ParseFile, FILENAME=filename, LOGONLY=logOnly, UPDATE=upda
   IF numFiles GT startingNum THEN BEGIN
     IF numFiles-startingNum GT 100 THEN progressBarObj = Obj_New('progressbar', /START, /NOCANCEL, TEXT='Updating File List')
     names = ((*self.loglines).logline)[startingNum:numFiles-1]
-    name = as_fnamestripdir(names[0],/CROSSPLAT)
+    name = File_Basename(names[0])
     void = Widget_Tree(self.fileTree, VALUE = name, INDEX = 0)
     count = 0
     IF N_Elements(names) GT 1 THEN BEGIN
       Widget_Control, self.fileTree, MAP = 0
       FOREACH name, names[1:*] DO BEGIN
-        name = as_fnamestripdir(name,/CROSSPLAT)
+        name = File_Basename(name)
         void = Widget_Tree(self.fileTree, VALUE = name, INDEX = 0)
         count += 1
         IF count mod 100 EQ 0 THEN IF Obj_Valid(progressBarObj) THEN progressBarObj->Update, (Float(count)/(numfiles-startingNum))*100
