@@ -1,6 +1,8 @@
 scatterBrain - Written by : Stephen T. Mudie, Australian Synchrotron
 SAXS15ID  -  Written by : David J. Cookson,  ChemMatCARS / ASRP
 
+Version 1.30 **************************************************************************
+
 Version 1.23 **************************************************************************
 Many updates since I last added to this list, including but not limited to:
 
