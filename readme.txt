@@ -1,0 +1,1 @@
+scatterBrain is data collection, reduction and analysis software for Small and Wide Angle X-ray Scattering. It was developed at the Australian Synchrotron.
