@@ -216,7 +216,11 @@ CASE widgetName OF
                                 configName = TextBox(Title = 'Enter Config Name', GROUP_LEADER = self.imageGUIBase, LABEL = 'Config Name:')
                                 IF configName EQ '' THEN RETURN
                               ENDIF
-                              index = Where((self.configNames).toArray() EQ configName)
+                              index = Where((self.configNames).toArray() EQ configName, nElements)
+                              IF nElements GT 1 THEN BEGIN
+                                numConfigsMessage = Dialog_Message('Multiple configs appear to have the same name. Probably a bug, using first.')
+                                index = index[0]
+                              ENDIF
                               IF index[0] EQ -1 THEN BEGIN
                                 index = N_Elements(self.configNames)
                                 (self.configNames).Add, configName
