@@ -976,6 +976,80 @@ PRO scatterbrain::loadXML, xmlFile
 
 END
 
+PRO scatterBrain::newXML, event, DATA = data
+
+  files = 0
+  IF TypeName(data) EQ 'HASH' THEN IF data.haskey('files') THEN files = data['files']
+
+  xmlfile = event.path + event.experimentName + Path_Sep() + event.experimentName + '.xml'
+
+  File_MkDir, event.path + event.experimentName
+  CD, event.path + event.experimentName
+  File_MkDir, ['avg','analysis','sub','raw_sub','raw_dat','manual','images']
+  CD, 'images'
+  OpenW, fileLUN, 'livelogfile.log', /GET_LUN
+  Free_LUN, fileLUN
+  OpenW, fileLUN, 'livelogfile-comments.log', /GET_LUN
+    PrintF, fileLUN, '<?xml version="1.0"?>'
+    PrintF, fileLUN, '<root></root>'
+  Free_LUN, fileLUN
+  CD, CURRENT = current
+  
+  IF Tag_Names(event, /STRUCTURE_NAME) EQ 'TEMPLATE' THEN BEGIN
+    IF event.template NE 'Current' THEN BEGIN
+      templateFile = self.settingsObj.settingsPath + Path_Sep() + event.template + '.xml'
+      IF File_Test(templateFile) THEN BEGIN
+        File_Copy, templateFile, xmlfile 
+      ENDIF ELSE BEGIN
+        result = Dialog_Message('Invalid template file.', /ERROR)
+        RETURN
+      ENDELSE
+      self.loadXML, xmlfile
+    ENDIF
+  ENDIF
+
+  self.liveLog = current + Path_Sep() + 'livelogfile.log'
+
+  self.settingsObj.GetProperty, LOCALFILEPATH = localPath, REMOTEFILEPATH = remotePath
+  
+  self.scatterXMLGUI_obj.GetParameters, ADMap = ADMap
+  
+  detID = Where(ADMap.control EQ 1)
+  
+  FOREACH detNo, detID DO BEGIN
+    localPathPattern = StrJoin(StrSplit(localpath[detNo],Path_Sep(),/EXTRACT),Path_Sep()+Path_Sep())
+    newPathSuffix = StrSplit(current,localPathPattern,/REGEX,/EXTRACT,/FOLD_CASE)
+    newPathSuffix = StrJoin(StrSplit(newPathSuffix,Path_Sep(),/EXTRACT),'/')
+    sep = StrMid(remotePath[detNo],0,1,/REVERSE_OFFSET) EQ '/' ? '' : '/'
+    newRemotePath = remotePath[detNo] + sep + newPathSuffix
+    self.areaDetectorObj.SetProperty, detNo, filePath=newRemotePath
+    self.areaDetectorObj.SetProperty, detNo, logfilepath=newRemotePath
+    self.areaDetectorObj.SetProperty, detNo, logfilename='livelogfile.log'
+    ;IF CAResult NE 0 THEN result = Dialog_Message('Error setting logfile path and name.')
+  ENDFOREACH
+   
+  IF Obj_Valid(self.areaDetectorObj) THEN self.areaDetectorObj.StoreParams, self.scatterXMLGUI_obj
+  
+  IF event.template EQ 'Current' THEN BEGIN
+    IF files EQ 1 THEN BEGIN
+      IF ~self.fileSelectList.IsEmpty() THEN BEGIN
+        self.scatterXMLGUI_obj->SaveFile, xmlFile, FILELIST = self.fileSelectList.toarray(), TYPEFILELIST = 'COPY'
+        self.frame_obj.GetProperty, IMAGEPATH = oldImagePath
+        IF StrMid(oldImagePath, StrLen(oldImagePath)-1,1) NE Path_Sep() THEN oldImagePath = oldImagePath + Path_Sep()
+        File_Copy, oldImagePath + self.fileSelectList.toarray(), current + Path_Sep() + 'copy_' + self.fileSelectList.toarray()
+      ENDIF ELSE files = 0
+    ENDIF
+    IF files EQ 0 THEN self.scatterXMLGUI_obj->SaveFile, xmlfile, /EMPTY
+    self.scatterXMLGUI_obj->ParseFile, FILENAME = xmlFile
+    self.frame_obj->NewParams, self.scatterXMLGUI_obj
+    IF Obj_Valid(self.frame_obj2) THEN self.frame_obj2->NewParams, self.scatterXMLGUI_obj
+    self.profiles_obj.NewParams, self.scatterXMLGUI_obj
+    result = self.qCalibGUI()
+    self.frame_obj->ReSize, BUFFER = self.aux_base_size + [50,50]
+    self.frame_obj.SetProperty, PATH=current + Path_Sep()
+  ENDIF
+
+END
 
 PRO scatterbrain::LogFileSelected, Selected
 
@@ -1335,182 +1409,6 @@ FUNCTION scatterbrain::GetUserDir
    IF StrUpCase(File_Basename(path)) EQ 'IMAGES' THEN path = File_Dirname(File_Dirname(path),/MARK_DIRECTORY)
   ENDIF
   RETURN, path
-END
-
-PRO scatterBrain::newXML, event, DATA = data
-
-  files = 0
-  IF TypeName(data) EQ 'HASH' THEN IF data.haskey('files') THEN files = data['files']
-
-  ;self.notify, {DONE, Path : self.path, logFileName : self.logfileName, experimentName : self.experimentName, configName : self.configName, detector : detector}
-
-  ;IF Tag_Names(event, /STRUCTURE_NAME) NE 'DONE' THEN RETURN
-
-  xmlfile = event.path + event.experimentName + Path_Sep() + event.experimentName + '.xml'
-
-  File_MkDir, event.path + event.experimentName
-  CD, event.path + event.experimentName
-  File_MkDir, ['avg','analysis','sub','raw_sub','raw_dat','manual','images']
-  CD, 'images'
-  OpenW, fileLUN, 'livelogfile.log', /GET_LUN
-  Free_LUN, fileLUN
-  OpenW, fileLUN, 'livelogfile-comments.log', /GET_LUN
-    PrintF, fileLUN, '<?xml version="1.0"?>'
-    PrintF, fileLUN, '<root></root>'
-  Free_LUN, fileLUN
-  CD, CURRENT = current
-  
-  IF Tag_Names(event, /STRUCTURE_NAME) EQ 'TEMPLATE' THEN BEGIN
-    IF event.template NE 'Current' THEN BEGIN
-      templateFile = self.settingsObj.settingsPath + Path_Sep() + event.template + '.xml'
-      IF File_Test(templateFile) THEN File_Copy, templateFile, xmlfile ELSE BEGIN
-        result = Dialog_Message('Invalid template file.', /ERROR)
-        RETURN
-      ENDELSE
-    self.loadXML, xmlfile
-    ENDIF
-  ENDIF
-
-  self.liveLog = current + Path_Sep() + 'livelogfile.log'
-
-  self.settingsObj.GetProperty, LOCALFILEPATH = localPath, REMOTEFILEPATH = remotePath
-  
-  self.scatterXMLGUI_obj.GetParameters, ADMap = ADMap
-  
-  detID = Where(ADMap.control EQ 1)
-  
-  FOREACH detNo, detID DO BEGIN
-    localPathPattern = StrJoin(StrSplit(localpath[detNo],Path_Sep(),/EXTRACT),Path_Sep()+Path_Sep())
-    newPathSuffix = StrSplit(current,localPathPattern,/REGEX,/EXTRACT,/FOLD_CASE)
-    newPathSuffix = StrJoin(StrSplit(newPathSuffix,Path_Sep(),/EXTRACT),'/')
-    sep = StrMid(remotePath[detNo],0,1,/REVERSE_OFFSET) EQ '/' ? '' : '/'
-    newRemotePath = remotePath[detNo] + sep + newPathSuffix
-    self.areaDetectorObj.SetProperty, detNo, filePath=newRemotePath
-    self.areaDetectorObj.SetProperty, detNo, logfilepath=newRemotePath
-    self.areaDetectorObj.SetProperty, detNo, logfilename='livelogfile.log'
-    ;IF CAResult NE 0 THEN result = Dialog_Message('Error setting logfile path and name.')
-  ENDFOREACH
-   
-  IF Obj_Valid(self.areaDetectorObj) THEN self.areaDetectorObj.StoreParams, self.scatterXMLGUI_obj
-  IF files EQ 1 THEN BEGIN
-    IF ~self.fileSelectList.IsEmpty() THEN BEGIN
-                                        self.scatterXMLGUI_obj->SaveFile, xmlFile, FILELIST = self.fileSelectList.toarray(), TYPEFILELIST = 'COPY'
-                                        self.frame_obj.GetProperty, IMAGEPATH = oldImagePath
-                                        IF StrMid(oldImagePath, StrLen(oldImagePath)-1,1) NE Path_Sep() THEN oldImagePath = oldImagePath + Path_Sep()
-                                        File_Copy, oldImagePath + self.fileSelectList.toarray(), current + Path_Sep() + 'copy_' + self.fileSelectList.toarray()
-                                      ENDIF ELSE files = 0
-  ENDIF
-  IF files EQ 0 THEN self.scatterXMLGUI_obj->SaveFile, xmlfile, /EMPTY
-  self.scatterXMLGUI_obj->ParseFile, FILENAME = xmlFile
-  self.frame_obj->NewParams, self.scatterXMLGUI_obj
-  IF Obj_Valid(self.frame_obj2) THEN self.frame_obj2->NewParams, self.scatterXMLGUI_obj
-  self.profiles_obj.NewParams, self.scatterXMLGUI_obj
-  result = self.qCalibGUI()
-  self.frame_obj->ReSize, BUFFER = self.aux_base_size + [50,50]
-  self.frame_obj.SetProperty, PATH=current + Path_Sep()
-
-END
-
-
-;PRO scatterBrain::newXML, files
-;
-;  xmlFile = Dialog_Pickfile(filter = '*.xml', PATH = self.filenames.dir, TITLE = 'Enter New Experiment File', GET_PATH = path, /WRITE, /OVERWRITE_PROMPT)
-;  IF xmlFile EQ '' THEN RETURN
-;  self.liveLog = ''
-;  self.filenames.log = xmlFile
-;  
-;  self.settingsObj.GetProperty, BASEPV = basePV, LOGPV = logPV, LOCALFILEPATH = localPath, REMOTEFILEPATH = remotePath
-;   
-;  self.scatterXMLGUI_obj.GetParameters, ADMap = ADMap
-;  
-;  detID = Where(ADMap.control EQ 1)
-;  
-;  FOREACH detNo, detID DO BEGIN
-;    localPathPattern = StrJoin(StrSplit(localpath[detNo],Path_Sep(),/EXTRACT),Path_Sep()+Path_Sep())
-;    newPathSuffix = StrSplit(path,localPathPattern,/REGEX,/EXTRACT,/FOLD_CASE)
-;    newPathSuffix = StrJoin(StrSplit(newPathSuffix,Path_Sep(),/EXTRACT),'/')
-;    newRemotePath = remotePath[detNo] + '/' + newPathSuffix
-;    self.areaDetectorObj.SetProperty, detNo, filePath=newRemotePath
-;    CAResult = CAPut(basePV[detNo] + logPV[detNo] + 'FilePath', newRemotePath)
-;    CAResult += CAPut(basePV[detNo] + logPV[detNo] + 'FileName', livelogfile)
-;    IF CAResult NE 0 THEN result = Dialog_Message('Error setting logfile path and name.')
-;  ENDFOREACH
-;   
-;  IF Obj_Valid(self.areaDetectorObj) THEN self.areaDetectorObj.StoreParams, self.scatterXMLGUI_obj
-;  IF files EQ 1 THEN BEGIN
-;    IF ~self.fileSelectList.IsEmpty() THEN self.scatterXMLGUI_obj->SaveFile, xmlFile, FILELIST = self.fileSelectList.toarray() $
-;                                      ELSE files = 0
-;  ENDIF
-;  IF files EQ 0 THEN self.scatterXMLGUI_obj->SaveFile, xmlFile, /EMPTY
-;  self.scatterXMLGUI_obj->ParseFile, FILENAME = xmlFile
-;  self.frame_obj->NewParams, self.scatterXMLGUI_obj
-;  IF Obj_Valid(self.frame_obj2) THEN self.frame_obj2->NewParams, self.scatterXMLGUI_obj
-;  self.profiles_obj.NewParams, self.scatterXMLGUI_obj
-;  result = self.qCalibGUI()
-;  self.frame_obj->SetProperty, PATH = AS_FileNameDir(xmlFile)
-;  self.frame_obj->ReSize, BUFFER = self.aux_base_size + [50,50]
-;    
-;END
-
-PRO scatterBrain::createFreshExperiment, PATH = path, EXPERIMENT = experiment, LOGFILE = livelogfile, CONFIGNAME = configName, DETECTOR = detector
-
-  self.settingsObj.GetProperty, DETECTOR = detectors, BASEPV = basePV, CAMPV = camPV, IMAGEPV = imagePV, $
-                                FILEPV = filePV, LOCALFILEPATH = localPath, REMOTEFILEPATH = remotePath, $
-                                WAVELENGTHPV = waveLengthPV, LENGTHPV = lengthPV, WAXSAnglePV = waxsAnglePV, $
-                                LOGPV = logPV
-  new
-  ; Build areaDetector info
-  detNo = Where(detectors EQ detector)
-  self.scatterXMLGUI_obj.clear
-  ADMap = {DETECTORDEF}
-  ADMap.basePV = basePV[detNo]
-  ADMap.camPV = camPV[detNo]
-  ADMap.imagePV = imagePV[detNo]
-  IF N_Elements(filePV) THEN ADMap.filePV = filePV[detNo]
-  ADMap.control = 1
-  ADMap.autoload = 1
-  ADMap.detectorDef = detector
-  ADMap.softwaretrigger = 1
-  
-  wavelength = 11.0
-  length = 1600
-  detAngle = 0
-  CAResult = CAGet(waveLengthPV, wavelength)
-  IF CAResult NE 0 THEN result = Dialog_Message('Error determining energy. Using default of 11 KeV.')
-  CAResult = CAGet(lengthPV, length, /STRING)
-  IF CAResult NE 0 THEN result = Dialog_Message('Error determining camera length. Using default of 1600 mm.')
- ; CAResult = CAGet(WAXSAnglePV, detAngle)
- ; IF CAResult NE 0 THEN result = Dialog_Message('Error determining WAXS detector angle. Using default of 25 deg.')
-  
-  self.scatterXMLGUI_obj.SetParameters, CONFIGNO = 0, ADMAP = ADMap, CONFIGNAME = configName
-  self.areaDetectorObj.NewParams, self.scatterXMLGUI_obj
-  self.areaDetectorObj.StoreParams, self.scatterXMLGUI_obj
-  
-  ; Build frame info
-  FRAME = {wlen : wavelength, len : Fix(length), detAngle : detAngle, xc : 100, yc : 100}
-  
-  self.scatterXMLGUI_obj.SetParameters, FRAME =  frame
-  self.frame_obj.NewParams, self.scatterXMLGUI_obj
-
-  localPathPattern = StrJoin(StrSplit(localpath[detNo],Path_Sep(),/EXTRACT),Path_Sep()+Path_Sep())
-  newPathSuffix = StrSplit(path,localPathPattern,/REGEX,/EXTRACT,/FOLD_CASE)
-  newPathSuffix = StrJoin(StrSplit(newPathSuffix,Path_Sep(),/EXTRACT),'/')
-  newRemotePath = remotePath[detNo] + '/' + newPathSuffix 
-  
-  self.areaDetectorObj.SetProperty, filePath=newRemotePath
-  
-  CAResult = CAPut(basePV[detNo] + logPV[detNo] + 'FilePath', newRemotePath)
-  CAResult += CAPut(basePV[detNo] + logPV[detNo] + 'FileName', livelogfile)
-  IF CAResult NE 0 THEN result = Dialog_Message('Error setting logfile path and name.')
-  
-  self.scatterXMLGUI_obj.SaveFile, path + experiment
-  
-  OpenW, comment, path + (StrSplit(livelogfile,'.',/EXTRACT))[0] + '-comments.log', /GET_LUN
-    PrintF, comment, '<?xml version="1.0"?>
-    PrintF, comment, '<root></root>'
-  Close, comment
-  Free_LUN, comment
-
 END
 
 PRO scatterBrain::NewExperimentCallback, event, data
