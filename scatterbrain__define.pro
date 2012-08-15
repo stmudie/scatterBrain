@@ -1646,9 +1646,20 @@ FUNCTION scatterbrain::init     $
    self.settingsObj = as_scatterbrainsettings()
    self.settingsObj.ParseFile
    
-   CD, self.settingsObj.startingDirectory
+   validPath = 0b
+   startingDirectory = self.settingsObj.startingDirectory
+    WHILE validPath EQ 0 DO BEGIN
+      validPath = File_Test(startingDirectory, /DIRECTORY)
+      IF ~validPath THEN BEGIN
+        startingDirectoryTemp = File_DirName(startingDirectory)
+        IF startingDirectory EQ startingDirectoryTemp THEN startingDirectory = current ELSE startingDirectory = startingDirectoryTemp
+      ENDIF
+    ENDWHILE 
    
+    CD, startingDirectory
+    
     IF KeyWord_Set(epics) THEN BEGIN
+    
       pollEpics = epics 
       cainit
       casettimeout, 0.1
