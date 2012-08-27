@@ -21,6 +21,15 @@ RESOLVE_ALL, class = class.toArray(), /CONTINUE_ON_ERROR
 
 CD, 'C:\Documents and Settings\mudies\My Documents\code\scatterBrain' 
 
+temp = ''
+OpenR, fileLUN, 'scatterbrainanalysis.pro', /GET_LUN
+ReadF, fileLUN, temp
+ReadF, fileLUN, temp
+Free_LUN, fileLUN
+
+version = (StrSplit(temp,'=',/EXTRACT))[-1]
+version = StrCompress(StrJoin(StrSplit(version,'.',/EXTRACT),'_'),/REMOVE_ALL)
+
 .COMPILE 'drawButton.pro'
 .COMPILE 'scatterbrainanalysis.pro'
 ;.COMPILE 'scatterbraincontrol.pro'
@@ -91,3 +100,5 @@ MAKE_RT, 'scatterBrainAnalysis', 'c:\scatterBrain\runtime\', SAVEFILE = 'c:\scat
 
 SPAWN, 'copy scatterColourTable.tbl c:\scatterBrain\runtime\scatterBrainAnalysis\'
 SPAWN, 'copy scatterBrainResources.sav c:\scatterBrain\runtime\scatterBrainAnalysis\'
+
+SPAWN, '7za a c:\scatterBrain\runtime\scatterBrainAnalysisWin_V' + version + '.zip c:\scatterBrain\runtime\scatterBrainAnalysis\'
