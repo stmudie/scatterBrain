@@ -911,6 +911,27 @@ FUNCTION as_scatterXMLFile::GetIndex, fname
 
 END
 
+PRO as_scatterXMLFile::SwitchIBSIT, CONFIGNAME = configName
+
+  IF ~KeyWord_Set(CONFIGNAME) THEN config = 0 ELSE BEGIN
+    config = Where((*self.configurations).name EQ configName)
+  ENDELSE
+
+  itAttr = StrUpCase((*self.configurations)[config].Transmission)
+  ibsAttr = StrUpCase((*self.configurations)[config].Beamstop)
+  
+  names = Tag_Names(*self.loglines)
+  itPos = Where(names EQ itAttr)
+  ibsPos = Where(names EQ ibsAttr)
+  
+  it = Long(((*self.loglines)).(itPos))
+  ibs = Long(((*self.loglines)).(ibsPos))
+  
+  (((*self.loglines)).(itPos)) = ibs
+  (((*self.loglines)).(ibsPos)) = it
+
+END
+
 FUNCTION as_scatterXMLFile::GetScale, index, I0 = I0, IBS = IBS, IT = IT, TIME = time, STAMP=timestamp, CONFIGNUM = config
   
   IF ~KeyWord_Set(config) THEN config = 0

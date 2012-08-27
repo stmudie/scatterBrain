@@ -459,6 +459,11 @@ PRO scatterbrain::event, event
                                   -1 : result = Dialog_Message('File not converted.')
                                ENDCASE
         END
+        'SWITCH IBS IT' :   BEGIN
+                              self.frame_obj.GetProperty, CONFIGNAME = configName
+                              self.scatterXMLGUI_obj.SwitchIbsIT, CONFIGNAME = configNames 
+        END
+        
         'EXPORT NATURE PAPER' :BEGIN
                                  wNatureBase = Widget_Base(GROUP_LEADER = event.top, TITLE = 'Export Nature Paper', /COLUMN)
                                  wLabel  = Widget_Text(wNatureBase, VALUE = 'To use this feature you are required to make an "in app" purchase. This feature is AUD500. Please enter credit card details below.', YSIZE = 5, /WRAP)
@@ -1797,6 +1802,8 @@ FUNCTION scatterbrain::init     $
     SET_ZINGER_MASK = Widget_Button(MENU_TOOLS, VALUE = 'Set Zinger Mask', UNAME = 'SET ZINGER MASK')
     
     CONVERT_SAXS15 = Widget_Button(MENU_TOOLS, VALUE = 'Convert SAXS15ID log/sax files to scatterBrain experiment', UNAME = 'CONVERT SAXS15')
+    
+    SWITCH_IT_IBS = Widget_Button(MENU_TOOLS, VALUE = 'Switch beamstop and transmission data', UNAME = 'SWITCH IBS IT')
     
     EXPORT_NATURE_PAPER = Widget_Button(MENU_TOOLS, VALUE = 'Export Nature Paper', UNAME = 'EXPORT NATURE PAPER')
 
