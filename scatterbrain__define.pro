@@ -305,7 +305,7 @@ PRO scatterbrain::event, event
           QVECTOR = self.qData_Obj.GetProperty(/Q_ARR)
           IF N_Elements(LUT) GT 1 THEN result = caput(LUTPV, [N_Elements(QVECTOR),LUT])
           IF N_Elements(QVECTOR) GT 1 THEN result = caput(QVECTORPV, QVECTOR)
-          result = caput(NORMPV,1/(self.profiles_obj.ibsnrm*self.profiles_obj.CSCalib))
+          result = caput(NORMPV,1/((self.profiles_obj).ibsnrm*(self.profiles_obj).CSCalib))
           ;result = caput(NORMPV,1/self.profiles_obj.CSCalib)
         
         END

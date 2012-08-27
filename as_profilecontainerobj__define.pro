@@ -1464,7 +1464,10 @@ END
 
 PRO AS_ProfileContainerObj::UpdateProfileWidgets, _extra
 
-  IF Ptr_Valid(self.profilerefs) THEN (*self.profileRefs)[self.current].profiles->UpdateProfileWidgets, self.groupleader
+  IF Ptr_Valid(self.profilerefs) THEN BEGIN
+    IF N_Elements((*self.profileRefs)) LE self.current THEN self.current = N_Elements((*self.profileRefs))-1
+   (*self.profileRefs)[self.current].profiles->UpdateProfileWidgets, self.groupleader
+  ENDIF
 
 END
 
