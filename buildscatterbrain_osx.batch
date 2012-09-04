@@ -89,7 +89,5 @@ SAVE, /ROUTINES, FILENAME='/scatterbrainanalysis.sav', /VERBOSE
 MAKE_RT, 'scatterBrainAnalysis', '/scatterBrain/runtime/', SAVEFILE = '/scatterbrainanalysis.sav', /MACINT32, /MACINT64, /OVERWRITE,/VM
 
 SPAWN, 'cp /Users/mudies/Documents/code/scatterBrain/resources/scatterColourTable.tbl /scatterBrain/runtime/scatterBrainAnalysis/'
-SPAWN, 'chmod a+w /scatterBrain/runtime/scatterBrainAnalysis/scatterColourTable.tbl'
 SPAWN, 'cp /Users/mudies/Documents/code/scatterBrain/resources/scatterBrainResources.sav /scatterBrain/runtime/scatterBrainAnalysis/'
-SPAWN, 'chmod a+w /scatterBrain/runtime/scatterBrainAnalysis/scatterBrainResources.sav'
 SPAWN, 'zip -r /scatterBrain/runtime/scatterBrainAnalysisOSX_V' + version + ' /scatterBrain/runtime/scatterBrainAnalysis/'
