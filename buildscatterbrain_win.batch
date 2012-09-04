@@ -100,5 +100,7 @@ MAKE_RT, 'scatterBrainAnalysis', 'c:\scatterBrain\runtime\', SAVEFILE = 'c:\scat
 
 SPAWN, 'copy scatterColourTable.tbl c:\scatterBrain\runtime\scatterBrainAnalysis\'
 SPAWN, 'copy scatterBrainResources.sav c:\scatterBrain\runtime\scatterBrainAnalysis\'
+SPAWN, 'copy scatterBrainAnalysis.ini c:\scatterBrain\runtime\scatterBrainAnalysis\'
+SPAWN, 'copy .\resources\splash.bmp c:\scatterBrain\runtime\scatterBrainAnalysis\'
 
 SPAWN, '7za a c:\scatterBrain\runtime\scatterBrainAnalysisWin_V' + version + '.zip c:\scatterBrain\runtime\scatterBrainAnalysis\'

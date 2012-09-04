@@ -405,6 +405,10 @@ PRO scatterbrain::event, event
                                  IF step LE 0 THEN step = 1
                                  binSize = CW_Field(self.settingsBase, TITLE = 'q-vector bin size', VALUE = step, /FLOATING, /RETURN_EVENTS, UNAME = 'Q BIN SIZE')
                                  startingDirectory = Widget_Button(self.settingsBase, VALUE = 'Set Starting Directory', UNAME = 'STARTING DIRECTORY')
+                                 nonExclusiveSettings2 = Widget_Base(self.settingsBase, /COLUMN,/NONEXCLUSIVE)
+                                 autoCheckForUpdates = Widget_Button(nonExclusiveSettings2, VALUE = 'Check For Updates on start up?', UNAME = 'AUTO CHECK UPDATE')
+                                 
+                                 Widget_Control, autoCheckForUpdates, SET_BUTTON = self.settingsObj.autoCheckUpdates
                                                                   
                                  Widget_Control, self.settingsBase, SET_UVALUE = self
                                  Widget_Control, self.settingsBase, /REALIZE
@@ -450,6 +454,9 @@ PRO scatterbrain::event, event
                                  startingDirectory = Dialog_Pickfile(/DIRECTORY)
                                  IF File_Test(startingDirectory, /DIRECTORY) THEN self.settingsObj.startingDirectory = startingDirectory
                                END
+        'AUTO CHECK UPDATE' : BEGIN
+                                self.settingsObj.autoCheckUpdates = event.select
+                              END
         'CONVERT SAXS15'   : BEGIN
                                convertObj = as__convertsaxs15toscatterbrain()
                                xmlFile = ''
@@ -535,8 +542,15 @@ PRO scatterbrain::event, event
                            updateBase = Widget_Base(GROUP_LEADER = self.wScatterBase, EVENT_PRO = 'scatterbrain_event', /COLUMN)
                            updateLabel = Widget_Label(updateBase, VALUE = 'scatterBrain Update')
                            
-                           updateObj = as_upgradeversion('scatterbrainanalysis', 'http://www.synchrotron.org.au/images/beamlines/saxswaxs/',self.programDir)
-                           newVersion = updateObj.newestVersion()
+                           CASE self.operatingSystem OF 
+                             'Windows' : programName = 'scatterbrainanalysiswin'
+                             'Mac'     : programName = 'scatterbrainanalysisosx'
+                             'Linux'   : programName = 'scatterbrainanalysislinux'
+                             ELSE : RETURN
+                           ENDCASE
+                           
+                           updateObj = as_upgradeversion(programName, 'http://www.synchrotron.org.au/images/beamlines/saxswaxs/scatterbrain/',self.programDir)
+                           newVersion = updateObj.newestVersion(MESSAGE = versionMessage)
                            Obj_Destroy, updateObj
                            
                            currentLabel = Widget_Label(updateBase, VALUE = 'Current version : ' + StrCompress(String(self.version,FORMAT = '(D7.3)'),/REMOVE_ALL))
@@ -544,6 +558,7 @@ PRO scatterbrain::event, event
                                               ELSE newestLabel = Widget_Label(updateBase, VALUE = 'Newest version available : Could not connect to server', UNAME = 'NEWEST LABEL')
                            
                            IF self.version LT newVersion THEN BEGIN
+                             result = Dialog_Message(['Version ' + StrCompress(String(newVersion, FORMAT = '(D7.3)')) + ' is available', 'Notes:', versionMessage],/INFORMATION)
                              updateLabel = Widget_Label(updateBase, VALUE = 'A new version of scatterBrain is available.', UNAME = 'UPDATE LABEL')
                              updateButton = Widget_Button(updateBase, VALUE = 'Update', UNAME = 'UPDATE')
                            ENDIF ELSE BEGIN
@@ -563,8 +578,16 @@ PRO scatterbrain::event, event
                            XManager, 'scatterbrain', updateBase, /NO_BLOCK
                          END
         'RECHECK UPDATE' : BEGIN
-                             updateObj = as_upgradeversion('scatterbrainanalysis', 'http://www.synchrotron.org.au/images/beamlines/saxswaxs/',self.programDir)
-                             newVersion = updateObj.newestVersion()
+                             
+                             CASE self.operatingSystem OF 
+                               'Windows' : programName = 'scatterbrainanalysiswin'
+                               'Mac'     : programName = 'scatterbrainanalysisosx'
+                               'Linux'   : programName = 'scatterbrainanalysislinux'
+                               ELSE : RETURN
+                             ENDCASE
+                             
+                             updateObj = as_upgradeversion(programName, 'http://www.synchrotron.org.au/images/beamlines/saxswaxs/scatterbrain/',self.programDir)
+                             newVersion = updateObj.newestVersion(MESSAGE = versionMessage)
                              Obj_Destroy, updateObj
                              
                              newestLabel = Widget_Info(event.top, FIND_BY_UNAME = 'NEWEST LABEL')
@@ -575,6 +598,7 @@ PRO scatterbrain::event, event
                              updateButton = Widget_Info(event.top, FIND_BY_UNAME = 'RECHECK UPDATE')
                              
                              IF self.version LT newVersion THEN BEGIN
+                               result = Dialog_Message(['Version ' + StrCompress(String(newVersion, FORMAT = '(D7.3)')) + ' is available', 'Notes:', versionMessage],/INFORMATION)
                                Widget_Control, updateLabel, SET_VALUE = 'A new version of scatterBrain is available.'
                                Widget_Control, updateButton, SET_VALUE = 'Update'
                              ENDIF ELSE BEGIN
@@ -588,8 +612,21 @@ PRO scatterbrain::event, event
                              ENDELSE
                            END
         'UPDATE'       : BEGIN
-                           updateObj = as_upgradeversion('scatterbrainanalysis', 'http://www.synchrotron.org.au/images/beamlines/saxswaxs/',self.programDir, NOTIFYOBJ = notify('UpgradeCallback',self))
-                           void = updateObj.getNewestVersion()
+                           CASE self.operatingSystem OF 
+                             'Windows' : programName = 'scatterbrainanalysiswin'
+                             'Mac'     : programName = 'scatterbrainanalysisosx'
+                             'Linux'   : programName = 'scatterbrainanalysislinux'
+                             ELSE : RETURN
+                           ENDCASE
+                           updateObj = as_upgradeversion(programName, 'http://www.synchrotron.org.au/images/beamlines/saxswaxs/scatterbrain/',self.programDir, NOTIFYOBJ = notify('UpgradeCallback',self))
+                           result = updateObj.getNewestVersion()
+                           CASE result OF
+                            0 : BEGIN
+                                  void = Dialog_Message('Download failed - please try again.')
+                                  Widget_Control, self.updateprogressLabel, SET_VALUE = 'Failed.'
+                                END
+                            1 : void = Dialog_Message(['Download succeeded, restart scatterBrain to use the new version.','If you have problems your previous version has been backed up.','These are the *.bak files in you scatterBrain directory'],/INFORMATION) 
+                           ENDCASE
                          END
                          
         
@@ -1616,6 +1653,19 @@ FUNCTION scatterbrain::init     $
 
   CD, current = current
   self.programDir = current + path_sep()
+  
+  ; Determine Operating System
+  CASE StrUpCase(!Version.OS_Family) OF
+      'WINDOWS': self.operatingSystem = 'Windows'
+      'UNIX': BEGIN
+                IF StrPos(!Version.OS_Name, 'Mac') GE 0 THEN BEGIN
+                  self.operatingSystem = 'Mac' ; Macintosh
+                ENDIF ELSE BEGIN
+                  self.operatingSystem = 'Linux' ; other UNIX.
+                ENDELSE
+              END
+       ELSE : self.operatingSystem = 'Other'   
+  ENDCASE   
 
 ; INITIALISE PREDETERMINED CLASS VARIABLES
    self.dir    = 'no_name_yet'
@@ -1662,6 +1712,25 @@ FUNCTION scatterbrain::init     $
     ENDWHILE 
    
     CD, startingDirectory
+    
+    IF self.settingsObj.autoCheckUpdate THEN BEGIN
+    
+      CASE self.operatingSystem OF 
+        'Windows' : programName = 'scatterbrainanalysiswin'
+        'Mac'     : programName = 'scatterbrainanalysisosx'
+        'Linux'   : programName = 'scatterbrainanalysislinux'
+        ELSE : programName = ''
+      ENDCASE   
+      IF programName NE '' THEN BEGIN
+        updateObj = as_upgradeversion(programName, 'http://www.synchrotron.org.au/images/beamlines/saxswaxs/scatterbrain/',self.programDir)
+        newVersion = updateObj.newestVersion(MESSAGE = versionMessage, /SILENT)
+        Obj_Destroy, updateObj
+        
+        IF version LT newVersion THEN BEGIN
+          result = Dialog_Message(['Version ' + StrCompress(String(newVersion, FORMAT = '(D7.3)')) + ' is available. Please go to Help->Check for Updates to upgrade.', 'Version notes:', versionMessage],/INFORMATION)
+        ENDIF
+      ENDIF
+    ENDIF
     
     IF KeyWord_Set(epics) THEN BEGIN
     
@@ -2240,7 +2309,8 @@ void = {scatterbrain, $
        version            : 0.0,             $
        programDir         : '',              $
        updateProgressLabel: 0L,              $
-       settingsObj        : Obj_New()        $
+       settingsObj        : Obj_New(),       $
+       operatingSystem     : ''               $ 
        }                                     
 
 END

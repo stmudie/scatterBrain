@@ -19,7 +19,7 @@ PRO AS_XMLParamFile::Load, FILENAME=filename
 
 END
 
-PRO AS_XMLParamFile::New, baseElement, DTD = DTD
+PRO AS_XMLParamFile::New, baseElement, DTD = DTD, FILEVERSION = fileVersion
 
   IF Keyword_Set(DTD) THEN BEGIN
     IF ~StrMatch(dtd, '*<?xml*') THEN DTD = '<?xml version="1.0" encoding="UTF-8"?>'+DTD
@@ -31,9 +31,11 @@ PRO AS_XMLParamFile::New, baseElement, DTD = DTD
     nodeList = self.base->GetChildNodes()
     FOR i = 0, nodeList->GetLength() - 1 DO void = self.base->RemoveChild(nodeList->Item(0))
   ENDIF ELSE BEGIN
-    self.base = self->CreateElement(baseElement)
+    self.base = self->CreateElement(baseElement) 
     void = self->AppendChild(self.base)
   ENDELSE
+  
+  IF N_Elements(fileVersion) THEN self->AddAttribute, self.base, 'FileVersion', fileVersion
 
 END
 

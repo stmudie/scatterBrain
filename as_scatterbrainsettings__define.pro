@@ -18,9 +18,9 @@ FUNCTION as_scatterBrainSettings::init
   self.recentFile = Ptr_New(replicate({RECENTFILE},8))
   self.attRecentFile = Ptr_New({ATTRIBUTESRECENTFILE, recentFile :['']})
   
-  void = {GENERAL, generalSettings : '', zingerThresh : '', binSize : '', startingDirectory : ''}
+  void = {GENERAL, generalSettings : '', zingerThresh : '', binSize : '', startingDirectory : '', autoCheckUpdates : ''}
   self.general = Ptr_New({GENERAL})
-  self.attGeneral = Ptr_New({ATTRIBUTESGENERAL, generalSettings : ['zingerThresh', 'binSize', 'startingDirectory']})
+  self.attGeneral = Ptr_New({ATTRIBUTESGENERAL, generalSettings : ['zingerThresh', 'binSize', 'startingDirectory', 'autoCheckUpdates']})
   
   RETURN, self.as_xmlparamfile::init()
 
@@ -68,14 +68,15 @@ END
 PRO as_scatterBrainSettings::setDefaults
 
   CD, CURRENT = current
-  self.setProperty, zingerThresh = 3.0, binSize = 2, startingDirectory = current, basePV = '13PIL1:', camPV = 'cam1:', imagePV = 'image1:', I0PV = 'I0', IBSPV = 'IBS', ITPV = 'IT'
+  self.setProperty, zingerThresh = 3.0, binSize = 2, startingDirectory = current, autoCheckUpdates = 1, basePV = '13PIL1:', camPV = 'cam1:', imagePV = 'image1:', I0PV = 'I0', IBSPV = 'IBS', ITPV = 'IT', /NOSAVE
   
 END
 
 PRO as_scatterBrainSettings::ParseFile
 
+  self.setDefaults
+
   IF ~File_Test(self.settingsPath + 'scatterBrainSettings.xml') THEN BEGIN
-    self.setDefaults
     self.savefile
   ENDIF
 
@@ -92,7 +93,8 @@ END
 
 PRO as_scatterBrainSettings::SaveFile
   
-  self->NewFromStruct, 'scatterBrainSettings', STRUCT = *self.general, ATTSTRUCT = *self.attGeneral
+  self->New, 'scatterBrainSettings', FILEVERSION = '1'
+  self->NewFromStruct, 'scatterBrainSettings', STRUCT = *self.general, ATTSTRUCT = *self.attGeneral, APPENDTO = 'base'
   self->NewFromStruct, STRUCT = *self.cameraPVs, ATTSTRUCT = *self.attCameraPVs, APPENDTO = 'base'
   detectorList = self->AddElement('base', 'DETECTORLIST','')
   self->NewFromStruct, 'scatterBrainSettings', STRUCT = *self.detector, ATTSTRUCT = *self.attDetector, APPENDTO = detectorList
@@ -124,7 +126,8 @@ PRO as_scatterBrainSettings::GetProperty, $
   BINSIZE = binSize, $
   RECENTFILE = recentFile, $
   SETTINGSPATH = settingsPath, $
-  STARTINGDIRECTORY = startingDirectory
+  STARTINGDIRECTORY = startingDirectory, $
+  AUTOCHECKUPDATES = autoCheckUpdates
 
   IF Arg_Present(detector) THEN detector = (*self.detector).detector
   IF Arg_Present(basePV) THEN basePV = (*self.detector).basePV
@@ -148,6 +151,7 @@ PRO as_scatterBrainSettings::GetProperty, $
   IF Arg_Present(recentFile) THEN recentFile = (*self.recentFile).recentFile
   IF Arg_Present(settingsPath) THEN settingsPath = self.settingsPath
   IF Arg_Present(startingDirectory) THEN startingDirectory = (*self.general).startingDirectory
+  IF Arg_Present(autoCheckUpdates) THEN autoCheckUpdates = Fix((*self.general).autoCheckUpdates)
 
 END
 
@@ -173,7 +177,9 @@ PRO as_scatterBrainSettings::SetProperty, $
   ZINGERTHRESH = zingerThresh, $
   BINSIZE = binSize, $
   RECENTFILE = recentFile, $
-  STARTINGDIRECTORY = startingDirectory
+  STARTINGDIRECTORY = startingDirectory, $
+  AUTOCHECKUPDATES = autoCheckUpdates, $
+  NOSAVE = noSave
 
   IF N_Elements(detector) + $
      N_Elements(basePV) + $
@@ -232,8 +238,9 @@ PRO as_scatterBrainSettings::SetProperty, $
     (*self.recentFile)[0:numRecentFiles-1].recentFile = recentFileList
   ENDIF
   IF ISA(startingDirectory, 'STRING') AND Ptr_Valid(self.general) THEN (*self.general).startingDirectory = startingDirectory
+  IF Ptr_Valid(self.general) THEN (*self.general).autoCheckUpdates = KeyWord_Set(autoCheckUpdates)
   
-  self.SaveFile
+  IF ~KeyWord_Set(NOSAVE) THEN self.SaveFile
   
 END
 

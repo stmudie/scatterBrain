@@ -31,11 +31,12 @@ PRO as_upgradeversion::notify, event
 
 END
 
-FUNCTION as_upgradeversion::newestVersion
+FUNCTION as_upgradeversion::newestVersion, MESSAGE = message, SILENT = silent
 
   CATCH, errorStatus 
    IF (errorStatus NE 0) THEN BEGIN
       CATCH, /CANCEL
+      IF Keyword_Set(silent) THEN RETURN, -1
       self.urlObj.GetProperty, RESPONSE_CODE=rspCode, RESPONSE_HEADER=rspHdr, RESPONSE_FILENAME=rspFn
       IF rspCode EQ 6 THEN result = Dialog_Message('Error connecting to ' + self.url + '. Check internet connectivity, or try again later.') $
                       ELSE result = Dialog_Message(!Error_State.msg)
@@ -45,15 +46,32 @@ FUNCTION as_upgradeversion::newestVersion
   result = self.urlObj.Get(URL = self.url + self.name + 'Version.dat', /STRING_ARRAY)
   self.version = Float(result[0])
   
+  IF Arg_Present(message) THEN BEGIN
+    message = self.urlObj.Get(URL = self.url + self.name + 'Message.txt', /STRING_ARRAY)
+  ENDIF
+  
   RETURN, self.version
   
 END
 
-FUNCTION as_upgradeversion::getNewestVersion
+FUNCTION as_upgradeversion::getNewestVersion, BACKUP = backup
 
-  result = self.urlObj.Get(URL = self.url + self.name + '.sav', FILENAME = self.dir + self.name + '.sav')
+  failed = 0
+  
+  fileArray = self.urlObj.Get(URL = self.url + self.name + 'Manifest.txt', /STRING_ARRAY)
+  FOREACH file, fileArray DO BEGIN 
+    result = self.urlObj.Get(URL = self.url + file, FILENAME = self.dir + file + '.new')
+    IF result NE self.dir + file + '.new' THEN failed = 1
+  ENDFOREACH
  
-  RETURN, 1
+  IF failed EQ 0 THEN BEGIN
+    FOREACH file, fileArray DO BEGIN 
+      IF File_Test(self.dir + file) THEN File_Move, self.dir + file, self.dir + file + '.bak', /OVERWRITE
+      File_Move, self.dir + file + '.new', self.dir + file
+    ENDFOREACH
+  ENDIF
+  
+  RETURN, ~failed
 
 END
 
