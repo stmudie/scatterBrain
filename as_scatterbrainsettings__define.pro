@@ -65,16 +65,7 @@ FUNCTION as_scatterBrainSettings::getSettingsPath
 
 END
 
-PRO as_scatterBrainSettings::setDefaults
-
-  CD, CURRENT = current
-  self.setProperty, zingerThresh = 3.0, binSize = 2, startingDirectory = current, autoCheckUpdates = 1, basePV = '13PIL1:', camPV = 'cam1:', imagePV = 'image1:', I0PV = 'I0', IBSPV = 'IBS', ITPV = 'IT', /NOSAVE
-  
-END
-
 PRO as_scatterBrainSettings::ParseFile
-
-  self.setDefaults
 
   IF ~File_Test(self.settingsPath + 'scatterBrainSettings.xml') THEN BEGIN
     self.savefile
@@ -89,6 +80,27 @@ PRO as_scatterBrainSettings::ParseFile
   self->AS_XMLPARAMFILE::ParseFile, self.settingsPath + 'scatterBrainSettings.xml', STRUCT = *self.general, ATTSTRUCT=*self.attGeneral
   *self.general = *self.structArray
   
+  ;Set some defaults if values weren't present in file
+  
+  ;General Settings
+  general = *self.general
+  IF general.zingerThresh EQ '' THEN self.SetProperty, zingerThresh = 3.0 
+  IF general.binSize EQ '' THEN self.SetProperty, binSize = 2
+  IF general.startingDirectory EQ '' THEN BEGIN
+    CD, CURRENT = current
+    self.SetProperty, startingDirectory = current
+  ENDIF
+  IF general.autoCheckUpdates EQ '' THEN self.SetProperty, autoCheckUpdates = 1
+  
+  ;Detector Settings
+  detector = *self.detector
+  IF detector.basePV EQ '' THEN self.SetProperty, basePV = '13PIL1:'
+  IF detector.camPV EQ '' THEN camPV = 'cam1:'
+  IF detector.imagePV EQ '' THEN imagePV = 'image1:'
+  IF detector.I0PV EQ '' THEN I0PV = 'I0'
+  IF detector.IBSPV EQ '' THEN IBSPV = 'IBS'
+  IF detector.ITPV EQ '' THEN ITPV = 'IT'
+    
 END
 
 PRO as_scatterBrainSettings::SaveFile
