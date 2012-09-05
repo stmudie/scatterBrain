@@ -1604,7 +1604,7 @@ PRO scatterbrain::LoadResources, UNLOAD=unload
   ENDIF
   
   CD, CURRENT=current
-  pathArr = [current,StrSplit(!path,';',/EXTRACT)]
+  pathArr = [current,self.programDir, StrSplit(!path,';',/EXTRACT)]
   count = 0
   path2Image = ''
   path2ColourTable = ''
@@ -1634,6 +1634,7 @@ END
 FUNCTION scatterbrain::GetResource, resource
   
   tagNum = Where(Tag_Names(*self.resource) EQ StrUpCase(resource))
+  
   RETURN, (*self.resource).(tagNum)
 
 END
