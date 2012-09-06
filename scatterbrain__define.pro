@@ -1167,8 +1167,20 @@ PRO scatterbrain::LogFileSelected, Selected
                  profileIndices = IntArr(selected.name.count())
                  self.frame_obj.SetProperty, UPDATEIMAGE = 0
                  selected.name.reverse
-                 FOREACH name, selected.name, key DO profileIndices[key] = self.ProcessImage(name, /NOPLOT, NOSETUP = ~(key EQ 1) )
+                 result = ''
+                 FOREACH name, selected.name, key DO BEGIN
+                   index = self.ProcessImage(name, /NOPLOT, NOSETUP = ~(key EQ 1) )
+                   IF index EQ -1 THEN result = Dialog_Message('File opening error encountered, continue anyway?',/QUESTION)
+                   IF result EQ 'No' THEN BREAK
+                   profileIndices[key] = index
+                 ENDFOREACH
+                 IF result EQ 'No' THEN BREAK
                  self.frame_obj.SetProperty, UPDATEIMAGE = 1
+                 profileIndices = profileIndices[Where(profileIndices NE -1, /NULL)]
+                 IF N_Elements(profileIndices) EQ 0 THEN BEGIN
+                   result = Dialog_Message('No valid files selected to create contour - returning.')
+                   BREAK
+                 ENDIF
                  data = self.profiles_obj.GetProfiles(profileIndices)
                  self.profiles_obj.DeleteProfile, profileIndices
                  
@@ -1217,9 +1229,15 @@ PRO scatterbrain::LogFileSelected, Selected
                 movieFileName = Dialog_Pickfile(/OVERWRITE_PROMPT,/WRITE)
                 IF movieFileName EQ '' THEN RETURN
                 videoObj = IDLffVideoWrite(movieFileName)
+                frameNo = 0
                 FOREACH name, selected.name, key DO BEGIN
                   IF key GT 0 THEN self.profiles_obj.deleteProfile, profileIndex
                   profileIndex = self.processImage(name, NOSETUP = key GT 0)
+                  IF profileIndex EQ -1 THEN BEGIN
+                    result = Dialog_Message('File opening error encountered, continue anyway?',/QUESTION)
+                    IF result EQ 'No' THEN BREAK
+                    CONTINUE
+                  ENDIF
                   profileIndexTemp = profileIndex
                   self.profiles_obj.LineWidth, profileIndexTemp, 4
                   self.profiles_obj.updateplot
@@ -1233,8 +1251,9 @@ PRO scatterbrain::LogFileSelected, Selected
                   image = BytArr(3, Width, Height)
                   image[0:2,5:geomFrame[2]+4,(height-geomFrame[3])/2:(height-geomFrame[3])/2+geomFrame[3]-1]=frame
                   image[0:2,geomFrame[2]+10:geomFrame[2]+10+geomPlot[2]-1,(height-geomPlot[3])/2:(height-geomPlot[3])/2+geomPlot[3]-1]=plotImage
-                  IF key EQ 0 THEN streamIndex = videoObj.AddVideoStream(N_Elements(image[0,*,0]),N_Elements(image[0,0,*]), 5, BIT_RATE = 4e7)
+                  IF frameNo EQ 0 THEN streamIndex = videoObj.AddVideoStream(N_Elements(image[0,*,0]),N_Elements(image[0,0,*]), 5, BIT_RATE = 4e7)
                   void = videoObj.Put(streamIndex, image)
+                  frameNo += frameNo
                 ENDFOREACH
                   
                 Obj_Destroy, videoObj
@@ -1245,8 +1264,16 @@ PRO scatterbrain::LogFileSelected, Selected
                 self.frame_obj.GetProperty, IMAGEPATH = path
                 FOREACH name, selected.name DO BEGIN
                   result = self.frame_obj.GetRawImage(path + name, frame=frame)
-                  frameList.Add, frame
+                  IF result EQ -1 THEN BEGIN
+                    yn = Dialog_Message('File opening error encountered, continue anyway?',/QUESTION)
+                    IF yn EQ 'No' THEN BREAK
+                  ENDIF ELSE frameList.Add, frame
                 ENDFOREACH
+                IF yn EQ 'No' THEN BREAK
+                IF frameList.count() EQ 0 THEN BEGIN
+                  dialog = Dialog_Message('No valid files, returning.')
+                  BREAK
+                ENDIF
                 rows = Fix(Sqrt(framelist.count()))
                 columns = Ceil(framelist.count()/Float(rows))
                 mosaic = as_imagemosaicGUI(frameList, columns, rows, LABELS = selected.name)
