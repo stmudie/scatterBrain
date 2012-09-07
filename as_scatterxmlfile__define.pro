@@ -142,7 +142,10 @@ FUNCTION as_scatterXMLFile::init, NOTIFYOBJECT = notifyObject
 END
 
 PRO as_scatterXMLFile::notify, event
-
+  
+  COMPILE_OPT idl2
+  ON_ERROR, 2
+  
   FOREACH notify, self.notifyObject DO IF Obj_Valid(notify) THEN notify.notify, event
 
 END

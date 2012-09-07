@@ -1,4 +1,8 @@
 PRO as_scatterXMLGUI_event, event
+  
+  COMPILE_OPT idl2
+  ON_ERROR, 2
+  
   Widget_Control, event.handler, GET_UVALUE = scatterXMLGUI
   scatterXMLGUI.event, event
 END
@@ -141,6 +145,10 @@ PRO as_scatterXMLGUI::event, event
                                             
                     END
     'Contour'     : BEGIN
+                      
+                      COMPILE_OPT idl2
+                      ON_ERROR, 2
+                      
                       selected = Widget_Info(self.fileTreeParent,/TREE_SELECT)
                       nameList = list()
                       FOREACH s, selected DO BEGIN

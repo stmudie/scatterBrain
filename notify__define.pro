@@ -28,6 +28,9 @@ END
 
 PRO NOTIFY::notify, event
 
+  COMPILE_OPT idl2
+  ON_ERROR, 2
+
   IF self.validMethod() NE 1 THEN RETURN
   IF TypeName(self.data) NE 'HASH' THEN $
     Call_Method, self.method, self.object, event ELSE $
