@@ -558,7 +558,7 @@ PRO scatterbrain::event, event
                                               ELSE newestLabel = Widget_Label(updateBase, VALUE = 'Newest version available : Could not connect to server', UNAME = 'NEWEST LABEL')
                            
                            IF self.version LT newVersion THEN BEGIN
-                             result = Dialog_Message(['Version ' + StrCompress(String(newVersion, FORMAT = '(D7.3)')) + ' is available', 'Notes:', versionMessage],/INFORMATION)
+                             result = Dialog_Message(['Version ' + StrCompress(String(newVersion, FORMAT = '(D7.3)')) + ' is available', 'Notes:', AS_SplitMessage(versionMessage,500)],/INFORMATION)
                              updateLabel = Widget_Label(updateBase, VALUE = 'A new version of scatterBrain is available.', UNAME = 'UPDATE LABEL')
                              updateButton = Widget_Button(updateBase, VALUE = 'Update', UNAME = 'UPDATE')
                            ENDIF ELSE BEGIN
@@ -598,7 +598,7 @@ PRO scatterbrain::event, event
                              updateButton = Widget_Info(event.top, FIND_BY_UNAME = 'RECHECK UPDATE')
                              
                              IF self.version LT newVersion THEN BEGIN
-                               result = Dialog_Message(['Version ' + StrCompress(String(newVersion, FORMAT = '(D7.3)')) + ' is available', 'Notes:', versionMessage],/INFORMATION)
+                               result = Dialog_Message(['Version ' + StrCompress(String(newVersion, FORMAT = '(D7.3)')) + ' is available', 'Notes:', AS_SplitMessage(versionMessage,500)],/INFORMATION)
                                Widget_Control, updateLabel, SET_VALUE = 'A new version of scatterBrain is available.'
                                Widget_Control, updateButton, SET_VALUE = 'Update'
                              ENDIF ELSE BEGIN
@@ -1755,7 +1755,7 @@ FUNCTION scatterbrain::init     $
         Obj_Destroy, updateObj
         
         IF version LT newVersion THEN BEGIN
-          result = Dialog_Message(['Version ' + StrCompress(String(newVersion, FORMAT = '(D7.3)')) + ' is available. Please go to Help->Check for Updates to upgrade.', 'Version notes:', versionMessage],/INFORMATION)
+          result = Dialog_Message(['Version ' + StrCompress(String(newVersion, FORMAT = '(D7.3)')) + ' is available. Please go to Help->Check for Updates to upgrade.', 'Version notes:', as_splitmessage(versionMessage,500)],/INFORMATION)
         ENDIF
       ENDIF
     ENDIF
