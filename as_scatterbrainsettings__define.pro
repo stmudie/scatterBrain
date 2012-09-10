@@ -94,12 +94,12 @@ PRO as_scatterBrainSettings::ParseFile
   
   ;Detector Settings
   detector = *self.detector
-  IF detector.basePV EQ '' THEN self.SetProperty, basePV = '13PIL1:'
-  IF detector.camPV EQ '' THEN camPV = 'cam1:'
-  IF detector.imagePV EQ '' THEN imagePV = 'image1:'
-  IF detector.I0PV EQ '' THEN I0PV = 'I0'
-  IF detector.IBSPV EQ '' THEN IBSPV = 'IBS'
-  IF detector.ITPV EQ '' THEN ITPV = 'IT'
+  IF (detector.basePV)[0] EQ '' THEN self.SetProperty, basePV = '13PIL1:'
+  IF (detector.camPV)[0] EQ '' THEN camPV = 'cam1:'
+  IF (detector.imagePV)[0] EQ '' THEN imagePV = 'image1:'
+  IF (detector.I0PV)[0] EQ '' THEN I0PV = 'I0'
+  IF (detector.IBSPV)[0] EQ '' THEN IBSPV = 'IBS'
+  IF (detector.ITPV)[0] EQ '' THEN ITPV = 'IT'
     
 END
 
