@@ -1,5 +1,9 @@
 FUNCTION as_scatterXMLFile::init, NOTIFYOBJECT = notifyObject
 
+  COMPILE_OPT idl2
+  DEFSYSV, '!debug', EXISTS = debug
+  IF ~debug THEN ON_ERROR, 2
+
   self.fileVersionNumber = StrCompress(1.0)
 
   IF Keyword_Set(notifyObject) THEN $
@@ -144,13 +148,18 @@ END
 PRO as_scatterXMLFile::notify, event
   
   COMPILE_OPT idl2
-  ON_ERROR, 2
+  DEFSYSV, '!debug', EXISTS = debug
+  IF ~debug THEN ON_ERROR, 2
   
   FOREACH notify, self.notifyObject DO IF Obj_Valid(notify) THEN notify.notify, event
 
 END
 
 PRO as_scatterXMLFile::StartElement, URI, local, strName, attrName, attrValue
+
+  COMPILE_OPT idl2
+  DEFSYSV, '!debug', EXISTS = debug
+  IF ~debug THEN ON_ERROR, 2
 
   IF KeyWord_Set(attrName) AND strName EQ 'LOGLINE' THEN BEGIN
     FOREACH attr, attrName DO BEGIN
@@ -164,6 +173,10 @@ PRO as_scatterXMLFile::StartElement, URI, local, strName, attrName, attrValue
 END
 
 PRO as_scatterXMLFile::ParseFile, fileName, LOGONLY=logOnly, UPDATE=upDate
+
+  COMPILE_OPT idl2
+  DEFSYSV, '!debug', EXISTS = debug
+  IF ~debug THEN ON_ERROR, 2
 
   ; Check filename arguement contains something. If not return.
   IF N_Elements(fileName) EQ 0 THEN BEGIN
@@ -422,6 +435,10 @@ END
 
 PRO as_scatterXMLFile::Clear
 
+  COMPILE_OPT idl2
+  DEFSYSV, '!debug', EXISTS = debug
+  IF ~debug THEN ON_ERROR, 2
+
   self.configurations = Ptr_New({CONFIGURATION})
   self.detectorDefs = Ptr_New({DETECTORDEF})
   self.userMasks = Ptr_New({USERMASK})
@@ -433,6 +450,9 @@ END
 
 PRO as_scatterXMLFile::SaveFile, fileName, EMPTY = empty, FILELIST = fileList, TYPEFILELIST = typeFileList
 
+  COMPILE_OPT idl2
+  DEFSYSV, '!debug', EXISTS = debug
+  IF ~debug THEN ON_ERROR, 2
   
   (*self.attLogline).logline = Ptr_New(Tag_Names(*self.logPVs))
   
@@ -507,6 +527,10 @@ END
 
 PRO as_scatterXMLFile::SetParameters, MASK=mask, CHANGEDMASKNAMES = changedMaskNames, BEAMSTOP = beamStop, CAKE=cake, FRAME=frame, ADMAP=ADMap, PVMAP=PVMap, ABSCAL=absCal, USEABSCAL = useAbsCal, NORMTYPE=normType, I0NORM=I0Norm, IBSNORM=IBSNorm, COUNTERDEFS = counterDefs, CONFIGNO=config, CONFIGNAME = configName
 
+  COMPILE_OPT idl2
+  DEFSYSV, '!debug', EXISTS = debug
+  IF ~debug THEN ON_ERROR, 2
+  
   ; TODO Forcing detector 0 at this stage.
   ;detNum = 0 
 
@@ -627,6 +651,10 @@ END
 
 PRO as_scatterXMLFile::GetParameters, MASK=mask, BEAMSTOP = beamstop, CAKE=cake, FRAME=frame, ADMAP=ADMap, PVMAP=PVMap, NORMPARAMS = normParams, LOGPARAMS = logParams
 
+  COMPILE_OPT idl2
+  DEFSYSV, '!debug', EXISTS = debug
+  IF ~debug THEN ON_ERROR, 2
+
  IF Arg_Present(mask) THEN BEGIN
    
    IF Size(mask, /TYPE) EQ 0 THEN mask = 0
@@ -641,7 +669,7 @@ PRO as_scatterXMLFile::GetParameters, MASK=mask, BEAMSTOP = beamstop, CAKE=cake,
        maskdef = Replicate({maskdef}, N_Elements(*self.usermasks)) 
        FOR i = 0, N_Elements(*self.usermasks) - 1 DO BEGIN
          usedMask = Where(knownMasks EQ ((*self.userMasks).maskname)[i])
-         IF usedMask GE 0 THEN type = Fix(maskType[i]) ELSE type = 0
+         IF usedMask GE 0 THEN type = Long(maskType[i]) ELSE type = 0l
          tempParams = StrSplit(((*self.userMasks).usermask)[i],'[]',/EXTRACT)
          tempParams1 = StrSplit(tempParams[0],',',/EXTRACT)
          IF N_Elements(tempParams) EQ 2 THEN BEGIN
@@ -748,11 +776,19 @@ END
 
 FUNCTION as_scatterXMLFile::GetLogAttributes
 
+  COMPILE_OPT idl2
+  DEFSYSV, '!debug', EXISTS = debug
+  IF ~debug THEN ON_ERROR, 2
+
   RETURN, Tag_Names(*self.logPVs)
 
 END
 
 FUNCTION as_scatterXMLFile::GetValue, param
+
+  COMPILE_OPT idl2
+  DEFSYSV, '!debug', EXISTS = debug
+  IF ~debug THEN ON_ERROR, 2
 
   paramNo = -1
   IF Size(*self.PVs,/TYPE) EQ 8 THEN paramNo = Where(STRUPCASE(param) EQ Tag_Names(*self.PVs))
@@ -771,6 +807,10 @@ FUNCTION as_scatterXMLFile::GetValue, param
 END
 
 PRO as_scatterXMLFile::SetValue, param, setValue, POSITION=position
+
+  COMPILE_OPT idl2
+  DEFSYSV, '!debug', EXISTS = debug
+  IF ~debug THEN ON_ERROR, 2
 
   FOR index = 0, N_Elements(param) - 1 DO BEGIN
     IF N_Elements(setValue) EQ N_Elements(param) THEN value = setValue[index] ELSE value = setValue
@@ -836,6 +876,10 @@ END
 
 PRO as_scatterXMLFile::RedefineLogLine, loglineStruct
 
+  COMPILE_OPT idl2
+  DEFSYSV, '!debug', EXISTS = debug
+  IF ~debug THEN ON_ERROR, 2
+
   self.loglines = Ptr_New(loglineStruct)
   newNames = Tag_Names(loglineStruct)
   oldNames = Tag_Names({LOGLINE})
@@ -853,17 +897,28 @@ END
 
 FUNCTION as_scatterXMLFile::FileLoaded
 
+  COMPILE_OPT idl2
+  DEFSYSV, '!debug', EXISTS = debug
+  IF ~debug THEN ON_ERROR, 2
+
   IF self.xmlFileName NE '' OR self.xmlFileName NE 'error' THEN RETURN, 1 ELSE RETURN, 0
 
 END
 
 PRO as_scatterXMLFile::GetProperty, XMLFILENAME = xmlFileName
 
+  COMPILE_OPT idl2
+  DEFSYSV, '!debug', EXISTS = debug
+  IF ~debug THEN ON_ERROR, 2
+
   IF Arg_Present(xmlFileName) THEN xmlFileName = self.xmlFileName
 
 END
 PRO as_scatterXMLFile::NewLogLine, fname, exptime, i0, it, ibs, TIMESTAMP = timeStamp, TYPE = type
 
+  COMPILE_OPT idl2
+  DEFSYSV, '!debug', EXISTS = debug
+  IF ~debug THEN ON_ERROR, 2
 
   IF ~KeyWord_Set(type) THEN type = 'Processed' 
 
@@ -895,6 +950,10 @@ END
 
 FUNCTION as_scatterXMLFile::GetIndex, fname
 
+  COMPILE_OPT idl2
+  DEFSYSV, '!debug', EXISTS = debug
+  IF ~debug THEN ON_ERROR, 2
+
 ;  IF Size(*self.loglines, /TYPE) EQ 8 THEN BEGIN
 ;    filenames = !Null
 ;    FOREACH filename, (*self.loglines).logline DO filenames = [filenames,AS_FNameStripDir(filename, SEPARATOR='/')]
@@ -916,6 +975,10 @@ END
 
 PRO as_scatterXMLFile::SwitchIBSIT, CONFIGNAME = configName
 
+  COMPILE_OPT idl2
+  DEFSYSV, '!debug', EXISTS = debug
+  IF ~debug THEN ON_ERROR, 2
+
   IF ~KeyWord_Set(CONFIGNAME) THEN config = 0 ELSE BEGIN
     config = Where((*self.configurations).name EQ configName)
   ENDELSE
@@ -936,6 +999,10 @@ PRO as_scatterXMLFile::SwitchIBSIT, CONFIGNAME = configName
 END
 
 FUNCTION as_scatterXMLFile::GetScale, index, I0 = I0, IBS = IBS, IT = IT, TIME = time, STAMP=timestamp, CONFIGNUM = config
+
+  COMPILE_OPT idl2
+  DEFSYSV, '!debug', EXISTS = debug
+  IF ~debug THEN ON_ERROR, 2
   
   IF ~KeyWord_Set(config) THEN config = 0
   

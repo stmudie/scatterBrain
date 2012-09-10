@@ -1,13 +1,17 @@
 PRO as_scatterXMLGUI_event, event
   
   COMPILE_OPT idl2
-  ON_ERROR, 2
+  DEFSYSV, '!debug', EXISTS = debug
+  IF ~debug THEN ON_ERROR, 2
   
   Widget_Control, event.handler, GET_UVALUE = scatterXMLGUI
   scatterXMLGUI.event, event
 END
 
 FUNCTION as_scatterXMLGUI::INIT, GROUP_LEADER = groupLeader, DOCK=dock, _REF_Extra=extra
+
+  DEFSYSV, '!debug', EXISTS = debug
+  IF ~debug THEN ON_ERROR, 2
 
   IF KeyWord_Set(groupLeader) THEN BEGIN
     self.groupLeader = groupLeader
@@ -48,6 +52,9 @@ FUNCTION as_scatterXMLGUI::INIT, GROUP_LEADER = groupLeader, DOCK=dock, _REF_Ext
 END
 
 PRO as_scatterXMLGUI::event, event
+
+  DEFSYSV, '!debug', EXISTS = debug
+  IF ~debug THEN ON_ERROR, 2
 
   CASE Tag_Names(event, /STRUCTURE) OF
    'WIDGET_TREE_SEL' : BEGIN
@@ -198,6 +205,9 @@ END
 
 PRO as_scatterXMLGUI::NewLogLine, fname, exptime, i0, it, ibs, _REF_EXTRA = extra
 
+  DEFSYSV, '!debug', EXISTS = debug
+  IF ~debug THEN ON_ERROR, 2
+
   self.as_scatterXMLFile::NewLogLine, fname, exptime, i0, it, ibs, _extra = extra
   fname = File_Basename(fname)
   void = Widget_Tree(self.fileTree, VALUE = fname, INDEX = 0)
@@ -205,6 +215,9 @@ PRO as_scatterXMLGUI::NewLogLine, fname, exptime, i0, it, ibs, _REF_EXTRA = extr
 END
 
 PRO as_scatterXMLGUI::clear
+
+  DEFSYSV, '!debug', EXISTS = debug
+  IF ~debug THEN ON_ERROR, 2
 
   IF self.fileTree NE 0 THEN BEGIN
     allLeaves =  Widget_Info(self.filetree,/ALL_CHILDREN)
@@ -217,11 +230,17 @@ END
 
 PRO as_scatterXMLGUI::SetProperty, HEIGHT = height
 
+  DEFSYSV, '!debug', EXISTS = debug
+  IF ~debug THEN ON_ERROR, 2
+
   IF N_Elements(height) NE 0 THEN Widget_Control, self.fileTreeParent, YSIZE=height
   
 END
 
 PRO as_scatterXMLGUI::ParseFile, FILENAME=filename, LOGONLY=logOnly, UPDATE=update
+
+  DEFSYSV, '!debug', EXISTS = debug
+  IF ~debug THEN ON_ERROR, 2
 
   self->as_scatterxmlfile::ParseFile, filename, LOGONLY=logOnly, UPDATE=update
   IF fileName EQ 'error' THEN RETURN
