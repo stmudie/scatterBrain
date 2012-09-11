@@ -1,10 +1,14 @@
 FUNCTION AS__ConvertSAXFile::INIT
+  
+  @as_scatterheader.macro
 
   RETURN, 1
 
 END
 
 PRO AS__ConvertSAXFile::Convert, saxFileName, XMLFileName, XMLOBJECT = XMLObject
+
+  @as_scatterheader.macro
 
   IF Arg_Present(saxFileName) NE 1 THEN saxFileName = Dialog_Pickfile(FILTER = '*.sax', /MUST_EXIST, /READ)
   IF saxFileName EQ '' THEN RETURN
@@ -40,6 +44,8 @@ PRO AS__ConvertSAXFile::Convert, saxFileName, XMLFileName, XMLOBJECT = XMLObject
 END
 
 FUNCTION AS__ConvertSAXFile::readSAXFile, saxFileName
+
+  @as_scatterheader.macro
 
   mask_polygon = {mask_polygon,            $
                 type    : IntArr(10),    $

@@ -1,4 +1,6 @@
 FUNCTION AS__SaxsShowVersion
+
+@as_scatterheader.macro
  
 a = StrArr(        1132)
 a[0] = " scatterBrain - Written by : Stephen T. Mudie, Australian Synchrotron"

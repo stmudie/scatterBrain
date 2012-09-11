@@ -1,6 +1,8 @@
 FUNCTION AS__SaxsQData::Init, p_arr=p_arr,tth_arr=tth_arr,q_arr=q_arr,d=d,pbin=pbin,tthbin=tthbin,qbin=qbin, $
                               dbin=dbin,bkgnd=bkgnd,qmns=qmns,qmxs=qmxs
   
+  @as_scatterheader.macro
+  
   IF Keyword_Set(p_arr)  THEN self.p_arr  =     Ptr_New(p_arr)   ELSE self.p_arr    = Ptr_New(/ALLOCATE_HEAP)
   IF Keyword_Set(tth_arr)THEN self.tth_arr=     Ptr_New(tth_arr) ELSE self.tth_arr  = Ptr_New(/ALLOCATE_HEAP)
   IF Keyword_Set(q_arr)  THEN self.q_arr  =     Ptr_New(q_arr)   ELSE self.q_arr    = Ptr_New(/ALLOCATE_HEAP)
@@ -19,6 +21,8 @@ END
 
 FUNCTION AS__SaxsQData::GetProperty, p_arr=p_arr,tth_arr=tth_arr,q_arr=q_arr,d_arr=d_arr,pbin=pbin,tthbin=tthbin,qbin=qbin, $
                                      dbin=dbin,bkgnd=bkgnd,qmns=qmns,qmxs=qmxs,pos=pos
+
+  @as_scatterheader.macro
 
   IF Keyword_Set(p_arr)  THEN BEGIN
     IF Size(*self.p_arr, /TYPE) EQ 0 THEN RETURN, 0
@@ -69,6 +73,8 @@ END
 
 FUNCTION AS__SaxsQData::SetProperty, p_arr=p_arr,tth_arr=tth_arr,q_arr=q_arr,d_arr=d_arr,pbin=pbin,tthbin=tthbin,qbin=qbin, $
                                      dbin=dbin,bkgnd=bkgnd,qmns=qmns,qmxs=qmxs
+
+  @as_scatterheader.macro
 
   IF Keyword_Set(p_arr)  THEN *self.p_arr = p_arr 
   IF Keyword_Set(tth_arr)THEN *self.tth_arr = tth_arr

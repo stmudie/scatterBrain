@@ -1,11 +1,15 @@
 FUNCTION as__convertsaxs15toscatterbrain::init
 
+  @as_scatterheader.macro
+
   RETURN, 1
 
 END
 
 FUNCTION as__convertsaxs15toscatterbrain::convert, SAXFile, logFile, xmlFile
 
+  @as_scatterheader.macro
+  
   CATCH, errorStatus
   
   IF errorStatus GT 0 THEN BEGIN
