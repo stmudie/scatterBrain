@@ -1741,7 +1741,7 @@ FUNCTION scatterbrain::init     $
    
     CD, startingDirectory
     
-    IF self.settingsObj.autoCheckUpdate THEN BEGIN
+    IF self.settingsObj.autoCheckUpdate AND ~KeyWord_Set(epics) THEN BEGIN
     
       CASE self.operatingSystem OF 
         'Windows' : programName = 'scatterbrainanalysiswin'
