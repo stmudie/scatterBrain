@@ -244,12 +244,7 @@ PRO scatterbrain::event, event
          
         'LOAD XML' :  self.loadXML
                      
-        'SAVE XML' : BEGIN
-                       IF self.pollEpics GT 0 THEN self.areaDetectorObj.StoreParams, self.scatterXMLGUI_obj 
-                       self.scatterXMLGUI_obj->SaveFile
-                       widgetIDS = [Widget_Info(event.top, FIND_BY_UNAME = 'NEW EXPERIMENT EMPTY'),Widget_Info(event.top, FIND_BY_UNAME = 'NEW EXPERIMENT FILES')]
-                       FOREACH widgetID, widgetIDS DO IF widgetID GT 0 THEN Widget_Control, widgetID, SENSITIVE = 1
-                     END 
+        'SAVE XML' : self.saveXML 
                      
         'SAVE AS XML' : BEGIN
                           xmlFile = Dialog_Pickfile(filter = '*.xml', PATH = self.experimentDir, TITLE = 'Select XML File', /WRITE, /OVERWRITE_PROMPT)
@@ -298,17 +293,7 @@ PRO scatterbrain::event, event
         
         END
 
-        'ACQ_EXPORTLUT' : BEGIN
-          self.settingsObj.GetProperty, LUTPV = LUTPV, NORMPV = NORMPV, QVECTORPV=QVECTORPV
-          
-          LUT = self.frame_obj.GetLUT() 
-          QVECTOR = self.qData_Obj.GetProperty(/Q_ARR)
-          IF N_Elements(LUT) GT 1 THEN result = caput(LUTPV, [N_Elements(QVECTOR),LUT])
-          IF N_Elements(QVECTOR) GT 1 THEN result = caput(QVECTORPV, QVECTOR)
-          result = caput(NORMPV,1/((self.profiles_obj).ibsnrm*(self.profiles_obj).CSCalib))
-          ;result = caput(NORMPV,1/self.profiles_obj.CSCalib)
-        
-        END
+        'ACQ_EXPORTLUT' : self.ExportLUT
 
         ; ** ACQUIRE -> Data Path
         
@@ -973,6 +958,15 @@ PRO scatterbrain::Cleanup
        
 END
 
+PRO scatterbrain::saveXML
+
+  IF self.pollEpics GT 0 THEN self.areaDetectorObj.StoreParams, self.scatterXMLGUI_obj 
+  self.scatterXMLGUI_obj->SaveFile
+  widgetIDS = [Widget_Info(self.wScatterBase, FIND_BY_UNAME = 'NEW EXPERIMENT EMPTY'),Widget_Info(self.wScatterBase, FIND_BY_UNAME = 'NEW EXPERIMENT FILES')]
+  FOREACH widgetID, widgetIDS DO IF widgetID GT 0 THEN Widget_Control, widgetID, SENSITIVE = 1
+
+END
+
 PRO scatterbrain::loadXML, xmlFile
 
   CD, current=current
@@ -1439,6 +1433,16 @@ PRO scatterbrain::updateRecentFileList
   
 END
 
+PRO scatterbrain::exportLUT
+  self.settingsObj.GetProperty, LUTPV = LUTPV, NORMPV = NORMPV, QVECTORPV=QVECTORPV 
+  LUT = self.frame_obj.GetLUT() 
+  QVECTOR = self.qData_Obj.GetProperty(/Q_ARR)
+  IF N_Elements(LUT) GT 1 THEN result = caput(LUTPV, [N_Elements(QVECTOR),LUT])
+  IF N_Elements(QVECTOR) GT 1 THEN result = caput(QVECTORPV, QVECTOR)
+  result = caput(NORMPV,1/((self.profiles_obj).ibsnrm*(self.profiles_obj).CSCalib))
+  ;result = caput(NORMPV,1/self.profiles_obj.CSCalib)
+END
+
 FUNCTION scatterbrain::qCalibGUI, GROUPLEADER = groupLeader, NOTIFY_OBJ = notifyObj, SHOWGUI = showGUI
 
   IF Obj_Valid(self.qCalibGUI) THEN BEGIN
@@ -1525,6 +1529,21 @@ PRO scatterbrain::FrameCallback, event
                     WIDGET_CONTROL, Widget_Info(self.wScatterBase, FIND_BY_UNAME='SIMAGE'), SET_VALUE=name
                     self.profiles_obj->UpdateProfileWidgets
                   END
+    'CONFIG'       : BEGIN
+                       CASE StrUpCase(event.event) OF
+                         'SAVE' : BEGIN
+                                    result = Dialog_Message('Save Experiment?',/QUESTION)
+                                    IF result EQ 'Yes' THEN BEGIN
+                                      self.saveXML
+                                    ENDIF
+                                    IF self.pollEpics THEN BEGIN
+                                      result = Dialog_Message('Export LUT?', /QUESTION)
+                                      IF result EQ 'Yes' THEN self.ExportLUT
+                                    ENDIF
+                                  END
+                         ELSE :
+                       ENDCASE
+                     END
   ELSE :
   ENDCASE
 

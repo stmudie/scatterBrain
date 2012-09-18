@@ -232,6 +232,7 @@ CASE widgetName OF
                               self.StoreParams, self.frame.logObj, CONFIG = index
                               self.SaveCakeLUT, index
                               Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME='PARAM LABEL'), SET_VALUE = configName
+                              self.notify, {CONFIG, event: 'save'}
                             END
             'LOAD CONFIG' : BEGIN
                               configName = Widget_Info(Widget_Info(self.imageGUIBase,  FIND_BY_UNAME='CONFIG COMBO'), /COMBOBOX_GETTEXT)
