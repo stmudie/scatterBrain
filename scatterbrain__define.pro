@@ -1650,7 +1650,7 @@ PRO scatterbrain::LoadResources, UNLOAD=unload
   ENDIF
   
   CD, CURRENT=current
-  pathArr = [current,self.programDir, StrSplit(!path,';',/EXTRACT)]
+  pathArr = [current, self.programDir, self.programDir + 'resources', StrSplit(!path,';',/EXTRACT)]
   count = 0
   path2Image = ''
   path2ColourTable = ''
