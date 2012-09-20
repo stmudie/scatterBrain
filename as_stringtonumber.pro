@@ -1,5 +1,7 @@
 FUNCTION as_stringtonumber, string, FLOAT=float, NEGATIVE=negative
 
+  @as_scatterheader.macro
+
   RegEx = '^0-9'
    
   IF KeyWord_Set(float) THEN RegEx = RegEx + '.'

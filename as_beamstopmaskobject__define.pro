@@ -1,5 +1,7 @@
 FUNCTION as_beamstopmaskobject::init, xCentre, yCentre, radius, angle, width, length
    
+  @as_scatterheader.macro 
+   
   ;self.oModel = IDLgrModel()
   self.numVertices = 23
   self.oPolygon = IDLgrPolygon()
@@ -44,6 +46,8 @@ END
 
 PRO as_beamstopmaskobject::CreateMaskPolygon
 
+  @as_scatterheader.macro
+
     IF self.lock THEN RETURN
 
     angle = !dtor*self.angle
@@ -81,6 +85,8 @@ PRO as_beamstopmaskobject::GetProperty, $
   DATA = data, $
   _Ref_extra = extra
   
+  @as_scatterheader.macro
+  
   IF Arg_Present(colour) THEN self.oPolygon.GetProperty, COLOR=COLOUR
   IF Arg_Present(lineOpacity) THEN self.oPolyline.GetProperty, ALPHA_CHANNEL = lineOpacity
   IF Arg_Present(fillOpacity) THEN self.oPolygon.GetProperty, ALPHA_CHANNEL = fillOpacity
@@ -103,6 +109,8 @@ PRO as_beamstopmaskobject::GetProperty, $
 END
 
 FUNCTION as_beamstopmaskobject::GetSaveParams
+
+  @as_scatterheader.macro
   
   IF N_Elements(*self.data) EQ 0 THEN RETURN, -1
   RETURN, {name : self.NAME, maskshape : 'Beamstop',  masktype : self.maskType, offsetX : self.offsetX, offsetY : self.offsetY, radius : self.radius, angle : self.angle, width : self.width}
@@ -129,6 +137,8 @@ PRO as_beamstopmaskobject::SetProperty, $
   LOCK = Lock, $
   DATA = data,$
   _Ref_extra = extra
+  
+  @as_scatterheader.macro
   
   IF N_Elements(lock)          THEN self.lock = lock
   IF self.lock THEN RETURN
@@ -178,6 +188,8 @@ END
 
 PRO as_beamstopmaskobject::ShowLabels, show
 
+  @as_scatterheader.macro
+
   show = show < 1
   count = self.maskLabels.count()
   IF count GT 0 THEN BEGIN
@@ -189,11 +201,15 @@ END
 
 FUNCTION as_beamstopmaskobject::NumVertices
 
+  @as_scatterheader.macro
+
   RETURN, self.numVertices
 
 END
 
 PRO as_beamstopmaskobject::SelectVertex, vertex 
+
+  @as_scatterheader.macro
 
   IF N_Elements(vertex) EQ 0 OR self.numVertices EQ 0 THEN RETURN
   
@@ -217,6 +233,8 @@ END
 
 PRO as_beamstopmaskobject::DeleteVertex
 
+  @as_scatterheader.macro
+
   IF self.lock THEN RETURN
 
   IF self.maskShape EQ 0 AND self.numVertices GT 0 AND self.numVertices GT self.selectedVertex THEN BEGIN
@@ -233,6 +251,8 @@ PRO as_beamstopmaskobject::DeleteVertex
 END
 
 PRO as_beamstopmaskobject::MoveVertex, position, ADD=add, RELATIVE=relative
+
+  @as_scatterheader.macro
 
   IF self.lock THEN RETURN
 
@@ -260,6 +280,8 @@ PRO as_beamstopmaskobject::MoveVertex, position, ADD=add, RELATIVE=relative
 END
 
 PRO as_beamstopmaskobject::UpdatePolygon, data
+
+  @as_scatterheader.macro
 
   IF self.lock THEN RETURN
   

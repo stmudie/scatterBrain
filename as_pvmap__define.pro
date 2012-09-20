@@ -1,5 +1,7 @@
 PRO as_pv_PropertyEvent, event
 
+  @as_scatterheader.macro
+
   prop = Widget_Info(event.handler, FIND_BY_UNAME = 'PropSheet')
   Widget_Control, prop, GET_UVALUE = as_pv
   as_pv->as_pvmap::event, event 
@@ -7,6 +9,8 @@ PRO as_pv_PropertyEvent, event
 END
 
 FUNCTION as_pvmap::init, PVMap
+
+  @as_scatterheader.macro
 
   self.pvmap = Ptr_New(/ALLOCATE_HEAP)
   
@@ -31,6 +35,8 @@ FUNCTION as_pvmap::init, PVMap
 END
 
 PRO as_pvmap::event, event
+
+  @as_scatterheader.macro
 
   widgetName = Widget_Info(event.id, /UNAME)
 
@@ -70,6 +76,8 @@ PRO as_pvmap::event, event
 END               
 
 PRO as_pvmap::ShowGUI, base, GROUP_LEADER = groupLeader
+
+  @as_scatterheader.macro
   
   IF Arg_Present(base) THEN propBase = Widget_Base(base, GROUP_LEADER = groupLeader, EVENT_PRO = 'as_pv_PropertyEvent', /COLUMN, /TLB_SIZE_EVENTS, UNAME='PropBase') $
                         ELSE BEGIN
@@ -90,6 +98,8 @@ END
 
 PRO as_pvmap::MoveAcquire
 
+  @as_scatterheader.macro
+
   FOR i = 0, N_Elements(*self.PVMap) - 1 DO BEGIN
     (*self.PVMap)[i]->GetProperty, PVCheckDrive = CheckDrive, acquireEnable = Enable
     IF CheckDrive AND Enable THEN BEGIN
@@ -103,6 +113,8 @@ PRO as_pvmap::MoveAcquire
 END
 
 PRO as_pvmap::MoveTransmission
+
+  @as_scatterheader.macro
   
   FOR i = 0, N_Elements(*self.PVMap) DO BEGIN
     IF (*self.PVMap)[i].PVCheckDrive AND (*self.PVMap)[i].acquireTransmission THEN BEGIN
@@ -117,6 +129,8 @@ END
 
 
 PRO as_pvmap::DoneMoving, index
+
+  @as_scatterheader.macro
 
   IF N_Elements(index) GT 0 THEN BEGIN
   
@@ -141,6 +155,8 @@ END
 
 PRO as_pvmap::NewParams, paramObj
 
+  @as_scatterheader.macro
+
   paramObj->GetParameters, PVMAP=PVMap
 
   numPVs = N_Elements(*self.pvmap)
@@ -160,10 +176,13 @@ END
 
 PRO as_pvmap::GetProperty
   
+  @as_scatterheader.macro
                                              
 END
 
 FUNCTION as_pvmap::getLogData
+
+  @as_scatterheader.macro
 
   readBackStruct = Replicate({ Name: '', PVRBV: '', Value: 0.0 }, N_Elements(*self.pvmap))
 
@@ -184,6 +203,8 @@ FUNCTION as_pvmap::getLogData
 END
 
 PRO as_pvmap::AddPV, newPVData
+
+  @as_scatterheader.macro
 
   type = Size(newPVData, /TYPE)
   
@@ -219,6 +240,8 @@ PRO as_pvmap::AddPV, newPVData
 END
 
 PRO as_pvmap::cleanup
+
+  @as_scatterheader.macro
 
   IF N_Elements(*self.pvMap) GT 0 THEN Obj_Destroy, *self.pvmap
   Ptr_Free, self.pvmap

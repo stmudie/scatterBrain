@@ -31,6 +31,8 @@
 
 FUNCTION AS_AddMessage, strmes, wBase, TEXTWID=textWID, SPLIT = split 
 
+  @as_scatterheader.macro
+
   IF ~Keyword_Set(textWID) THEN textWID = 'MESBOX'
 
   IF Keyword_Set(split) THEN strmes = as_splitmessage(strmes, split)

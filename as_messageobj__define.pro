@@ -1,5 +1,7 @@
 FUNCTION as_messageObj::init, COLOR = colour, LOCATIONS = locations, CHAR_DIMENSIONS = charDimensions, VERTICAL_ALIGNMENT = vertAlignment
 
+  @as_scatterheader.macro
+
   IF KeyWord_Set(colour) THEN self.colour = colour ELSE self.colour = [0,0,0]
   IF KeyWord_Set(locations) THEN self.locations = locations ELSE self.locations = [0,0,0]
   IF KeyWord_Set(charDimensions) THEN self.charDimensions = charDimensions ELSE self.charDimensions = [20,20]
@@ -17,6 +19,8 @@ PRO as_messageObj::SetProperty, $
   VERTICAL_ALIGNMENT= vertAlignment, $
   _Ref_extra = extra
 
+  @as_scatterheader.macro
+
   IF N_Elements(locations) GT 0 THEN self.locations = locations
   IF N_Elements(colour) GT 0 THEN self.colour = colour
   IF N_Elements(charDimensions) GT 0 THEN self.charDimensions = charDimensions
@@ -30,6 +34,8 @@ END
 
 PRO as_messageObj::AddMessage, ID, message, NO_CHANGE = noChange
 
+  @as_scatterheader.macro
+
   messageNum = Where(*self.textIDs EQ ID)
   IF messageNum GE 0 THEN BEGIN
     IF ~KeyWord_Set(noChange) THEN (self.get(POSITION = messageNum)).SetProperty, STRINGS=message
@@ -42,6 +48,8 @@ PRO as_messageObj::AddMessage, ID, message, NO_CHANGE = noChange
 END
 
 PRO as_messageObj::DeleteMessage, ID
+
+  @as_scatterheader.macro
   
   messageNum = Where(*self.textIDs EQ ID, COMPLEMENT=otherMessages)
   IF messageNum GE 0 THEN BEGIN

@@ -1,5 +1,7 @@
 FUNCTION AS__ConvertLogFile::INIT
 
+  @as_scatterheader.macro
+
   self.logTemplate = { LOGTEMPLATE, $                ; define log file ascii template for 'read_ascii'
         version:         1.0,       $
         dataStart:       long(0),   $
@@ -20,6 +22,8 @@ FUNCTION AS__ConvertLogFile::INIT
 END
 
 FUNCTION AS__ConvertLogFile::readSAXS15LogFile, logFileName
+  
+  @as_scatterheader.macro
 
   log = Read_ASCII(logFileName, TEMPLATE = self.logtemplate)
    

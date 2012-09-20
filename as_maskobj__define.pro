@@ -1,10 +1,15 @@
 PRO AS_DefineMask_event, event
+  
+  @as_scatterheader.macro
+  
   Widget_Control, event.top, GET_UVALUE = maskObj
   maskObj->AS_Maskobj::event,event
 END
   
 PRO AS_DefineBeamStopPropertyEvent, event
 
+  @as_scatterheader.macro 
+  
   IF (event.type EQ 0) THEN BEGIN
     value = WIDGET_INFO(event.ID, COMPONENT = event.component, PROPERTY_VALUE = event.identifier)
     ; Set the component’s property value.
@@ -17,6 +22,8 @@ PRO AS_DefineBeamStopPropertyEvent, event
 END
 
 PRO AS_DefineMaskPropertyEvent, event
+
+  @as_scatterheader.macro
 
   IF Tag_Names(event, /STRUCTURE_NAME) EQ 'WIDGET_TIMER' THEN BEGIN
     ; TODO Wanted to have mask property sheets to update regularly so when moving masks with mouse in frame the info would update.
@@ -72,6 +79,8 @@ PRO AS_DefineMaskPropertyEvent, event
 END
 
 FUNCTION AS_MaskObj::Init, MASKNOTIFY = notifyObj, _REF_Extra=extra
+
+  @as_scatterheader.macro
 
   IF Keyword_Set(notifyObj) THEN $
     IF TypeName(notifyObj[0]) EQ 'NOTIFY' $
@@ -141,6 +150,8 @@ END
 
 
 PRO AS__MaskObj::MakeMaskPolygon, FRAMEBORDER=frameborder, BEAMSTOP=beamstop
+
+  @as_scatterheader.macro
 
     xc = self.frame.xc
     yc = self.frame.yc
@@ -221,6 +232,8 @@ END
 
 PRO AS_MaskObj::ShowMasks, CLEAR=clear, UNFILLED=unfilled, OPACITY = opacity
 
+  @as_scatterheader.macro
+
   IF ~Obj_Valid(self.mask.maskObjects) THEN RETURN
 
   IF KeyWord_Set(clear) THEN BEGIN
@@ -244,6 +257,8 @@ PRO AS_MaskObj::ShowMasks, CLEAR=clear, UNFILLED=unfilled, OPACITY = opacity
 END
 
 PRO AS_MaskObj::ShowMaskTable, show
+
+  @as_scatterheader.macro
 
   IF Widget_info(self.mask.defineMaskBase,/VALID) THEN BEGIN
     Widget_Control, self.mask.defineMaskBase, MAP = show
@@ -286,12 +301,16 @@ END
 
 PRO AS_MaskObj::NewMask, MASKOBJECT = maskObject
 
+  @as_scatterheader.macro
+
   maskObject = as_maskObject()
   self.mask.maskObjects.add, maskObject
 
 END
 
 PRO AS_MaskObj::AddDefinedMasks
+
+  @as_scatterheader.macro
 
   self.mask.maskObjects.remove, /ALL
   self.mask.maskObjects.add, self.mask.beamStop
@@ -332,6 +351,8 @@ END
 
 PRO AS_MaskObj::UpdateTable, updatedMask
 
+  @as_scatterheader.macro
+
   IF ~Obj_Valid(updatedMask) THEN updatedMask = self.mask.selectedMask
   updatedMask.GetProperty, DATA = data, SELECTEDVERTEX = selectedVertex, /RELATIVE
   table = Where(self.mask.maskObjects.Get(/ALL, ISA = 'as_maskobject') EQ updatedMask)
@@ -343,6 +364,8 @@ PRO AS_MaskObj::UpdateTable, updatedMask
 END
 
 PRO AS_MaskObj::SetSelected, selectedObj
+
+  @as_scatterheader.macro
 
   IF Size(selectedObj, /TYPE) GE 1 AND Size(selectedObj, /TYPE) LE 5 THEN BEGIN
     selectedObj = (self.mask.maskObjects.Get(/ALL, ISA = 'as_maskobject'))[Fix(selectedObj)]
@@ -357,6 +380,8 @@ PRO AS_MaskObj::SetSelected, selectedObj
 END
 
 PRO AS_MaskObj::PolyChanged, SET=set
+
+  @as_scatterheader.macro
 
   IF self.mask.maskObjects.count() EQ 0 THEN RETURN
   temp = FltArr(self.mask.maskObjects.count(),2,50)
@@ -388,11 +413,15 @@ END
 
 PRO AS_MaskObj::ClearMaskArray
 
+  @as_scatterheader.macro
+
   *self.mask.mask = 1
   
 END
 
 PRO AS_MaskObj::DefineMasks, define
+
+  @as_scatterheader.macro
 
   self.mask.DefiningMask = define
   self.ShowMaskTable, define
@@ -400,6 +429,8 @@ PRO AS_MaskObj::DefineMasks, define
 END
 
 PRO AS_MaskObj::MaskNameUpdated, newName, oldName
+  
+  @as_scatterheader.macro
 
   IF Ptr_Valid(self.mask.nameChanges) THEN *self.mask.nameChanges = [[*self.mask.nameChanges],[newName,oldName]] ELSE self.mask.nameChanges = Ptr_New([newName,oldName])
 
@@ -407,11 +438,15 @@ END
 
 PRO AS_MaskObj::GetProperty, _REF_Extra = extra
 
+  @as_scatterheader.macro
+
   self.AS_FrameObj::GetProperty, _EXTRA = extra
 
 END
 
 PRO AS_MaskObj::StoreParams, paramObj, CONFIG = config
+
+  @as_scatterheader.macro
 
   maskdef = !NULL
   beamstop = !NULL
@@ -437,11 +472,15 @@ END
 
 PRO AS_MaskObj::MaskNotify, event
   
+  @as_scatterheader.macro
+  
   FOREACH notify, self.mask.notify DO IF Obj_Valid(notify) THEN notify.notify, event
 
 END
 
 PRO AS_MaskObj::Event, event
+  
+  @as_scatterheader.macro
   
   widgetName = Widget_Info(event.id, /UNAME)
   
@@ -653,6 +692,8 @@ END
 
 PRO AS_MaskObj::RefreshPropertySheet
 
+  @as_scatterheader.macro
+
   IF self.mask.defineMaskBase EQ 0 THEN RETURN
   Widget_Control, Widget_Info(self.mask.defineMaskBase, FIND_BY_UNAME='Beamstop Property'), /REFRESH_PROPERTY
   sheet = Widget_Info(self.mask.defineMaskBase, FIND_BY_UNAME='defineMaskPropSheet')
@@ -662,6 +703,8 @@ PRO AS_MaskObj::RefreshPropertySheet
 END
 
 PRO AS_MaskObj::NewParams, paramObj, CONFIG = config, MASKONLY=maskOnly 
+
+  @as_scatterheader.macro
 
   IF ~Keyword_Set(maskOnly) THEN self->AS_FrameObj::NewParams, paramObj, CONFIGNO = config
   
@@ -684,6 +727,8 @@ PRO AS_MaskObj::NewParams, paramObj, CONFIG = config, MASKONLY=maskOnly
 END
 
 PRO AS_MaskObj::UpdateMaskArray
+
+  @as_scatterheader.macro
 
   mask = FltArr(self.frame.nxpix,self.frame.nypix)                                    ; initial mask array is zeroed
   mask[*]=0

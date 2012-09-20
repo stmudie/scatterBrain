@@ -1,11 +1,15 @@
 PRO  as__saxsimagegui_event, event
 
+  @as_scatterheader.macro
+
   Widget_Control, event.handler, GET_UVALUE = as__saxsimagegui
   as__saxsimagegui->as__saxsimagegui::event, event
 
 END
 
 PRO as__saxsimagegui::event, event
+
+@as_scatterheader.macro
 
 widgetName = Widget_Info(event.id, /UNAME)
 
@@ -392,6 +396,8 @@ END
 
 PRO as__saxsimagegui::hist, xstruct
 
+  @as_scatterheader.macro
+
   IF xstruct.hist_win GT 0 THEN BEGIN
     Widget_Control, Widget_Info(self.imageGuiBase, FIND_BY_UNAME='Min Intensity'), SET_VALUE = xstruct.minThresh
     Widget_Control, Widget_Info(self.imageGuiBase, FIND_BY_UNAME='Max Intensity'), SET_VALUE = xstruct.maxThresh
@@ -403,6 +409,8 @@ PRO as__saxsimagegui::hist, xstruct
 END
 
 FUNCTION as__saxsimagegui::GetImage, fname, _REF_EXTRA = extra
+
+  @as_scatterheader.macro
 
   result = self.AS_FrameObj::GetImage(fname, _EXTRA = extra)
   IF result LT 0 THEN return, -1
@@ -418,6 +426,8 @@ FUNCTION as__saxsimagegui::GetImage, fname, _REF_EXTRA = extra
 END
 
 PRO as__saxsimagegui::Find4Sectors
+  
+  @as_scatterheader.macro
 
   fname = self.frame.fname
   profileData = self->Sectors(fname, 4, /CURRENTIMAGE, /NODISPLAYMASK)
@@ -440,6 +450,8 @@ END
 ;END
 
 PRO as__saxsimagegui::NewParams, paramObj
+  
+  @as_scatterheader.macro
   
   self->as_saxsimagetools::NewParams, paramObj
   
@@ -479,11 +491,15 @@ END
 
 FUNCTION as__saxsimagegui::Read
 
+  @as_scatterheader.macro
+
   RETURN, self.frame.frameWinObj.read()
 
 END
 
 PRO as__saxsimagegui::SetProperty, AUTOSCALE = autoScale, DEFINEMASKS = defineMasks, _REF_Extra = extra
+  
+  @as_scatterheader.macro
   
   IF N_Elements(autoScale) THEN BEGIN
     Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME = 'AUTO_BUT'), SET_VALUE = autoScale
@@ -498,6 +514,8 @@ END
 
 PRO as__saxsimagegui::GetProperty, CONFIGNAME = configName, _REF_Extra = extra
 
+  @as_scatterheader.macro
+
   IF Arg_Present(configName) THEN BEGIN
     IF N_Elements(self.configNames) GE self.currentConfig + 1 THEN configName = (self.configNames)[self.currentConfig] $
                                                               ELSE configName = ''
@@ -508,6 +526,8 @@ PRO as__saxsimagegui::GetProperty, CONFIGNAME = configName, _REF_Extra = extra
 END
 
 FUNCTION as__saxsimagegui::init, base, qData, profileObj, RESOURCE=resource, _REF_Extra = extra
+
+  @as_scatterheader.macro
 
   self.profiles_obj = profileObj
   

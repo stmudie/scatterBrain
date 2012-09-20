@@ -4,6 +4,8 @@
 ; Called when the AS_LogFileObj object is created.
 
 FUNCTION AS_LogFileObj::Init
+
+  @as_scatterheader.macro
  
     void =         {void, $
                 INHERITS IDLffXMLSAX,  $
@@ -28,6 +30,9 @@ END
 ; Called when the AS_LogFileObj object is destroyed.
 
 PRO AS_LogFileObj::Cleanup
+
+  @as_scatterheader.macro
+  
    ; Release pointer
    
    FOR i = self.numFields[0], self.numFields[1] - 1 DO BEGIN
@@ -46,6 +51,8 @@ END
 
 PRO AS_LogFileObj::StartDocument
 
+  @as_scatterheader.macro
+
    FOR i = self.numFields[0], self.numFields[1] - 1 DO BEGIN
       IF (N_Elements(*self.(i)) GT 0)      THEN void = Temporary(*self.(i))
    END    
@@ -58,6 +65,9 @@ END
 ; Adds data to the charBuffer field.
 
 PRO AS_LogFileObj::characters, data
+  
+  @as_scatterheader.macro
+
    self.charBuffer = self.charBuffer + data
 END
 
@@ -66,6 +76,8 @@ END
 ; Called when the parser encounters the start of an element.
 
 PRO AS_LogFileObj::startElement, URI, local, strName, attName, attValue
+
+  @as_scatterheader.macro
    
    void = { AS_LogFileObj }
    tags = Tag_Names(void)
@@ -98,6 +110,8 @@ END
 ; Called when the parser encounters the end of an element.
 
 PRO AS_LogFileObj::EndElement, URI, Local, strName
+
+  @as_scatterheader.macro
 
    CASE strName OF
       "Experiment":
@@ -133,6 +147,8 @@ END
 ; no data is available, returns -1.
 
 FUNCTION AS_LogFileObj::GetArray, attribute
+
+@as_scatterheader.macro
 
 attribute = StrUpCase(attribute)
 void = { AS_LogFileObj }

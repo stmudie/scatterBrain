@@ -1,10 +1,15 @@
 PRO AS_HelpFile_Event, event
+
+  @as_scatterheader.macro
+  
   Widget_Control, event.top, GET_UVALUE = AS_HelpFile
   AS_HelpFile.event, event 
   
 END
 
 FUNCTION AS_HelpFile::INIT, TITLE=title, GROUP_LEADER = groupLeader
+
+  @as_scatterheader.macro
 
   IF self.HelpList EQ '' THEN self.HelpList = 'About'
   IF KeyWord_Set(groupLeader) THEN self.groupLeader = groupLeader
@@ -17,6 +22,8 @@ FUNCTION AS_HelpFile::INIT, TITLE=title, GROUP_LEADER = groupLeader
 END
 
 PRO AS_HelpFile::ShowGui
+
+  @as_scatterheader.macro
 
   IF self.groupLeader NE 0 THEN wHelpBase = Widget_Base(GROUP_LEADER = groupLeader, TITLE = self.title, XSIZE = 730, YSIZE = 800, /ROW) $ 
                            ELSE wHelpBase = Widget_Base(TITLE = self.title, XSIZE = 730, YSIZE = 800, /ROW)
@@ -43,11 +50,15 @@ END
 
 FUNCTION AS_HelpFile::About
 
+  @as_scatterheader.macro
+
   RETURN, 'Australian Synchrotron Help Object Base Class.'
 
 END
 
 PRO AS_HelpFile::Display, text
+
+  @as_scatterheader.macro
 
   IF ~Widget_Info(self.wHelpText,/VALID) THEN self.showGui
   Widget_Control, self.wHelpText, SET_VALUE = text
@@ -55,6 +66,8 @@ PRO AS_HelpFile::Display, text
 END
 
 PRO AS_HelpFile::event, event
+
+  @as_scatterheader.macro
 
   CASE Tag_Names(event,/STRUCTURE) OF
    

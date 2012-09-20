@@ -1,11 +1,15 @@
 PRO AS_PollAreaDetector_event,event
 
+  @as_scatterheader.macro
+
   Widget_Control, event.id, GET_UVALUE = AS_PollAreaDetector
   AS_PollAReaDetector->Event,event 
   
 END
 
 PRO AS_PollAreaDetector::Event,event
+
+  @as_scatterheader.macro
 
   IF self.areaDetectorObj.areaDetectorImageObj->NewArray() THEN BEGIN
     fullFileName = self.areaDetectorObj.areaDetectorObj->GetProperty('FullFileName_RBV')
@@ -21,6 +25,9 @@ PRO AS_PollAreaDetector::Event,event
 END
 
 PRO AS_PollAreaDetector::StartPoll, INTERVAL = interval
+
+  @as_scatterheader.macro
+
   Widget_Control, self.wBase, /MAP
   IF Keyword_Set(interval) THEN self.interval = interval ELSE self.interval = 0.1
   Widget_Control, self.wBase, TIMER=self.interval
@@ -28,11 +35,16 @@ PRO AS_PollAreaDetector::StartPoll, INTERVAL = interval
 END
 
 PRO AS_PollAreaDetector::StopPoll
+  
+  @as_scatterheader.macro
+
   Widget_Control, self.wBase, MAP = 0
   self.poll = 0
 END
 
 PRO AS_PollAreaDetector::notify, event
+
+  @as_scatterheader.macro
 
   FOREACH notify, self.notifyObject DO BEGIN
     IF Obj_Valid(notify) THEN notify.notify, event
@@ -42,6 +54,8 @@ PRO AS_PollAreaDetector::notify, event
 END
 
 FUNCTION AS_PollAreaDetector::INIT, areaDetectorObj, NOTIFYOBJECT = notifyObject, GROUP_LEADER=groupLeader
+
+  @as_scatterheader.macro
 
   CASE !D.NAME OF
       'WIN': COUNTFONT = "BOLD*24"

@@ -1,5 +1,7 @@
 FUNCTION as_proteinexcelscans::GetScanParams, PROTEIN=protein
 
+  @as_scatterheader.macro
+
   IF self.detectorBackup EQ '' THEN self.detectorBackup = self.detector
 
   scanType = self.GetRange('ScanType')

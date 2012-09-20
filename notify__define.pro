@@ -1,5 +1,9 @@
 FUNCTION NOTIFY::init, method, object, data
 
+  COMPILE_OPT idl2
+  DEFSYSV, '!debug', EXISTS = debug
+  IF ~debug THEN ON_ERROR, 2
+
   IF Obj_Valid(object) THEN self.object = object[0]
   IF TypeName(method) EQ 'STRING' THEN self.method = method[0]
   IF TypeName(data) EQ 'HASH' THEN self.data = data
@@ -9,6 +13,10 @@ FUNCTION NOTIFY::init, method, object, data
 END
 
 FUNCTION NOTIFY::validMethod, QUIET = quiet
+
+  COMPILE_OPT idl2
+  DEFSYSV, '!debug', EXISTS = debug
+  IF ~debug THEN ON_ERROR, 2
 
   status = !NULL
   IF Obj_Valid(self.object) THEN BEGIN
@@ -28,6 +36,10 @@ END
 
 PRO NOTIFY::notify, event
 
+  COMPILE_OPT idl2
+  DEFSYSV, '!debug', EXISTS = debug
+  IF ~debug THEN ON_ERROR, 2
+
   IF self.validMethod() NE 1 THEN RETURN
   IF TypeName(self.data) NE 'HASH' THEN $
     Call_Method, self.method, self.object, event ELSE $
@@ -40,6 +52,10 @@ PRO NOTIFY::SetProperty, $
   METHOD = method, $
   DATA = data
 
+  COMPILE_OPT idl2
+  DEFSYSV, '!debug', EXISTS = debug
+  IF ~debug THEN ON_ERROR, 2
+
   IF Obj_Valid(object) THEN self.object = object[0]
   IF TypeName(method) EQ 'STRING' THEN self.method = method[0]
   IF TypeName(data) EQ 'HASH' THEN self.data = data[0]
@@ -50,6 +66,10 @@ PRO NOTIFY::GetProperty, $
   OBJECT = object, $
   METHOD = method, $
   DATA = data
+
+  COMPILE_OPT idl2
+  DEFSYSV, '!debug', EXISTS = debug
+  IF ~debug THEN ON_ERROR, 2
 
   IF Arg_Present(object) THEN object = self.object
   IF Arg_Present(method) THEN method = self.method

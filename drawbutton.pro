@@ -1,5 +1,7 @@
 FUNCTION drawButtonObj_Get_Obj, id
 
+  @as_scatterheader.macro
+
   Widget_Control, id, GET_UVALUE = drawButtonObj
   drawWidget = Widget_Info(id, /CHILD)
   WIDGET_CONTROL, drawWidget, GET_UVALUE=drawButtonObj
@@ -8,6 +10,8 @@ FUNCTION drawButtonObj_Get_Obj, id
 END
 
 PRO drawButtonObj_Set_Text, id, text
+
+  @as_scatterheader.macro
 
   Widget_Control, id, GET_UVALUE = drawButtonObj
   drawWidget = Widget_Info(id, /CHILD)
@@ -18,12 +22,16 @@ END
 
 PRO drawButtonObj_kill, drawID
 
+  @as_scatterheader.macro
+
   Widget_Control, drawID, GET_UVALUE=drawButtonObj
   Obj_Destroy, drawButtonObj
 
 END
 
 FUNCTION drawButtonObj_event, event
+  
+  @as_scatterheader.macro
     
   Widget_Control, event.id, GET_UVALUE = drawButtonObj
   event = drawButtonObj.event(event)
@@ -32,6 +40,8 @@ FUNCTION drawButtonObj_event, event
 END
 
 FUNCTION drawButtonObj::Event, event
+
+  @as_scatterheader.macro
 
   IF (~self.toggle OR event.press OR event.type EQ -1) THEN BEGIN
     self.pressed = ~self.pressed
@@ -52,6 +62,8 @@ END
 
 PRO drawButtonObj::SetToggle, toggle
 
+  @as_scatterheader.macro
+
   self.toggle = toggle
   IF toggle EQ 0 THEN BEGIN
     self.pressed = 0
@@ -64,11 +76,15 @@ END
 
 FUNCTION drawButtonObj::GetTLB
 
+  @as_scatterheader.macro
+
   RETURN, self.drawButtonTLB
 
 END
 
 PRO drawButtonObj::ChangeText, text, TEXTLOCATION = textLocation, TEXTCOLOUR=textColour
+
+  @as_scatterheader.macro
 
   IF Obj_Valid(self.oText) THEN self.oText->SetProperty, STRINGS=text ELSE BEGIN
     oFont = Obj_New('IDLgrFont', 'Helvetica*Bold')
@@ -86,6 +102,8 @@ PRO drawButtonObj::ChangeText, text, TEXTLOCATION = textLocation, TEXTCOLOUR=tex
 END
 
 PRO drawButtonObj::CleanUp
+
+  @as_scatterheader.macro
 
   IF Obj_Valid(self.imageOutObj) THEN Obj_Destroy, self.imageOutObj
   IF Obj_Valid(self.oText)       THEN Obj_Destroy, self.oText
@@ -106,6 +124,8 @@ FUNCTION drawButtonObj::init, $
   TEXTLOCATION = textLocation, $
   TEXTSIZE = textSize, $
   TEXTCOLOUR=textColour
+  
+  @as_scatterheader.macro
 
   IF NOT (KEYWORD_SET(uvalue)) THEN uvalue=0
   IF NOT (KEYWORD_SET(uname)) THEN uname='drawButtonObj'
@@ -186,6 +206,8 @@ FUNCTION drawButton, $
   TEXTSIZE = textSize, $
   TEXTCOLOUR=textColour, $
   OBJECT = object
+  
+  @as_scatterheader.macro
 
   object = obj_new("drawButtonObj", $
   Parent, $ 

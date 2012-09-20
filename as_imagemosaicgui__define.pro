@@ -1,9 +1,14 @@
 PRO as_imagemosaicGUI_event, event
+
+  @as_scatterheader.macro
+  
   Widget_Control, event.top, GET_UVALUE = as_imagemosaicGUI
   as_imagemosaicGUI.event, event
 END
 
 PRO as_imagemosaicGUI::Event, event
+
+  @as_scatterheader.macro
 
   widgetName = Widget_Info(event.id, /UNAME)
   
@@ -42,12 +47,16 @@ END
 
 PRO AS_ImageMosaicGUI::FixXYSize, xsize, ysize, xbuffer, ybuffer
 
+  @as_scatterheader.macro
+
   IF N_Elements(ybuffer) EQ 0 THEN ybuffer = 50 ELSE ybuffer += 50
   self->as_imagemosaic::FixXYSize, xsize, ysize, xbuffer, ybuffer 
 
 END
 
 PRO as_imagemosaicGUI::SetProperty, _REF_EXTRA = extra
+
+  @as_scatterheader.macro
 
   self->as_imagemosaic::SetProperty, _EXTRA = extra
   
@@ -63,12 +72,16 @@ END
 
 PRO as_imagemosaicGUI::Cleanup
 
+  @as_scatterheader.macro
+
   self->as_imagemosaic::cleanup
   IF Widget_Info(self.wGUIBase, /VALID) THEN Widget_Control, self.wGUIBase, /DESTROY
   
 END
 
 FUNCTION as_imagemosaicGUI::Init, images, columns, rows, GROUP_LEADER = groupLeader, _REF_EXTRA = extra
+
+  @as_scatterheader.macro
 
   wGUIBase = Widget_Base(GROUP_LEADER = groupLeader, TITLE = 'scatterBrain Mosaic', MBAR=wMenuBase, EVENT_PRO = 'as_imagemosaicGUI_event', /TLB_KILL_REQUEST_EVENTS, /COLUMN, UNAME = 'Mosaic GUI Base')
   wHeaderBase = Widget_Base(wGUIBase, /BASE_ALIGN_BOTTOM, /FRAME, /ROW)

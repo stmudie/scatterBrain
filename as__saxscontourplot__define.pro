@@ -1,10 +1,15 @@
 PRO as__saxscontourplot_event, event
-    widget_control, event.top, GET_UVALUE=AS_PlotControl
-    AS_PlotControl->event, event
+
+  @as_scatterheader.macro
+
+  widget_control, event.top, GET_UVALUE=AS_PlotControl
+  AS_PlotControl->event, event
 END
 
 
 PRO as__saxscontourplot::event, event
+
+  @as_scatterheader.macro
 
   IF Tag_Names(event, /STRUCTURE) EQ 'WIDGET_BASE' THEN BEGIN
     geom = Widget_Info(Widget_Info(event.id, FIND_BY_UNAME = 'Contour Type Base'),/GEOMETRY)
@@ -278,6 +283,8 @@ END
 
 PRO as__saxscontourplot::plotSurface, CREATE = create
 
+  @as_scatterheader.macro
+
   self.oContour.GetProperty, DATA_VALUES = z, GEOM = geom
   self.yAxis.GetProperty, TITLE = yTitleObj
   yTitleObj.GetProperty, STRINGS = yTitle
@@ -321,6 +328,8 @@ PRO as__saxscontourplot::plotSurface, CREATE = create
 END
 
 PRO as__saxscontourplot::plotAtQ, CREATE = create, SAVE = save
+
+  @as_scatterheader.macro
 
   IF ~(Obj_Valid(self.plotObj) OR KeyWord_Set(create) OR KeyWord_Set(save)) THEN RETURN
                                 
@@ -371,6 +380,8 @@ PRO as__saxscontourplot::plotAtQ, CREATE = create, SAVE = save
 END
 
 FUNCTION as__saxscontourplot::scale, z
+
+  @as_scatterheader.macro
 
   CASE self.scaleType OF 
     0    : RETURN, z
@@ -463,6 +474,8 @@ END
 
 PRO as__saxscontourplot::ImageIndex
 
+  @as_scatterheader.macro
+
   self.zoomOut
   imageIndex = IntArr(self.plotIndex.count())
   FOREACH fname, self.fileNames, key DO BEGIN
@@ -498,6 +511,8 @@ END
 
 PRO as__saxscontourplot::PlotIndex, FILENAMES = fileNames
 
+  @as_scatterheader.macro
+
   self.zoomOut
   
   
@@ -530,11 +545,15 @@ END
 
 PRO as__saxscontourplot::Notify, event
 
+  @as_scatterheader.macro
+
    FOREACH notify, self.notifyObj DO IF Obj_Valid(notify) THEN notify.notify, event
 
 END
 
 PRO as__saxscontourplot::ZoomOut
+
+  @as_scatterheader.macro
 
   x = self.initX.toArray()
   y = (self.initY)[self.yPlotType];.toArray()
@@ -555,6 +574,8 @@ END
 
 PRO as__saxscontourplot::SetBlank, blank, name
 
+  @as_scatterheader.macro
+
   self.oBlankText.SetProperty, STRINGS = name
   self.oBlankWindow.Draw
   self.oBlankText.GetProperty, XRANGE = xRange, FONT = font
@@ -574,6 +595,8 @@ PRO as__saxscontourplot::SetBlank, blank, name
 END
 
 FUNCTION as__saxscontourplot::UpdateContour, x, y, z, YTITLE = yTitle, YSTRINGS = yStrings
+
+  @as_scatterheader.macro
 
   IF self.irregular EQ 0 THEN BEGIN
   
@@ -643,6 +666,8 @@ FUNCTION as__saxscontourplot::UpdateContour, x, y, z, YTITLE = yTitle, YSTRINGS 
 END
 
 FUNCTION as__saxscontourplot::Init, x, y, z, FILENAMES=fileNames, NOTIFYOBJ = notifyObj, IRREGULAR = irregular
+  
+  @as_scatterheader.macro
   
   IF KeyWord_Set(irregular) THEN BEGIN
   

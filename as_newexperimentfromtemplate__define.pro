@@ -1,11 +1,15 @@
 PRO as_newexperimentfromtemplate_event, event
 
+  @as_scatterheader.macro
+
   Widget_Control, event.top, GET_UVALUE = fromTemplateObj
   fromTemplateObj.event, event
 
 END
 
 FUNCTION as_newexperimentfromtemplate::init, templateList, NOTIFYOBJ = notifyObj, PATH = path
+
+  @as_scatterheader.macro
 
   IF Keyword_Set(notifyObj) THEN $
     IF TypeName(notifyObj[0]) EQ 'NOTIFY' $
@@ -45,6 +49,8 @@ END
 
 
 PRO as_newexperimentfromtemplate::event, event
+
+  @as_scatterheader.macro
 
   widget_type = Tag_Names(event, /STRUCTURE)
 
@@ -97,6 +103,8 @@ PRO as_newexperimentfromtemplate::SetProperty, $
   TEMPLATENO = templateNo, $
   _REF_EXTRA = extra
 
+  @as_scatterheader.macro
+
   IF ISA(experimentName, 'STRING') THEN self.experimentName = experimentName
   IF ISA(templateNo, 'LONG') THEN self.templateNo = templateNo
 
@@ -110,6 +118,8 @@ PRO as_newexperimentfromtemplate::GetProperty, $
   TEMPLATESTR = templateStr, $
   _REF_EXTRA = extra
 
+  @as_scatterheader.macro
+  
   IF Arg_Present(experimentName) THEN experimentName = self.experimentName
   IF Arg_Present(templateNo) THEN templateNo = self.templateNo
   IF Arg_Present(templateStr) THEN BEGIN
@@ -121,11 +131,15 @@ END
 
 PRO as_newexperimentfromtemplate::notify, event
 
+  @as_scatterheader.macro
+
   FOREACH notify, self.notifyobj DO IF Obj_Valid(notify) THEN notify.notify, event
 
 END
 
 PRO as_newexperimentfromtemplate::cleanup
+  
+  @as_scatterheader.macro
 
   self.IDLitComponent::Cleanup
   IF Widget_Info(self.wbase, /VALID) THEN Widget_Control, self.wbase, /DESTROY

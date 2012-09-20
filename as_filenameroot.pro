@@ -53,6 +53,8 @@
 
 FUNCTION AS_FileNameRoot, f_name, nameformat, NUM=num, LEN=len, EXT=ext
 
+  @as_scatterheader.macro
+
     outarr = f_name ; ensure that outarray has identical size and form to f_name
 
     ; find position of last "."

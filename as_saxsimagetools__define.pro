@@ -1,10 +1,14 @@
 FUNCTION AS_SaxsImageTools::Init, qData, profileObj, _REF_Extra=extra
 
+  @as_scatterheader.macro
+
   RETURN, self->AS_CakeObj::Init(qData, profileObj,_Extra=extra)
 
 END
 
 PRO AS_SaxsImageTools::qCalibChange, qcalib
+
+  @as_scatterheader.macro
 
   self.frame.len = qcalib.cameralength
   self.frame.wlen = qcalib.wavelength
@@ -17,6 +21,8 @@ PRO AS_SaxsImageTools::qCalibChange, qcalib
 END
 
 PRO AS_SaxsImageTools::fitCircle, points
+
+  @as_scatterheader.macro
   
   IF ~Obj_Valid(self.PARENT) THEN RETURN
        
@@ -80,6 +86,8 @@ PRO AS_SaxsImageTools::fitCircle, points
 END
 
 FUNCTION AS_SaxsImageTools::fitAnnulus, x0, y0, iradius, polar_arc, halfwidth=halfwidth, nsec=nsec
+
+  @as_scatterheader.macro
 
     IF N_Elements(halfwidth) EQ 0 then h = round(2.0/frmdata.nxpix) ELSE h=round(halfwidth)
     IF N_Elements(nsec) EQ 0 then nsec=0
@@ -207,16 +215,23 @@ FUNCTION AS_SaxsImageTools::fitAnnulus, x0, y0, iradius, polar_arc, halfwidth=ha
 END
 
 PRO AS_SaxsImageTools::Event, event
+
+  @as_scatterheader.macro
+
   self->as_CakeObj::event, event
 END
 
 PRO AS_SaxsImageTools::GetProperty, _REF_Extra = extra
+
+  @as_scatterheader.macro
 
   self.as_cakeobj::GetProperty, _EXTRA = extra
 
 END
 
 PRO AS_SaxsImageTools::NewParams, paramObj
+  
+  @as_scatterheader.macro
 
   self->AS_CakeObj::NewParams, paramObj
 

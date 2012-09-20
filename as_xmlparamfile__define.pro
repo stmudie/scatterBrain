@@ -1,5 +1,7 @@
 FUNCTION AS_XMLParamFile::INIT
 
+  @as_scatterheader.macro
+
   initXML = self->IDLffXMLDOMDocument::Init()
   initXML = initXML < self->IDLffXMLSAX::Init()
   self.currentAttStruct = Ptr_New(/ALLOCATE_HEAP)
@@ -14,6 +16,8 @@ END
 
 PRO AS_XMLParamFile::Load, FILENAME=filename
 
+  @as_scatterheader.macro
+
   self->IDLffXMLDOMDocument::Load, FILENAME = filename
   self.base = self->GetDocumentElement()
 
@@ -21,6 +25,8 @@ END
 
 PRO AS_XMLParamFile::New, baseElement, DTD = DTD, FILEVERSION = fileVersion
 
+  @as_scatterheader.macro
+  
   IF Keyword_Set(DTD) THEN BEGIN
     IF ~StrMatch(dtd, '*<?xml*') THEN DTD = '<?xml version="1.0" encoding="UTF-8"?>'+DTD
     self->IDLffXMLDOMDocument::Load, STRING = DTD
@@ -41,6 +47,8 @@ END
 
 FUNCTION AS_XMLParamFile::AddElement, parent, Child, Text
 
+  @as_scatterheader.macro
+
   IF Size(parent, /TYPE) EQ 7 THEN BEGIN
     IF STRUPCASE(parent) EQ 'BASE' THEN parent = self.base
   ENDIF
@@ -54,17 +62,23 @@ END
 
 PRO AS_XMLParamFile::AddAttribute, Parent, attribute, value
 
+  @as_scatterheader.macro
+
   parent->SetAttribute, Attribute, value
   
 END
 
 PRO AS_XMLParamFile::Save, FILENAME = fileName, _REF_Extra=extra
 
+  @as_scatterheader.macro
+
   self->IDLffXMLDOMDocument::Save, FILENAME=fileName, _extra=extra, /PRETTY_PRINT
 
 END
 
 PRO AS_XMLParamFile::NewFromStruct, baseElement, STRUCT=struct, ATTSTRUCT=attStruct, APPENDTO=appendTo
+
+  @as_scatterheader.macro
 
   arraySize = N_Elements(struct)
   IF N_Elements(struct) EQ 0 THEN RETURN
@@ -118,6 +132,8 @@ END
 
 PRO AS_XMLParamFile::Cleanup
 
+  @as_scatterheader.macro
+
   self->IDLffXMLSAX::Cleanup
   self->IDLffXMLDOMDocument::Cleanup
 
@@ -135,6 +151,8 @@ END
 ;***********************************************************
 
 PRO AS_XMLParamFile::ParseFile, fileName, STRUCT=struct, ATTSTRUCT=attStruct, XML_STRING=xml_string
+
+  @as_scatterheader.macro
 
   IF KeyWord_Set(struct) THEN BEGIN
     IF Ptr_Valid(self.currentStruct) THEN *self.currentStruct = struct[0] ELSE self.currentStruct = Ptr_New(struct[0])
@@ -162,11 +180,15 @@ END
 
 PRO AS_XMLParamFile::characters, data
 
+  @as_scatterheader.macro
+
   self.charBuffer = self.charBuffer + data
   
 END
 
 PRO AS_XMLParamFile::StartDocument
+
+  @as_scatterheader.macro
 
   IF (N_Elements(*self.currentStruct) GT 0) THEN BEGIN
     name = Tag_Names(*self.currentStruct,/STRUCTURE)
@@ -181,6 +203,8 @@ PRO AS_XMLParamFile::StartDocument
 END
 
 PRO AS_XMLParamFile::startElement, URI, local, strName, attrName, attrValue
+
+  @as_scatterheader.macro
 
   IF N_Elements(self.charBuffer) GT 0 THEN BEGIN
     self.charBufferTemp = [strName,self.charBuffer]
@@ -215,11 +239,15 @@ END
 
 PRO AS_XMLParamFile::IgnorableWhitespace, chars
 
+  @as_scatterheader.macro
+
   self.charBuffer = StrCompress(self.charBuffer)
 
 END
 
 PRO AS_XMLParamFile::endElement, URI, local, strName
+
+  @as_scatterheader.macro
 
   IF Size(*self.currentStruct,/TYPE) NE 8 OR Size(*self.currentAttStruct,/TYPE) NE 8 THEN RETURN
 
@@ -263,6 +291,8 @@ PRO AS_XMLParamFile::endElement, URI, local, strName
 END
 
 FUNCTION AS_XMLParamFile::GetParams
+
+  @as_scatterheader.macro
 
   RETURN, *self.structArray
 

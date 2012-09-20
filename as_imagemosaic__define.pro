@@ -1,14 +1,22 @@
 PRO AS_ImageMosaic_event, event
+
+  @as_scatterheader.macro
+
   Widget_Control, event.handler, GET_UVALUE = AS_ImageMosaic
   AS_ImageMosaic.Event, event
 END
 
 PRO AS_ImageMosaic_PaletteUpdate, DATA = as_imageMosaic
 COMMON COLORS, R_orig, G_orig, B_orig, R_curr, G_curr, B_curr
+
+  @as_scatterheader.macro
+
   as_imagemosaic.paletteupdate, R_curr, G_curr, B_curr
 END
 
 PRO AS_ImageMosaic::Event, event
+
+  @as_scatterheader.macro
 
   widgetName = Widget_Info(event.id, /UNAME)
 
@@ -105,6 +113,8 @@ END
 
 PRO AS_ImageMosaic::SetProperty, IMAGES = images, COLUMNS = columns, ROWS = rows, PALETTE = palette, ZOOM = zoom, SCALEINDIVIDUALLY = scaleIndividually
 
+  @as_scatterheader.macro
+
   IF ISA(palette, 'IDLGRPALETTE') THEN BEGIN
     Obj_Destroy, self.palette
     self.palette = palette
@@ -157,6 +167,8 @@ END
 
 PRO AS_ImageMosaic::Save, USEZOOM = useZoom
 
+  @as_scatterheader.macro
+
   filters = ['*.jpg', '*.tif', '*.png']
   fileName = Dialog_Pickfile(TITLE = 'Choose filename.', /WRITE, /OVERWRITE_PROMPT, DEFAULT_EXTENSION = 'jpg', FILTER = filters)
   
@@ -198,12 +210,16 @@ END
 
 PRO AS_ImageMosaic::PaletteUpdate, R, G, B
 
+  @as_scatterheader.macro
+
   self.palette.SetProperty, RED_VALUES = R, GREEN_VALUES = G, BLUE_VALUES = B
   self.drawWindow.draw
 
 END
 
 PRO AS_ImageMosaic::ShowHideLabels, show
+
+  @as_scatterheader.macro
 
   models = self.imagesArrObj.Get(/ALL)
   FOREACH model, models DO BEGIN
@@ -216,6 +232,8 @@ PRO AS_ImageMosaic::ShowHideLabels, show
 END
 
 PRO AS_ImageMosaic::Scale, LINEAR = linear, LOG=log, SQRT = sqrt, TOPCHOP = topChop, MINVALUE = minValue
+
+  @as_scatterheader.macro
   
   IF KeyWord_Set(log) THEN self.scale = 'LOG'
   IF KeyWord_Set(sqrt) THEN self.scale = 'SQRT'
@@ -227,6 +245,8 @@ PRO AS_ImageMosaic::Scale, LINEAR = linear, LOG=log, SQRT = sqrt, TOPCHOP = topC
 END
 
 PRO AS_ImageMosaic::Display, MOVEONLY = moveOnly
+
+  @as_scatterheader.macro
 
   images = self.imagesArr
 
@@ -344,6 +364,8 @@ END
 
 PRO AS_ImageMosaic::FixXYSize, xsize, ysize, xbuffer, ybuffer
 
+  @as_scatterheader.macro
+
   IF N_Elements(xbuffer) EQ 0 THEN xbuffer = 0
   IF N_Elements(ybuffer) EQ 0 THEN ybuffer = 0
 
@@ -371,11 +393,15 @@ END
 
 PRO AS_ImageMosaic::Cleanup
 
+  @as_scatterheader.macro
+
   IF Widget_Info(self.wBase, /VALID) THEN Widget_Control, self.wBase, /DESTROY
 
 END
 
 FUNCTION AS_ImageMosaic::Init, images, columns, rows, LABELS = labels, GROUP_LEADER = groupLeader, DOCK = dock
+
+  @as_scatterheader.macro
 
   XSize = 640
   YSize = 480

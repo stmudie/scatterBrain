@@ -1,5 +1,7 @@
 FUNCTION AS_CakeObj::Init, qData, profileObj, _REF_Extra=extra
 
+  @as_scatterheader.macro
+
          IF ~Obj_Valid(qData) THEN RETURN, 0
          self.cake.qData = qData
          self.cake.profileObj = profileObj
@@ -23,6 +25,8 @@ FUNCTION AS_CakeObj::Init, qData, profileObj, _REF_Extra=extra
 END
 
 PRO AS_CakeObj::SaveCakeLUT, slotNum
+
+  @as_scatterheader.macro
 
   IF Ptr_Valid(self.cake.cakeMemory[slotNum].lut)    THEN *(self.cake.cakeMemory[slotNum].lut)    = *(self.cake.lut) $
                                                      ELSE self.cake.cakeMemory[slotNum].lut       = Ptr_New(*(self.cake.lut))
@@ -82,6 +86,8 @@ END
 ;*******************************************************************************
 
 FUNCTION AS_CakeObj::CakeSetup, force_range=force_range, sectors=sectors
+
+  @as_scatterheader.macro
 
 ;   Note that each time saxs_cake_setup is called a new q_data structure is created
 ;   in addition, the profiles array is reset (and erased) so that it has an
@@ -432,6 +438,8 @@ END
 
 FUNCTION AS_CakeObj::Cake, isec=isec;, NOPROFILE = noProfile, LIVE = live
 
+  @as_scatterheader.macro
+
     IF N_Elements(noProfile) EQ 0 THEN noProfile = 0
 
     nq = self.cake.nq
@@ -594,6 +602,8 @@ END
 
 PRO AS_CakeObj::SetProperty, STEP = step, _REF_Extra = extra
 
+  @as_scatterheader.macro
+
   IF KeyWord_Set(step) THEN BEGIN
     IF step GE 1 THEN self.cake.step = step
     self.cake.ok = 0
@@ -605,12 +615,16 @@ END
 
 PRO AS_CakeObj::GetProperty, STEP = step, _REF_Extra = extra
 
+  @as_scatterheader.macro
+
   IF Arg_Present(step) THEN step = self.cake.step
   self.AS_MaskObj::GetProperty, _EXTRA = extra
 
 END
 
 FUNCTION AS_CakeObj::Sectors, f_name, sectors, NODISPLAYMASK=noDisplayMask, CURRENTIMAGE = currentImage
+
+  @as_scatterheader.macro
 
   self.cake.nsectors = sectors
 
@@ -639,6 +653,8 @@ END
 
 FUNCTION AS_CakeObj::GetAndCake, f_name, FRAME = liveFrame, NOPROFILE = noProfile, SAVESUMMED=saveSummed, SUMMEDNAME = summedName, NOSETUP = noSetup
 
+    @as_scatterheader.macro
+
     self.UpdateBeamCursor
     live = KeyWord_Set(liveFrame)
     sf=self->GetImage(f_name, FRAME=liveFrame)
@@ -666,6 +682,8 @@ FUNCTION AS_CakeObj::GetAndCake, f_name, FRAME = liveFrame, NOPROFILE = noProfil
 END 
 
 FUNCTION AS_CakeObj::GetLUT
+
+  @as_scatterheader.macro
 
 ;  nxpix = long(self.frame.nxpix)
 ;  nypix = long(self.frame.nypix)
@@ -697,10 +715,14 @@ FUNCTION AS_CakeObj::GetLUT
 END
 
 PRO AS_CakeObj::Event, event
+
+  @as_scatterheader.macro
   self->AS_MaskObj::event, event
 END
 
 PRO AS_CakeObj::NewParams, paramObj 
+
+  @as_scatterheader.macro
 
   self->AS_MaskObj::NewParams, paramObj
 
@@ -735,6 +757,8 @@ END
 
 PRO AS_CakeObj::qClick, x, y
      
+  @as_scatterheader.macro
+     
   x = x - self.frame.xc
   y = y - self.frame.yc
   
@@ -761,6 +785,8 @@ PRO AS_CakeObj::qClick, x, y
 END
 
 PRO AS_CakeObj::PowerLawScale, power
+
+  @as_scatterheader.macro
 
   IF N_Elements(power) EQ 0 THEN power = -4
 

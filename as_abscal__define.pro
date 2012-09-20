@@ -1,11 +1,15 @@
 PRO as_abscal_event, event
 
+  @as_scatterheader.macro
+
   Widget_Control, event.top, GET_UVALUE = as_abscal
   as_abscal.event, event
 
 END
 
 PRO as_abscal::event, event
+
+  @as_scatterheader.macro
 
   widgetName = Widget_Info(event.ID, /UNAME)
   
@@ -56,6 +60,8 @@ PRO as_abscal::event, event
 END
 
 FUNCTION as_abscal::init, GROUPLEADER = groupLeader, NOTIFY_OBJ = notifyObj, showGUI = showGUI
+
+  @as_scatterheader.macro
 
   IF Keyword_Set(notifyObj) THEN $
     IF TypeName(notifyObj[0]) EQ 'NOTIFY' $
@@ -166,17 +172,23 @@ END
 
 PRO as_abscal::ShowGUI
 
+  @as_scatterheader.macro
+
   Widget_Control, self.wAbsBase, /MAP
 
 END
 
 PRO as_abscal::notify, event
 
+  @as_scatterheader.macro
+  
   FOREACH notify, self.notifyObj DO IF Obj_Valid(notify) THEN notify.notify, event
 
 END
 
 PRO as_abscal::SetProperty, NORMTYPE = normType
+
+  @as_scatterheader.macro
 
   IF N_Elements(normType) GT 0 THEN BEGIN
     self.normSelected = normType[0]
@@ -191,6 +203,8 @@ PRO as_abscal::SetProperty, NORMTYPE = normType
 END
 
 PRO as_abscal::DetCounts, I0, IBS, expTime, APPLIED=applied
+
+  @as_scatterheader.macro
 
   IF N_Elements(I0) GT 0 AND N_Elements(IBS) GT 0 THEN BEGIN
 
@@ -214,6 +228,8 @@ END
 
 PRO as_abscal::SetCurrentCalibration, ABSCal, Offset, USE = use
 
+  @as_scatterheader.macro
+
   IF N_Elements(ABSCal) THEN Widget_Control, Widget_Info(self.wAbsBase, FIND_BY_UNAME = 'Current Abs Cal Factor'), SET_VALUE = String(ABSCal)
   IF N_Elements(Offset) THEN Widget_Control, Widget_Info(self.wAbsBase, FIND_BY_UNAME = 'Current Abs Cal Factor Offset'), SET_VALUE = String(Offset)
   
@@ -233,6 +249,8 @@ PRO as_abscal::SetCurrentCalibration, ABSCal, Offset, USE = use
 END
 
 PRO as_abscal::CalibPoints, DetCounts, I0, BS, BACKCOUNTS = backCounts, I0Back = I0Back, BSBack = BSBack, CLEAR = clear
+
+  @as_scatterheader.macro
 
   IF KeyWord_Set(clear) THEN BEGIN
     *self.DetCounts = !Null
@@ -259,6 +277,8 @@ PRO as_abscal::CalibPoints, DetCounts, I0, BS, BACKCOUNTS = backCounts, I0Back =
 END
 
 PRO as_abscal::Calibrate
+  
+  @as_scatterheader.macro
   
   IF N_Elements(*self.detCounts) EQ 0 THEN RETURN
   
@@ -315,11 +335,13 @@ END
 
 PRO as_abscal::EditConfig, RENAME=rename, DELETE=delete
 
-  
+  @as_scatterheader.macro
 
 END
 
 PRO as_abscal::Cleanup
+
+  @as_scatterheader.macro
 
   IF ISA(self.notifyObj, 'LIST') THEN IF self.notifyObj.count() GT 0 THEN Obj_Destroy, self.notifyObj.toArray()
   IF Widget_Info(self.wAbsBase, /VALID) THEN Widget_Control, self.wAbsBase, /DESTROY

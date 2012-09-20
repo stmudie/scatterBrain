@@ -1,5 +1,7 @@
 PRO AS__SaxsProfileAddons::UpdateProfileWidgets, wBase
 
+  @as_scatterheader.macro
+
     WIDGET_CONTROL, Widget_Info(wBase, FIND_BY_UNAME='TIMESTMP') $
                     , SET_VALUE=self.timestamp
 

@@ -1,9 +1,14 @@
 PRO as_scatterXMLGUI_event, event
+  
+  @as_scatterheader.macro
+  
   Widget_Control, event.handler, GET_UVALUE = scatterXMLGUI
   scatterXMLGUI.event, event
 END
 
 FUNCTION as_scatterXMLGUI::INIT, GROUP_LEADER = groupLeader, DOCK=dock, _REF_Extra=extra
+
+  @as_scatterheader.macro
 
   IF KeyWord_Set(groupLeader) THEN BEGIN
     self.groupLeader = groupLeader
@@ -44,6 +49,8 @@ FUNCTION as_scatterXMLGUI::INIT, GROUP_LEADER = groupLeader, DOCK=dock, _REF_Ext
 END
 
 PRO as_scatterXMLGUI::event, event
+
+  @as_scatterheader.macro
 
   CASE Tag_Names(event, /STRUCTURE) OF
    'WIDGET_TREE_SEL' : BEGIN
@@ -141,6 +148,10 @@ PRO as_scatterXMLGUI::event, event
                                             
                     END
     'Contour'     : BEGIN
+                      
+                      COMPILE_OPT idl2
+                      ON_ERROR, 2
+                      
                       selected = Widget_Info(self.fileTreeParent,/TREE_SELECT)
                       nameList = list()
                       FOREACH s, selected DO BEGIN
@@ -190,6 +201,8 @@ END
 
 PRO as_scatterXMLGUI::NewLogLine, fname, exptime, i0, it, ibs, _REF_EXTRA = extra
 
+  @as_scatterheader.macro
+
   self.as_scatterXMLFile::NewLogLine, fname, exptime, i0, it, ibs, _extra = extra
   fname = File_Basename(fname)
   void = Widget_Tree(self.fileTree, VALUE = fname, INDEX = 0)
@@ -197,6 +210,8 @@ PRO as_scatterXMLGUI::NewLogLine, fname, exptime, i0, it, ibs, _REF_EXTRA = extr
 END
 
 PRO as_scatterXMLGUI::clear
+
+  @as_scatterheader.macro
 
   IF self.fileTree NE 0 THEN BEGIN
     allLeaves =  Widget_Info(self.filetree,/ALL_CHILDREN)
@@ -209,11 +224,15 @@ END
 
 PRO as_scatterXMLGUI::SetProperty, HEIGHT = height
 
+  @as_scatterheader.macro
+
   IF N_Elements(height) NE 0 THEN Widget_Control, self.fileTreeParent, YSIZE=height
   
 END
 
 PRO as_scatterXMLGUI::ParseFile, FILENAME=filename, LOGONLY=logOnly, UPDATE=update
+
+  @as_scatterheader.macro
 
   self->as_scatterxmlfile::ParseFile, filename, LOGONLY=logOnly, UPDATE=update
   IF fileName EQ 'error' THEN RETURN

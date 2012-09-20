@@ -1,5 +1,7 @@
 FUNCTION scatterBrainHelp::init, _REF_EXTRA = extra
 
+  @as_scatterheader.macro
+
   self.HelpList = 'Overview,Frame_Window,Plot_Control,About,Version_Notes'
   
   RETURN, self.as_helpfile::init(_EXTRA = extra)
@@ -7,6 +9,8 @@ FUNCTION scatterBrainHelp::init, _REF_EXTRA = extra
 END
 
 PRO scatterBrainHelp::Overview
+
+  @as_scatterheader.macro
 
   helpString = 'scatterBrain is a data acquisition and reduction application for ' + $
                'SAXS/WAXS beamlines. It performs azimuthal integration from 2D ' + $
@@ -17,6 +21,8 @@ PRO scatterBrainHelp::Overview
 END
 
 PRO scatterBrainHelp::Frame_Window
+
+  @as_scatterheader.macro
 
   helpString = [                                                           $
                '*** FRAME WINDOW ***'                                    , $
@@ -48,6 +54,8 @@ END
 
 PRO scatterBrainHelp::Plot_Control
 
+  @as_scatterheader.macro
+
   helpString = [                                                      $
                '*** PLOT CONTROL ***'                               , $
                '~~~~~~~~~~~~~~~~'                                   , $
@@ -62,12 +70,16 @@ END
 
 PRO scatterBrainHelp::About
 
+  @as_scatterheader.macro
+
   helpString = 'About'
   self.Display, helpString
 
 END
 
 PRO scatterBrainHelp::Version_Notes
+
+  @as_scatterheader.macro
 
   helpString = AS__SaxsShowVersion()
   self.Display, helpString

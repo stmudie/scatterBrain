@@ -1,5 +1,7 @@
 FUNCTION AS_TalkToExcel::init, VISIBLE=visible
 
+  @as_scatterheader.macro
+
   excelObj =Obj_New('IDLcomIDispatch$CLSID$00024500_0000_0000_C000_000000000046')
   IF Obj_Valid(excelObj) THEN BEGIN
     IF N_Elements(visible) EQ 0 THEN visible = 1
@@ -11,6 +13,8 @@ FUNCTION AS_TalkToExcel::init, VISIBLE=visible
 END
 
 PRO AS_TalkToExcel::OpenFile, file
+
+  @as_scatterheader.macro
 
   IF N_Elements(file) EQ 0 THEN file = self.excelObj.GetOpenFileName("Excel Workbook (*.xlsx), *.xlsx,Excel Macro-Enable Workbook (*.xlsm), *.xlsm,Excel 97-2003 Workbook (*.xls), *.xls")
   IF file NE '' THEN BEGIN 
@@ -28,11 +32,15 @@ END
 
 PRO AS_TalkToExcel::SaveFile
 
+  @as_scatterheader.macro
+
   self.book.save
 
 END
 
 PRO AS_TalkToExcel::SaveCopyAs, file
+
+  @as_scatterheader.macro
 
   IF N_Elements(file) EQ 0 THEN file = self.excelObj.GetSaveAsFileName('',"Excel Workbook (*.xlsx), *.xlsx,Excel Macro-Enable Workbook (*.xlsm), *.xlsm,Excel 97-2003 Workbook (*.xls), *.xls")
   IF file NE '' THEN self.book.SaveCopyAs, file
@@ -40,6 +48,8 @@ PRO AS_TalkToExcel::SaveCopyAs, file
 END
 
 PRO AS_TalkToExcel::SaveAsFile, file
+
+  @as_scatterheader.macro
 
   IF N_Elements(file) EQ 0 THEN file = self.excelObj.GetSaveAsFileName('',"Excel Workbook (*.xlsx), *.xlsx,Excel Macro-Enable Workbook (*.xlsm), *.xlsm,Excel 97-2003 Workbook (*.xls), *.xls")
   IF file NE '' THEN BEGIN 
@@ -49,6 +59,8 @@ PRO AS_TalkToExcel::SaveAsFile, file
 END
 
 PRO AS_TalkToExcel::ChangeSheet, nameOrIndex
+
+  @as_scatterheader.macro
 
   errorCount = 0
   CATCH, error_status
@@ -76,6 +88,8 @@ PRO AS_TalkToExcel::ChangeSheet, nameOrIndex
 END
 
 PRO AS_TalkToExcel::Copy, source, destination
+
+  @as_scatterheader.macro
 
   SWITCH N_Elements(source) OF
     2 : self.ChangeSheet, source[1]
@@ -105,6 +119,8 @@ PRO AS_TalkToExcel::Copy, source, destination
 END
 
 FUNCTION AS_TalkToExcel::GetRange, range, ADDRESS = address, OFFSET = offset
+
+  @as_scatterheader.macro
 
   IF N_Elements(range) EQ 0 THEN RETURN, ''
   errorCount = 0
@@ -158,6 +174,8 @@ FUNCTION AS_TalkToExcel::GetRange, range, ADDRESS = address, OFFSET = offset
 END
 
 PRO AS_TalkToExcel::Highlight, inRange, REMOVE=remove, MOVE=move
+
+  @as_scatterheader.macro
 
   IF N_Elements(inRange) EQ 0 OR inRange EQ '' THEN RETURN
   IF ~Obj_Valid(self.activeSheet) THEN self.ChangeSheet, 1
@@ -217,11 +235,15 @@ END
 
 PRO AS_TalkToExcel::RunMacro, macro
 
+  @as_scatterheader.macro
+
   self.excelObj.run, macro
 
 END
 
 PRO AS_TalkToExcel::SetRange, range, inValue, BACKCOLOUR=backColour, FONTCOLOUR=fontColour, FONTSTYLE=fontStyle
+
+  @as_scatterheader.macro
 
   IF ~Obj_Valid(self.activeSheet) THEN self.ChangeSheet, 1
   self.activeSheet.GetProperty, RANGE=range, range[0]
@@ -292,17 +314,23 @@ END
 
 PRO AS_TalkToExcel::CloseFile
 
+  @as_scatterheader.macro
+
   self.book->Close
 
 END
 
 PRO AS_TalkToExcel::ShowExcel
  
+  @as_scatterheader.macro
+ 
   self.excelObj.SetProperty, VISIBLE = 1
   
 END
 
 PRO AS_TalkToExcel::Cleanup
+
+  @as_scatterheader.macro
 
   Obj_Destroy, self.book
   Obj_Destroy, self.activeSheet

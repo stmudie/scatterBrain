@@ -1,11 +1,15 @@
 PRO as_normalisation_event, event
 
+  @as_scatterheader.macro
+
   Widget_Control, event.top, GET_UVALUE = as_normalisation
   as_normalisation.event, event
 
 END
 
 PRO as_normalisation::event, event
+
+  @as_scatterheader.macro
 
   widgetName = Widget_Info(event.ID, /UNAME)
   
@@ -30,6 +34,8 @@ PRO as_normalisation::event, event
 END
 
 FUNCTION as_normalisation::init, GROUPLEADER = groupLeader, NOTIFY_OBJ = notifyObj
+
+  @as_scatterheader.macro
 
   IF N_Elements(notifyObj) GT 0 THEN BEGIN
     FOR i = 0, N_Elements(notifyObj) - 1 DO BEGIN
@@ -88,11 +94,15 @@ END
 
 PRO as_normalisation::ShowGUI
 
+  @as_scatterheader.macro
+
   Widget_Control, self.wNormBase, /MAP
 
 END
 
 PRO as_normalisation::DetCounts, I0, IBS, expTime
+
+  @as_scatterheader.macro
 
   IF N_Elements(I0) GT 0 AND N_Elements(IBS) GT 0 THEN BEGIN
 
@@ -109,7 +119,7 @@ END
 
 PRO as_normalisation::EditConfig, RENAME=rename, DELETE=delete
 
-  
+  @as_scatterheader.macro
 
 END
 
