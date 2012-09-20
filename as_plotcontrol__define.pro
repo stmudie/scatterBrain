@@ -1,15 +1,23 @@
 PRO AS_PlotControl_event, event
+
+  @as_scatterheader.macro
+
     id = Widget_Info(event.top, FIND_BY_UNAME='Plot Control Base')
     widget_control, id, GET_UVALUE=AS_PlotControl
     AS_PlotControl->event, event
 END
 
 PRO AS_SurfaceControl_event, event
+
+  @as_scatterheader.macro
+  
     widget_control, event.top, GET_UVALUE=AS_PlotControl
     AS_PlotControl->SurfaceEvent, event
 END
 
 PRO AS_PlotControl::UpDatePlot, _REF_EXTRA = extra
+
+  @as_scatterheader.macro
 
   self.oProfiles->UpdatePlot, _EXTRA = extra
 
@@ -19,6 +27,8 @@ END
 
 PRO AS_PlotControl::SurfaceEvent, event
 
+  @as_scatterheader.macro
+
   IF Tag_Names(event, /STRUCTURE) EQ 'WIDGET_BASE' THEN BEGIN
     Widget_Control, Widget_Info(event.id, FIND_BY_UNAME = 'Surface Draw'), XSIZE = event.x, YSIZE = event.y
   ENDIF
@@ -26,6 +36,8 @@ PRO AS_PlotControl::SurfaceEvent, event
 END
 
 PRO AS_PlotControl::event, event
+
+@as_scatterheader.macro
 
 widgetName = Widget_Info(event.ID, /UNAME)
 
@@ -494,6 +506,8 @@ END
 
 PRO AS_PlotControl::MultiPlot, CONTOUR = contour, SURFACE = surf
 
+  @as_scatterheader.macro
+
   IF Keyword_Set(surf) THEN plotType = 'Surface' ELSE plotType = 'Contour'
   IF KeyWord_Set(contour) THEN plotType = 'Contour'
   
@@ -546,6 +560,8 @@ END
 
 PRO AS_PlotControl::Callback, event
 
+  @as_scatterheader.macro
+
   CASE event.type OF 
   
   'NewPlot' : self->AddPlot, event.label, event.index
@@ -565,11 +581,15 @@ END
 
 PRO AS_PlotControl::Notify, event
 
+  @as_scatterheader.macro
+
   FOREACH notify, self.notifyObj DO IF Obj_Valid(notify) THEN notify.notify, event
 
 END
 
 PRO AS_PlotControl::RePlot, index
+
+  @as_scatterheader.macro
 
   FOR i = 0, N_Elements(index) -1 DO BEGIN
     fname = index[i]
@@ -586,6 +606,8 @@ END
 
 PRO AS_PlotControl::ReNamePlot, plotLabel, plotIndex
 
+  @as_scatterheader.macro
+
   topChildren = (children = Widget_Info(self.wProfileTree, /ALL_CHILDREN))
   
   FOREACH child, topChildren DO children = [children,Widget_Info(child, /ALL_CHILDREN)]
@@ -600,6 +622,8 @@ PRO AS_PlotControl::ReNamePlot, plotLabel, plotIndex
 END
 
 PRO AS_PlotControl::SelectPlot, plotIndex
+
+  @as_scatterheader.macro
   
   topChildren = (children = Widget_Info(self.wProfileTree, /ALL_CHILDREN))
   IF topChildren[0] EQ 0 THEN RETURN
@@ -616,6 +640,8 @@ PRO AS_PlotControl::SelectPlot, plotIndex
 END
 
 PRO AS_PlotControl::DeletePlot, LEAVEPROFILE = leaveProfile
+
+  @as_scatterheader.macro
 
    IF (Widget_Info(self.wProfileTree, /TREE_SELECT))[0] EQ -1 THEN RETURN
    nameArray = !Null
@@ -756,6 +782,8 @@ END
 
 PRO AS_PlotControl::AddPlot, plotLabel, plotIndex, UPDATEPLOT = updatePlot 
 
+  @as_scatterheader.macro
+
   self.numPlots = self.numPlots + 1
   
 ;  print, self.numPlots
@@ -792,6 +820,8 @@ PRO AS_PlotControl::AddPlot, plotLabel, plotIndex, UPDATEPLOT = updatePlot
 END
 
 PRO AS_PlotControl::Cleanup
+  
+  @as_scatterheader.macro
 
   Obj_Destroy, self.plotPalette
 

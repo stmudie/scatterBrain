@@ -1,5 +1,7 @@
 FUNCTION AS_FrameObj::Init, RAWDATA = rawData, HISTMAX=histMax, HISTMIN=histMin, LOGOBJ=logObj, NOTIFY=notify, _REF_Extra=extra
 
+  @as_scatterheader.macro
+
   IF KeyWord_Set(notify) THEN $
     IF TypeName(notify[0]) EQ 'NOTIFY' $
       THEN self.notify = List(notify, /EXTRACT)
@@ -138,12 +140,15 @@ END
 
 PRO AS_FrameObj::Notify, event
 
+  @as_scatterheader.macro
+
     FOREACH notify, self.notify DO IF Obj_Valid(notify) THEN notify.notify, event
    
 END
 
 PRO AS_FrameObj::DrawImage, PRESERVEVIEWPLANE = preserve
 
+  @as_scatterheader.macro
     
     IF ~KeyWord_Set(preserve) THEN $ 
     IF N_Elements(*self.frame.rawData) GT 0 THEN self.frame.frameViewObj->SetProperty, VIEWPLANE_RECT = [0,0,n_elements((*self.frame.rawData)[*,0]),n_elements((*self.frame.rawData)[0,*])]
@@ -152,6 +157,8 @@ PRO AS_FrameObj::DrawImage, PRESERVEVIEWPLANE = preserve
 END
 
 PRO AS_FrameObj::GetFilenames, outputext=outputext, single=single, strprompt=strprompt, template=template, control_str=control_str
+
+@as_scatterheader.macro
 
 IF n_elements(control_str) GT 0 THEN must_exist = 0 ELSE must_exist=1
 
@@ -212,6 +219,8 @@ END
 
 PRO AS_FrameObj::UpdateBeamCursor
 
+  @as_scatterheader.macro
+
   IF Obj_Valid(self.frame.beamCursor) THEN self.frame.beamCursor->SetProperty, DATA = Transpose([[0,self.frame.nxpix,self.frame.xc,self.frame.xc,self.frame.xc],[self.frame.yc,self.frame.yc,self.frame.yc,0,self.frame.nypix]]) ELSE BEGIN
       self.frame.beamCursor = Obj_New('IDLgrPolyline', [0,self.frame.nxpix,self.frame.xc,self.frame.xc,self.frame.xc],[self.frame.yc,self.frame.yc,self.frame.yc,0,self.frame.nypix], LINESTYLE = 2, COLOR = 255)  
       self.PARENT->Add, self.frame.beamCursor
@@ -222,6 +231,8 @@ PRO AS_FrameObj::UpdateBeamCursor
 END
 
 PRO AS_FrameObj::SetZingerPixMask, threshold, CLEAR = clear
+
+  @as_scatterheader.macro
 
   IF KeyWord_Set(clear) THEN self.frame.zingerPixels = List() ELSE BEGIN
 
@@ -234,6 +245,8 @@ PRO AS_FrameObj::SetZingerPixMask, threshold, CLEAR = clear
 END
 
 FUNCTION AS_FrameObj::GetRawImage, f_name, frame = frame, quiet=quiet, info_only=info_only
+
+  @as_scatterheader.macro
 
  ;*******************************************************
     ;  Add as many of these frame input modules as needed
@@ -449,6 +462,8 @@ FUNCTION AS_FrameObj::GetRawImage, f_name, frame = frame, quiet=quiet, info_only
 end
 
 FUNCTION AS_FrameObj::GetImage, seqfnames, quiet=quiet, FRAME=frame
+
+@as_scatterheader.macro
 
 ;*******************************************************************************
 ;   saxs_get_image
@@ -754,6 +769,8 @@ end
 
 FUNCTION AS_FrameObj::CheckSaturation
 
+  @as_scatterheader.macro
+
   IF self.frame.saturation EQ 0 THEN RETURN, 0
   IF self.frame.time GE 1 OR self.frame.time EQ 0 THEN BEGIN
     void = Where(*self.frame.rawData GT self.frame.saturation-self.frame.saturation*0.05, nSat) 
@@ -765,6 +782,8 @@ FUNCTION AS_FrameObj::CheckSaturation
 END
 
 PRO AS_FrameObj::Delete_QCirc, qRadius
+   
+    @as_scatterheader.macro
    
     temp = *self.frame.circObjects
     IF N_Elements(temp) LE 2 THEN RETURN
@@ -808,6 +827,8 @@ PRO AS_FrameObj::Delete_QCirc, qRadius
 END
 
 PRO AS_FrameObj::OverLay_QCirc, qRadius
+   
+    @as_scatterheader.macro
    
     IF Obj_Valid(self.PARENT) THEN BEGIN
       self.PARENT->GetProperty, PARENT = view
@@ -879,6 +900,8 @@ END
 
 PRO AS_FrameObj::OverLay_Line, data, frameModelObj
       
+   @as_scatterheader.macro   
+   
    IF ~Obj_Valid(*self.frame.lineObject) THEN BEGIN
      self.frame.lineObject = Obj_New('IDLgrPolyline', data, color = [255,0,0])
      frameModelObj->Add, line
@@ -888,6 +911,8 @@ PRO AS_FrameObj::OverLay_Line, data, frameModelObj
 END
 
 FUNCTION AS_FrameObj::ScaleImage
+
+  @as_scatterheader.macro
 
   ; Scales the image data appropriately, depending on scale type. Lifted from David Fannings XStretch.
 
@@ -978,6 +1003,8 @@ END
 
 PRO AS_FrameObj::HistDisplay, group_leader, frameWinObj, frameViewObj, HIST_BUTTON=histBut, XPOS = xpos, YPOS = ypos, XSIZE = xsize, YSIZE = ysize, NOSHOW = noShow
 
+@as_scatterheader.macro
+
 IF Obj_Valid(self.frame.histObj) AND Widget_Info(self.frame.histWin, /VALID) THEN BEGIN
   Widget_Control, self.frame.histWin, /MAP
   RETURN
@@ -1009,14 +1036,18 @@ END
 
 PRO AS_FrameObj::HistHide
 
-Widget_Control, self.frame.histWin, MAP = 0
-;;Widget_Control, self.frame.histWin, /DESTROY
-;Obj_Destroy, self.frame.histObj
-;self.frame.histWin = 0
+  @as_scatterheader.macro
+
+  Widget_Control, self.frame.histWin, MAP = 0
+  ;;Widget_Control, self.frame.histWin, /DESTROY
+  ;Obj_Destroy, self.frame.histObj
+  ;self.frame.histWin = 0
 
 END
 
 PRO AS_FrameObj::Hist, xstruct
+
+  @as_scatterheader.macro
 
   IF xstruct.hist_win GT 0 THEN BEGIN
     
@@ -1046,6 +1077,8 @@ END
 
 PRO AS_FrameObj::SetProperty, RAWDATA=rawData, HISTMIN = histMin, HISTMAX = histMax, AUTOSCALE = autoScale, FRAMEVIEWOBJ = frameViewObj, FRAMEWINOBJ = frameWinObj, $
                               PATH = path, NORMTYPE = normType, LOGOBJ=logObj, UPDATEIMAGE = updateImage, SATURATION = saturation, ZINGERTHRESH = zingerThresh, _REF_Extra=extra
+
+  @as_scatterheader.macro
 
   IF KeyWord_Set(frameWinObj) THEN BEGIN
     IF Obj_Class(frameWinObj) EQ 'IDLGRWINDOW' THEN BEGIN
@@ -1101,6 +1134,8 @@ END
 
 PRO AS_FrameObj::GetProperty, RAWDATA=rawData, HEIGHT = height, IMAGEPATH = path, TIME = time, I0SF = i0sf, IBSSF = ibssf, GROUP_LEADER = groupLeader, _REF_Extra=extra
 
+  @as_scatterheader.macro
+
   IF Arg_Present(groupLeader) THEN groupLeader = self.frame.group_leader
   IF KeyWord_Set(rawData) THEN rawData = *self.frame.rawData
   IF Arg_Present(height) THEN IF Obj_Valid(self.frame.frameWinObj) THEN BEGIN
@@ -1118,6 +1153,8 @@ END
 
 PRO AS_FrameObj::CleanUp  
 
+  @as_scatterheader.macro
+
   IF Ptr_Valid(self.frame.rawData) THEN Ptr_Free, self.frame.rawData
   IF Ptr_Valid(self.frame.histImage) THEN Ptr_Free, self.frame.histImage
   IF Ptr_Valid(self.frame.circObjects) THEN BEGIN
@@ -1132,6 +1169,8 @@ END
 
 PRO AS_FrameObj::StoreParams, paramObj, CONFIG=config;, FRAME=frame
 
+  @as_scatterheader.macro
+
   frame = {  wlen    : self.frame.wlen,$
              len     : self.frame.len,$
              xc      : self.frame.xc, $
@@ -1143,6 +1182,8 @@ PRO AS_FrameObj::StoreParams, paramObj, CONFIG=config;, FRAME=frame
 END
 
 PRO AS_FrameObj::NewParams, paramObj, CONFIGNO = configNo
+
+  @as_scatterheader.macro
 
   frame = 1
   IF N_Elements(configNo) EQ 0 THEN configNo = 0
@@ -1181,6 +1222,8 @@ PRO AS_FrameObj::NewParams, paramObj, CONFIGNO = configNo
 END
 
 PRO AS_FrameObj::ReSize, DIM=dim, BUFFER=buffer
+
+  @as_scatterheader.macro
 
   IF Keyword_Set(dim) THEN BEGIN
     self.frame.frameWinObj->GetProperty, DIMENSIONS = origDim

@@ -1,5 +1,7 @@
 FUNCTION as_maskObject::init, x, y
    
+  @as_scatterheader.macro 
+   
   self.numPoints = 50 
    
   ;self.oModel = IDLgrModel()
@@ -64,6 +66,8 @@ PRO as_maskObject::GetProperty, $
   SELECTEDVERTEX = selectedVertex, $
    _Ref_extra = extra
   
+  @as_scatterheader.macro
+  
   IF Arg_Present(colour) THEN self.oPolygon.GetProperty, COLOR=COLOUR
   IF Arg_Present(lineOpacity) THEN self.oPolyline.GetProperty, ALPHA_CHANNEL = lineOpacity
   IF Arg_Present(fillOpacity) THEN self.oPolygon.GetProperty, ALPHA_CHANNEL = fillOpacity
@@ -87,6 +91,8 @@ PRO as_maskObject::GetProperty, $
 END
 
 FUNCTION as_maskObject::GetSaveParams
+
+  @as_scatterheader.macro
   
   IF N_Elements(*self.data) EQ 0 THEN RETURN, -1
   
@@ -119,6 +125,8 @@ PRO as_maskObject::SetProperty, $
   LOCK = Lock, $
   DATA = data,$
   _Ref_extra = extra
+  
+  @as_scatterheader.macro
   
   IF N_Elements(lock)          THEN self.lock = lock
   IF self.lock THEN RETURN
@@ -190,6 +198,8 @@ END
 
 PRO as_maskObject::ShowLabels, show
 
+  @as_scatterheader.macro
+
   show = show < 1
   count = self.maskLabels.count()
   IF count GT 0 THEN BEGIN
@@ -200,12 +210,16 @@ PRO as_maskObject::ShowLabels, show
 END
 
 FUNCTION as_maskObject::NumVertices
+  
+  @as_scatterheader.macro
 
   RETURN, self.numVertices
 
 END
 
 PRO as_maskObject::SelectVertex, vertex 
+
+  @as_scatterheader.macro
 
   IF N_Elements(vertex) EQ 0 OR self.numVertices EQ 0 THEN RETURN
   
@@ -229,6 +243,8 @@ END
 
 PRO as_maskObject::DeleteVertex
 
+  @as_scatterheader.macro
+
   IF self.lock THEN RETURN
 
   IF self.maskShape EQ 0 AND self.numVertices GT 0 AND self.numVertices GT self.selectedVertex THEN BEGIN
@@ -245,6 +261,8 @@ PRO as_maskObject::DeleteVertex
 END
 
 PRO as_maskObject::MoveVertex, position, ADD=add, RELATIVE=relative
+
+  @as_scatterheader.macro
 
   IF self.lock THEN RETURN
 
@@ -272,6 +290,8 @@ PRO as_maskObject::MoveVertex, position, ADD=add, RELATIVE=relative
 END
 
 PRO as_maskObject::UpdatePolygon, data
+
+  @as_scatterheader.macro
 
   IF self.lock THEN RETURN
   
@@ -310,6 +330,8 @@ PRO as_maskObject::UpdatePolygon, data
 END
 
 PRO AS_MaskObject::MakeArc
+
+  @as_scatterheader.macro
 
     IF self.lock THEN RETURN
 

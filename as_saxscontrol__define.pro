@@ -1,9 +1,14 @@
 PRO as_saxscontrol_event, event
+  
+  @as_scatterheader.macro
+  
   Widget_Control, event.top, GET_UVALUE = as_saxscontrol
   as_saxscontrol->event, event
 END
 
 PRO as_saxscontrol::event, event
+
+  @as_scatterheader.macro
 
   CASE self.state OF
     'STARTACQUISITION'       :  self->moveAcquireStart
@@ -18,6 +23,8 @@ PRO as_saxscontrol::event, event
 END
 
 PRO as_saxscontrol::moveAcquireStart
+
+  @as_scatterheader.macro
 
   FOR i = 0, N_Elements(*self.PVMap) - 1 DO BEGIN
     (*self.PVMap)[i]->GetProperty, acquireEnable = ENABLE
@@ -37,6 +44,8 @@ END
 
 PRO as_saxscontrol::moveTransmissionStart
 
+  @as_scatterheader.macro
+
     FOR i = 0, N_Elements(*self.PVMap) DO BEGIN
     IF (*self.PVMap)[i].transmissionEnable THEN BEGIN
       result = CASetMonitor((*self.PVMap)[i].PVDone)
@@ -52,6 +61,9 @@ PRO as_saxscontrol::moveTransmissionStart
 END
 
 PRO as_saxscontrol::checkAcquireClear
+
+  @as_scatterheader.macro
+
   enable = IntArr(N_Elements(*self.PVMap))
   FOR i = 0, N_Elements(enable) - 1 DO BEGIN
     (*self.PVMap)[i]->GetProperty, acquireEnable = temp
@@ -92,6 +104,8 @@ END
 
 PRO as_saxscontrol::checkTransmissionClear
 
+  @as_scatterheader.macro
+
   enableIndex = Where((*self.PVMap)[i].transmissionEnable EQ 1)
   self->DoneMoving, enableIndex 
   IF Total(enableIndex) EQ N_Elements(enableIndex) THEN BEGIN
@@ -119,17 +133,23 @@ END
 
 PRO as_saxscontrol::acquire
 
+  @as_scatterheader.macro
+
   IF Obj_Valid((*self.notifyObj).object) THEN Call_Method, (*self.notifyObj).method, (*self.notifyObj).object 
 
 END
 
 PRO as_saxscontrol::transmission
 
+  @as_scatterheader.macro
+
   result = CAPut('SR13ID01HU02IOC02:TRANSMISSION', 1)  
 
 END
 
 PRO as_saxscontrol::startacquisition
+
+  @as_scatterheader.macro
 
   Widget_Control, self.wSaxsControlBase, TIMER = 0.1
   self.state = 'STARTACQUISITION'
@@ -138,6 +158,8 @@ END
 
 PRO as_saxscontrol::starttransmission
 
+  @as_scatterheader.macro
+
   Widget_Control, self.wSaxsControlBase, TIMER = 0.1
   self.state = 'STARTTRANSMISSION'
 
@@ -145,11 +167,15 @@ END
 
 PRO as_saxscontrol::abort
 
+  @as_scatterheader.macro
+
   self.state = 'ABORT'
 
 END
 
 PRO as_saxscontrol::GetProperty, STATE=state, _Ref_Extra = extra
+
+  @as_scatterheader.macro
 
   IF Arg_Present(state) THEN state = self.state
   self->IDLitComponent::GetProperty, _extra=extra
@@ -157,6 +183,8 @@ PRO as_saxscontrol::GetProperty, STATE=state, _Ref_Extra = extra
 END
 
 PRO as_saxscontrol::SetProperty, STATE=state, _Ref_Extra = extra
+
+  @as_scatterheader.macro
 
   IF KeyWord_Set(state) THEN self.state = state
   self->as_pvmap::SetProperty, _extra=extra
@@ -166,12 +194,16 @@ END
 
 PRO as_saxscontrol::Cleanup
 
+  @as_scatterheader.macro
+
   Ptr_Free, self.notifyObj
 
 END
 
 
 FUNCTION as_saxscontrol::init, NOTIFYOBJ = notifyObj
+
+  @as_scatterheader.macro
 
   IF N_Elements(notifyObj) GT 0 THEN BEGIN
     FOR i = 0, N_Elements(notifyObj) - 1 DO BEGIN

@@ -94,16 +94,15 @@
 
 PRO scatterBrain_Quit, event
  
-  COMPILE_OPT idl2
-  ON_ERROR, 2
+  @as_scatterheader.macro
+  
  ; ** FILE -> Exit
           WIDGET_CONTROL, Event.top, /DESTROY
 END
  
 PRO scatterBrain_Cleanup, baseID
 
-  COMPILE_OPT idl2
-  ON_ERROR, 2
+  @as_scatterheader.macro
   
   Widget_Control, baseID, GET_UVALUE = scatterBrain
   Obj_Destroy, scatterBrain
@@ -111,8 +110,7 @@ END
 
 PRO scatterbrain_realize, wBaseCntl
   
-  COMPILE_OPT idl2
-  ON_ERROR, 2
+  @as_scatterheader.macro
   
   id = Widget_Info(wBaseCntl, FIND_BY_UNAME='SAXS_BASE')
   Widget_Control, id, GET_UVALUE=scatterBrain
@@ -121,8 +119,7 @@ END
 
 PRO scatterbrain::realise, wBaseCntl
 
-  COMPILE_OPT idl2
-  ON_ERROR, 2
+  @as_scatterheader.macro
 
     IF self.pollEpics GT 0 THEN BEGIN
 
@@ -142,8 +139,7 @@ END
 
 PRO scatterbrain_event, event
 
-  COMPILE_OPT idl2
-  ON_ERROR, 2
+  @as_scatterheader.macro
 
   ;id = Widget_Info(event.top, FIND_BY_UNAME='SAXS_BASE')
   Widget_Control, event.top, GET_UVALUE=scatterBrain
@@ -971,8 +967,7 @@ END
 
 PRO scatterbrain::Refresh
 
-  COMPILE_OPT idl2
-  ON_ERROR, 2
+  @as_scatterheader.macro
 
   self.frameWin->Draw
   
@@ -1007,8 +1002,7 @@ END
 
 PRO scatterbrain::loadXML, xmlFile
 
-  COMPILE_OPT idl2
-  ON_ERROR, 2
+  @as_scatterheader.macro
 
   CD, current=current
   IF self.experimentDir NE '' THEN path = self.experimentDir ELSE path = current
@@ -1055,8 +1049,7 @@ END
 
 PRO scatterBrain::newXML, event, DATA = data
 
-  COMPILE_OPT idl2
-  ON_ERROR, 2
+  @as_scatterheader.macro
 
   files = 0
   IF TypeName(data) EQ 'HASH' THEN IF data.haskey('files') THEN files = data['files']
@@ -1361,8 +1354,7 @@ END
 
 FUNCTION scatterbrain::ProcessImage, name, SAVESUMMED = saveSummed, LIVEFRAME = liveFrame, NOPLOT = noPlot, NOSETUP = noSetup
 
-  COMPILE_OPT idl2
-  ON_ERROR, 2
+  @as_scatterheader.macro
 
   live = KeyWord_Set(liveFrame)  
   profileData=self.frame_obj->GetAndCake(name, SAVESUMMED = saveSummed, SUMMEDNAME = summedName, FRAME = liveFrame, NOSETUP = noSetup)
@@ -1390,8 +1382,7 @@ END
 
 PRO scatterbrain::ExportCurrentImage, RAW=raw
 
-  COMPILE_OPT idl2
-  ON_ERROR, 2
+  @as_scatterheader.macro
 
   filters = ['*.jpg', '*.tif', '*.png']
   fileName = Dialog_Pickfile(TITLE = 'Choose filename.', /WRITE, /OVERWRITE_PROMPT, DEFAULT_EXTENSION = 'jpg', FILTER = filters)
@@ -1437,8 +1428,7 @@ END
 
 FUNCTION scatterbrain::InitialiseScan
 
-  COMPILE_OPT idl2
-  ON_ERROR, 2
+  @as_scatterheader.macro
 
   ;TODO Need to control all detectors.
   detID = 0
@@ -1486,8 +1476,7 @@ END
 
 PRO scatterbrain::updateRecentFileList
 
-  COMPILE_OPT idl2
-  ON_ERROR, 2
+  @as_scatterheader.macro
 
   self.settingsObj.GetProperty, RECENTFILE = recentFileList
   
@@ -1500,8 +1489,7 @@ END
 
 FUNCTION scatterbrain::qCalibGUI, GROUPLEADER = groupLeader, NOTIFY_OBJ = notifyObj, SHOWGUI = showGUI
 
-  COMPILE_OPT idl2
-  ON_ERROR, 2
+  @as_scatterheader.macro
 
   IF Obj_Valid(self.qCalibGUI) THEN BEGIN
     IF KeyWord_Set(groupLeader) THEN self.qCalibGUI.SetProperty, GROUPLEADER = groupLeader
@@ -1522,8 +1510,7 @@ END
 
 PRO scatterbrain::Help, topic 
 
-  COMPILE_OPT idl2
-  ON_ERROR, 2
+  @as_scatterheader.macro
 
   Call_Method, topic, self.helpfile
 
@@ -1531,8 +1518,7 @@ END
 
 PRO scatterbrain::Acquire
 
-  COMPILE_OPT idl2
-  ON_ERROR, 2
+  @as_scatterheader.macro
 
   result = self.areaDetectorObj->Acquire(self.filenames.next)
 
@@ -1540,8 +1526,7 @@ END
 
 FUNCTION scatterbrain::GetUserDir
 
-  COMPILE_OPT idl2
-  ON_ERROR, 2
+  @as_scatterheader.macro
 
   path = ''
   IF self.experimentDir NE '' THEN path = File_DirName(self.experimentDir, /MARK_DIRECTORY)
@@ -1554,8 +1539,7 @@ END
 
 PRO scatterBrain::NewExperimentCallback, event, data
 
-  COMPILE_OPT idl2
-  ON_ERROR, 2
+  @as_scatterheader.macro
 
   CASE Tag_Names(event, /STRUCTURE_NAME) OF
   
@@ -1570,8 +1554,7 @@ END
 
 PRO scatterBrain::MaskDefineCallback, event
 
-  COMPILE_OPT idl2
-  ON_ERROR, 2
+  @as_scatterheader.macro
 
   CASE Tag_Names(event, /STRUCTURE_NAME) OF
     'MASKWINDOW'  :BEGIN
@@ -1584,8 +1567,7 @@ END
 
 PRO scatterbrain::ContourCallback, event
 
-  COMPILE_OPT idl2
-  ON_ERROR, 2
+  @as_scatterheader.macro
 
   CASE Tag_Names(Event, /STRUCTURE_NAME) OF
     'CONTOURBLANK'  :BEGIN
@@ -1599,8 +1581,7 @@ END
 
 PRO scatterbrain::FrameCallback, event
 
-  COMPILE_OPT idl2
-  ON_ERROR, 2
+  @as_scatterheader.macro
 
   CASE Tag_Names(event, /STRUCTURE_NAME) OF
     'FRAMEPLOTREQ' : BEGIN
@@ -1616,8 +1597,7 @@ END
 
 PRO scatterbrain::UpgradeCallback, event
 
-  COMPILE_OPT idl2
-  ON_ERROR, 2
+  @as_scatterheader.macro
 
   CASE Tag_Names(event, /STRUCTURE_NAME) OF
     'DOWNLOADPROGRESS' : BEGIN
@@ -1632,8 +1612,7 @@ END
 
 PRO scatterbrain::PlotControlCallback, event
 
-  COMPILE_OPT idl2
-  ON_ERROR, 2
+  @as_scatterheader.macro
 
   CASE Tag_Names(event, /STRUCTURE_NAME) OF
     'PLOTSELECT' : BEGIN
@@ -1658,8 +1637,7 @@ END
 
 PRO scatterbrain::NewFrame, detID
 
-  COMPILE_OPT idl2
-  ON_ERROR, 2
+  @as_scatterheader.macro
 
   ;logData = self.saxsControl->GetLogData()
   ;print, logData
@@ -1687,8 +1665,7 @@ END
 
 PRO scatterbrain::NewParams, paramObj
 
-  COMPILE_OPT idl2
-  ON_ERROR, 2
+  @as_scatterheader.macro
 
   filenames = 1
 
@@ -1721,8 +1698,7 @@ END
 
 PRO scatterbrain::LoadResources, UNLOAD=unload
 
-  COMPILE_OPT idl2
-  ON_ERROR, 2
+  @as_scatterheader.macro
 
   IF KeyWord_Set(unload) THEN BEGIN
     Ptr_Free, self.resource
@@ -1759,8 +1735,7 @@ END
 
 FUNCTION scatterbrain::GetResource, resource
 
-  COMPILE_OPT idl2
-  ON_ERROR, 2
+  @as_scatterheader.macro
   
   tagNum = Where(Tag_Names(*self.resource) EQ StrUpCase(resource))
   
@@ -1781,8 +1756,7 @@ FUNCTION scatterbrain::init     $
          , nloglines=nloglines $
          , version=version
 
-  COMPILE_OPT idl2
-  ON_ERROR, 2
+  @as_scatterheader.macro
 
   CD, current = current
   self.programDir = current + path_sep()

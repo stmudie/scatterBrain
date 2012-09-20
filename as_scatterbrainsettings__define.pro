@@ -1,5 +1,7 @@
 FUNCTION as_scatterBrainSettings::init
 
+  @as_scatterheader.macro
+
   self.settingsPath = self.getSettingsPath()
   
   void = {CAMERAPVS, cameraPVs : '', wavelengthPV : '', lengthPV : '', WAXSAnglePV : ''}
@@ -27,6 +29,8 @@ FUNCTION as_scatterBrainSettings::init
 END
 
 FUNCTION as_scatterBrainSettings::getSettingsPath
+
+  @as_scatterheader.macro
 
   ; Increment if author_readme_text is changed
   author_readme_version = 1
@@ -67,6 +71,8 @@ END
 
 PRO as_scatterBrainSettings::ParseFile
 
+  @as_scatterheader.macro
+
   IF ~File_Test(self.settingsPath + 'scatterBrainSettings.xml') THEN BEGIN
     self.savefile
   ENDIF
@@ -104,6 +110,8 @@ PRO as_scatterBrainSettings::ParseFile
 END
 
 PRO as_scatterBrainSettings::SaveFile
+
+  @as_scatterheader.macro
   
   self->New, 'scatterBrainSettings', FILEVERSION = '1'
   self->NewFromStruct, 'scatterBrainSettings', STRUCT = *self.general, ATTSTRUCT = *self.attGeneral, APPENDTO = 'base'
@@ -140,6 +148,8 @@ PRO as_scatterBrainSettings::GetProperty, $
   SETTINGSPATH = settingsPath, $
   STARTINGDIRECTORY = startingDirectory, $
   AUTOCHECKUPDATES = autoCheckUpdates
+
+  @as_scatterheader.macro
 
   IF Arg_Present(detector) THEN detector = (*self.detector).detector
   IF Arg_Present(basePV) THEN basePV = (*self.detector).basePV
@@ -192,6 +202,8 @@ PRO as_scatterBrainSettings::SetProperty, $
   STARTINGDIRECTORY = startingDirectory, $
   AUTOCHECKUPDATES = autoCheckUpdates, $
   NOSAVE = noSave
+
+  @as_scatterheader.macro
 
   IF N_Elements(detector) + $
      N_Elements(basePV) + $

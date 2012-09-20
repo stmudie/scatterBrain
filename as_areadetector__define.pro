@@ -1,5 +1,7 @@
 FUNCTION as_areadetector::init, basePV, camPV, imagePV, _Ref_Extra=extra
 
+  @as_scatterheader.macro
+  
   test = N_Elements(basePV)+N_Elements(camPV)+N_Elements(imagePV)
   
   IF test NE 0 AND test NE 3 THEN BEGIN
@@ -53,6 +55,8 @@ END
 
 PRO as_areadetector::InitCam
 
+  @as_scatterheader.macro
+
   IF self.basePV NE '' AND self.camPV NE '' THEN BEGIN
     IF Obj_Class(self.ADCamObj) EQ 'EPICS_AD_BASE' THEN Obj_Destroy, self.ADCamObj
     IF Obj_Class(self.ADFileObj) EQ 'EPICS_AD_FILE' THEN Obj_Destroy, self.ADFileObj
@@ -73,6 +77,8 @@ END
 
 PRO as_areadetector::InitImage
 
+  @as_scatterheader.macro
+
   IF self.basePV NE '' AND self.imagePV NE '' THEN BEGIN
     IF Obj_Class(self.ADStdObj) EQ 'EPICS_ND_STD_ARRAYS' THEN Obj_Destroy, self.ADStdObj
     self.ADStdObj = Obj_New('EPICS_ND_STD_ARRAYS', self.basePV + self.imagePV)
@@ -82,6 +88,8 @@ END
 
 PRO as_areadetector::InitLogfile
 
+  @as_scatterheader.macro
+
   IF self.basePV EQ '' OR self.logfilePV EQ '' THEN RETURN
   IF Obj_Class(self.ADLogFileObj) EQ 'EPICS_AD_FILE' THEN Obj_Destroy, self.ADLogFileObj
   self.ADLogFileObj = Obj_New('EPICS_AD_FILE', self.basePV + self.logfilePV)
@@ -89,6 +97,8 @@ PRO as_areadetector::InitLogfile
 END
 
 FUNCTION as_areadetector::GetArray
+  
+  @as_scatterheader.macro
   
   CATCH, error
   IF error EQ 0 THEN BEGIN
@@ -103,6 +113,8 @@ END
 
 FUNCTION as_areadetector::NewArray
 
+  @as_scatterheader.macro
+
   CATCH, errorStatus
   
   IF errorStatus NE 0 THEN BEGIN
@@ -115,6 +127,8 @@ END
 
 FUNCTION as_areadetector::GetParamMap
 
+  @as_scatterheader.macro
+
   self.GetProperty, ARRAYSIZEX=XSize, ARRAYSIZEY = YSize, PIXELSIZE = PSize
 
   RETURN, {DETECTORDEF: self.name, XSIZE: Long(XSize), YSIZE: Long(YSize), PIXELSIZE: Double(PSize), BASEPV: self.basePV, CAMPV: self.camPV, IMAGEPV: self.imagePV, LOGFILEPV: self.logfilePV, FILEPV: self.filePV, CONTROL: self.control, SOFTWARETRIGGER: self.softwareTrigger, AUTOLOAD: self.autoLoad}
@@ -122,6 +136,8 @@ FUNCTION as_areadetector::GetParamMap
 END
 
 PRO as_areadetector::NewParams, params
+
+  @as_scatterheader.macro
 
   newParamNames = Tag_Names(params)
   paramNames = Tag_Names({as_areadetector})
@@ -149,6 +165,8 @@ PRO as_areadetector::SetProperty, $
   AUTOLOAD = autoLoad, $
   SOFTWARETRIGGER = softwareTrigger, $
   _Ref_extra = extra 
+
+  @as_scatterheader.macro
 
   IF N_Elements(basePV)  EQ 1 THEN self.basePV  = basePV
   IF N_Elements(camPV)   EQ 1 THEN self.camPV   = camPV
@@ -182,6 +200,8 @@ PRO as_areadetector::SetADProperty, $
   SHUTTER = shutter, $
   LOGFILEPATH = logfilepath, $
   LOGFILENAME = logfilename
+
+  @as_scatterheader.macro
 
   camValid = Obj_Valid(self.ADCamObj)
   imageValid = Obj_Valid(self.ADStdObj)
@@ -263,6 +283,8 @@ PRO as_areadetector::GetProperty, $
   AUTOLOAD= autoLoad,  $
   _Ref_extra = extra 
 
+  @as_scatterheader.macro
+
   IF Arg_Present(basePV)   THEN basePV  = self.basePV
   IF Arg_Present(camPV)    THEN camPV   = self.camPV
   IF Arg_Present(imagePV)  THEN imagePV = self.imagePV
@@ -300,6 +322,8 @@ PRO as_areadetector::GetADProperty, $
   SHUTTER = shutter, $
   LOGFILEPATH = logfilepath, $
   LOGFILENAME = logfilename
+
+  @as_scatterheader.macro
 
   camValid = Obj_Valid(self.ADCamObj)
   imageValid = Obj_Valid(self.ADStdObj)

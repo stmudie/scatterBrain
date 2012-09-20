@@ -1,11 +1,15 @@
 PRO as_QCalibration_event, event
 
+  @as_scatterheader.macro
+
   Widget_Control, event.top, GET_UVALUE = as_QCalibration
   as_QCalibration.event, event
 
 END
 
 PRO as_QCalibration::event, event
+
+  @as_scatterheader.macro
 
   widgetName = Widget_Info(event.ID, /UNAME)
   
@@ -72,6 +76,8 @@ END
 
 FUNCTION as_QCalibration::init, GROUPLEADER = groupLeader, NOTIFY_OBJ = notifyObj, SHOWGUI = showGUI
 
+  @as_scatterheader.macro
+
   IF KeyWord_Set(notifyObj) THEN $
     IF TypeName(notifyObj[0]) EQ 'NOTIFY' $
       THEN self.notifyObj = List(notifyObj, /EXTRACT)
@@ -137,11 +143,15 @@ END
 
 PRO as_QCalibration::notify, event 
 
+  @as_scatterheader.macro
+
   FOREACH notify, self.notifyObj DO IF Obj_Valid(notify) THEN notify.notify, event
 
 END
 
 PRO as_QCalibration::SetProperty, PEAK = peak, GROUPLEADER = groupLeader, CAMERALENGTH = cameraLength, WAVELENGTH = waveLength, DETECTORANGLE = detectorAngle
+
+  @as_scatterheader.macro
 
   IF KeyWord_Set(peak) THEN BEGIN
     Widget_Control, Widget_Info(self.wQCalibBase, FIND_BY_UNAME = 'FITTED POS'), GET_UVALUE = peakPosObj
@@ -166,6 +176,8 @@ PRO as_QCalibration::SetProperty, PEAK = peak, GROUPLEADER = groupLeader, CAMERA
 END
 
 PRO as_QCalibration::CalcLength
+
+  @as_scatterheader.macro
 
   standardPeaksCombo = Widget_Info(self.wQCalibBase, FIND_BY_UNAME = 'STANDARD PEAKS')
   chosenPeak = Widget_Info(standardPeaksCombo, /COMBOBOX_GETTEXT)
@@ -193,13 +205,15 @@ END
 
 PRO as_QCalibration::ShowGUI
 
+  @as_scatterheader.macro
+
   Widget_Control, self.wQCalibBase, /MAP
 
 END
 
 PRO as_QCalibration::EditConfig, RENAME=rename, DELETE=delete
 
-  
+  @as_scatterheader.macro
 
 END
 

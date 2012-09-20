@@ -1,5 +1,7 @@
 FUNCTION AS_ProfileObj::Init, _REF_Extra=extra
 
+  @as_scatterheader.macro
+
   self.profiles = Ptr_New()
   self.xRange = [0,1]
   self.yRange = [0,1]
@@ -27,6 +29,8 @@ FUNCTION AS_ProfileObj::Init, _REF_Extra=extra
 END
 
 FUNCTION AS_ProfileObj::scaleVector, range, Position=position
+
+  @as_scatterheader.macro
 
     ; This is a utility routine to calculate the scaling vector
     ; required to position a vector of specified range at a
@@ -59,6 +63,9 @@ RETURN, scale
 END
 
 PRO AS_ProfileObj::AddProfile, data, _REF_Extra=extra
+
+  @as_scatterheader.macro
+
   self.xRange = [MIN(data[0,*]) < self.xRange[0],MAX(data[0,*]) > self.xRange[1]]
   self.yRange = [MIN(data[1,*]) < self.yRange[0],MAX(data[1,*]) > self.yRange[1]]
     

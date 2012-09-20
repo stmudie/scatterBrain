@@ -1,5 +1,7 @@
 FUNCTION AS_Profiledata::Init, profile, error, fname, CONFIGNAME = configName, QVECTOR = qVector, DSPACE = dSpace, TWOTHETA = twoTheta, PIXEL = pixel, BACK = back, TIME = time, I0COUNT = I0count, IBSCOUNT = IBSCount, I0NORM = I0Norm, IBSNorm = IBSNorm
 
+  @as_scatterheader.macro
+
   IF Obj_Valid(back) THEN self.back = back
   IF Obj_Valid(logfileobj) THEN self.logfileobj = logfileobj
   IF N_Elements(profile) GE 1 THEN self.profile = Ptr_New(profile) ELSE self.profile = Ptr_New(/ALLOCATE_HEAP)
@@ -59,6 +61,8 @@ END
 
 PRO AS_Profiledata::RemoveNotify, profiles
 
+  @as_scatterheader.macro
+
  IF ~Ptr_Valid(self.notifyProfile) THEN RETURN
   
   numNotify = N_Elements(profiles)
@@ -89,6 +93,8 @@ END
 ;END
 
 PRO AS_Profiledata::SetProperty, PROFILE=profile, QVECTOR=qVector, ERROR=error, BACK=back, OFFSET=offset, MULT=mult, NOTIFYPROFILE = notifyProfile, ABSCAL = absCal, COUNTERNORM = counterNorm, IBSNorm = IBSNorm, I0Norm = I0Norm
+  
+  @as_scatterheader.macro
   
   IF N_Elements(profile) GT 1 THEN *self.profile = profile
   IF N_Elements(qVector) GT 1 THEN *self.qVector = qVector
@@ -141,6 +147,9 @@ PRO AS_Profiledata::SetProperty, PROFILE=profile, QVECTOR=qVector, ERROR=error, 
 END
 
 PRO AS_Profiledata::GetProperty, QVECTOR=qVector, ERROR=error, MULT=mult, OFFSET=offset, FNAME=fname, NOTIFYPROFILE = notifyProfile, I0 = I0, BS = BS, TIME = TIME, BACKGROUND = background, BACKOBJ=backObj, CONFIGNAME = configName
+  
+  @as_scatterheader.macro
+  
   IF Arg_Present(qVector) THEN qVector = (*self.qVector)
   IF Arg_Present(error) THEN error = (*self.error)
   IF Arg_Present(offset) THEN offset = self.os
@@ -156,6 +165,8 @@ PRO AS_Profiledata::GetProperty, QVECTOR=qVector, ERROR=error, MULT=mult, OFFSET
 END
 
 FUNCTION AS_Profiledata::GetData, PLOT_DSPACE = plotDSpace, PLOT_TWOTHETA = plotTwoTheta, PLOT_PIXEL = plotPixel, XLOG = xLog, YLOG = yLog, BACK = back, NOMULTOFFSET = nomultOffset, NONORM = noNorm
+
+  @as_scatterheader.macro
 
   profile = *self.profile
   error = *self.error
@@ -204,6 +215,9 @@ FUNCTION AS_Profiledata::GetData, PLOT_DSPACE = plotDSpace, PLOT_TWOTHETA = plot
 END
 
 PRO AS_ProfileData::SetNorm, normType
+
+  @as_scatterheader.macro
+
   ; TODO Check definitions for Io and Ibs normalization. The original normalize to Io and T has a tblank (typical blank transmission) term??
   IF N_Elements(normType) GE 1 THEN self.normType = normType ELSE normType = self.normType
   CASE normType OF
@@ -219,10 +233,15 @@ PRO AS_ProfileData::SetNorm, normType
 END
 
 PRO AS_ProfileData::SetCalib, CSCalib, ionrm
+
+  @as_scatterheader.macro
+
   self.sf = CSCalib/(self.bscnts/self.IBSNorm) ;self.tnrm / self.itsf / self.iocnts * ionrm * self.mult * CSCalib
 END
 
 FUNCTION AS_ProfileData::FitPeak, range, PARAMS = params, PLOT = plot, PEAKSIGMA = peakSigma, CHI = chi
+
+  @as_scatterheader.macro
 
   IF range[0] EQ range[1] THEN range = ''
  
@@ -245,6 +264,8 @@ FUNCTION AS_ProfileData::FitPeak, range, PARAMS = params, PLOT = plot, PEAKSIGMA
 END
 
 PRO AS_ProfileData::Cleanup
+
+  @as_scatterheader.macro
 
    IF Obj_Valid(self.back) THEN self.back.removeNotify, self
 

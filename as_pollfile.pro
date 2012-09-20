@@ -28,6 +28,8 @@
 ;-
 FUNCTION AS_PollFile, f_name
 
+  @as_scatterheader.macro
+
         ON_IOERROR, no_file
 
         OPENR, LUN, f_name, /GET_LUN

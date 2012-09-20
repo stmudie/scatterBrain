@@ -1,5 +1,7 @@
 FUNCTION as_splitmessage, messageInput, xsize
 
+  @as_scatterheader.macro
+
   messageLines = StrSplit(messageInput, String(Byte([13B])),/EXTRACT)
 
   newMessage = ''

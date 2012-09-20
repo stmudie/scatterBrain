@@ -1,5 +1,7 @@
 FUNCTION as_upgradeversion_callback, StatusInfo, ProgressInfo, object
 
+  @as_scatterheader.macro
+
   event = {DOWNLOADPROGRESS, downloaded : progressinfo[2], total : progressinfo[1]} 
   
   object.notify, event
@@ -10,6 +12,7 @@ END
 
 FUNCTION as_upgradeversion::init, programName, programURL, programInstallDir, NOTIFYOBJ = notifyObj
 
+  @as_scatterheader.macro
 
   IF Keyword_Set(notifyObj) THEN $
     IF TypeName(notifyObj[0]) EQ 'NOTIFY' $
@@ -27,11 +30,15 @@ END
 
 PRO as_upgradeversion::notify, event
 
+  @as_scatterheader.macro
+
   FOREACH notify, self.notify DO IF Obj_Valid(notify) THEN notify.notify, event
 
 END
 
 FUNCTION as_upgradeversion::newestVersion, MESSAGE = message, SILENT = silent
+
+  @as_scatterheader.macro
 
   CATCH, errorStatus 
    IF (errorStatus NE 0) THEN BEGIN
@@ -55,6 +62,8 @@ FUNCTION as_upgradeversion::newestVersion, MESSAGE = message, SILENT = silent
 END
 
 FUNCTION as_upgradeversion::getNewestVersion, BACKUP = backup
+
+  @as_scatterheader.macro
 
   failed = 0
   

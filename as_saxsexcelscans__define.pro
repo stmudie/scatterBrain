@@ -1,10 +1,15 @@
 PRO AS_SAXSExcelScans_event, event
+
+  @as_scatterheader.macro
+
   Widget_Control, event.top, GET_UVALUE = AS_SAXSExcelScans
   AS_SAXSExcelScans.event, event
 
 END
 
 FUNCTION AS_SAXSExcelScans::INIT, basePV, detector, GUI=GUI, _REF_Extra = extra
+
+  @as_scatterheader.macro
   
   self.basePV = basePV
   self.detector = detector
@@ -32,6 +37,8 @@ FUNCTION AS_SAXSExcelScans::INIT, basePV, detector, GUI=GUI, _REF_Extra = extra
 END
 
 PRO AS_SAXSExcelScans::event, event
+
+  @as_scatterheader.macro
 
   widgetName = Widget_Info(event.id, /UNAME)
   
@@ -84,6 +91,8 @@ PRO AS_SAXSExcelScans::event, event
 END
 
 FUNCTION AS_SAXSExcelScans::GetScanParams
+
+  @as_scatterheader.macro
 
   self.ChangeSheet, 'MoveExpose'
   numPositioners = self.GetRange('NumberPositioners')
@@ -179,6 +188,8 @@ END
 
 FUNCTION AS_SAXSExcelScans::ScanActive
 
+  @as_scatterheader.macro
+
   scanning = 0
   result = CAGet(self.basePV + 'scan1.EXSC', scanning)
   RETURN, scanning
@@ -186,6 +197,8 @@ FUNCTION AS_SAXSExcelScans::ScanActive
 END
 
 PRO AS_SAXSExcelScans::Start, scanName, scanDescription
+
+  @as_scatterheader.macro
 
 ;  If N_Params() GE 1 THEN self.SetRange, '$B$1', scanName
 ;  If N_Params() GE 2 THEN self.SetRange, '$B$6', scanDescription
@@ -198,6 +211,8 @@ END
 
 PRO AS_SAXSExcelScans::Stop
 
+  @as_scatterheader.macro
+
   result = CAPut(self.basePV + 'AbortScans.PROC', 0)
   Wait, 0.1
   result = CAPut(self.basePV + 'AbortScans.PROC', 0)
@@ -208,6 +223,8 @@ END
 
 PRO AS_SAXSExcelScans::Pause, pause
 
+  @as_scatterheader.macro
+
   IF ~Arg_Present(pause) THEN pause = 1
   IF pause NE 1 OR pause NE 0 THEN pause = 1
   result = CAPut(self.basePV + 'scan1.PAUS', pause)
@@ -215,6 +232,8 @@ PRO AS_SAXSExcelScans::Pause, pause
 END
 
 PRO AS_SAXSExcelScans::InitialiseScan, NONAMES=noNames
+
+  @as_scatterheader.macro
 
   IF ~KeyWord_Set(noNames) THEN noNames = 0 
   ;CAStartGroup
@@ -295,6 +314,8 @@ END
 
 PRO AS_SAXSExcelScans::GetProperty, NUMPOINTS=numPoints, CURRENTPOINT = currentPoint, PVS = PVs, SAMPLENAMES = sampleNames
 
+  @as_scatterheader.macro
+
   IF Arg_Present(numPoints) THEN BEGIN
     numPoints = 1
     FOREACH p, (*self.scanArray).number DO numPoints *= Fix(p)
@@ -317,6 +338,8 @@ END
 
 
 PRO AS_SAXSExcelScans::Cleanup
+
+  @as_scatterheader.macro
 
   IF Widget_Info(self.wScanBase, /VALID) THEN Widget_Control, self.wScanBase, /DESTROY
   IF Size(*self.scanArray, /type) EQ 8 THEN FOREACH ptr, (*self.scanArray).points DO Ptr_Free, ptr

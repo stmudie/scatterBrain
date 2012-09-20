@@ -1,5 +1,7 @@
 PRO AS_editOPalette_Event, event
 
+@as_scatterheader.macro
+
 Widget_Control, event.top, GET_UVALUE = info, /NO_COPY
 
 Widget_Name = Widget_Info(event.id, /UNAME) ; Get UNAME of Widget that generated the event.
@@ -156,6 +158,8 @@ END
 
 PRO AS_editOPalette_UpdateGUI, info
 
+  @as_scatterheader.macro
+
    info.customPalette->GetProperty, N_COLORS = numColours
    rgb = info.customPalette->GetRGB(info.index < (numColours - 1))
    
@@ -181,6 +185,8 @@ END
 
 PRO AS_editOPalette_CustomPal_Events, event
 
+@as_scatterheader.macro
+
 Widget_Control, event.top, GET_UVALUE = info, /NO_COPY
 
 IF event.Press EQ 1 THEN BEGIN
@@ -203,6 +209,8 @@ Widget_Control, event.top, SET_UVALUE = info, /NO_COPY
 END
 
 PRO AS_editOPalette_Draw_Events, event
+
+@as_scatterheader.macro
 
 Widget_Control, event.top, GET_UVALUE = info, /NO_COPY
 
@@ -227,10 +235,15 @@ Widget_Control, event.top, SET_UVALUE = info, /NO_COPY
 END
 
 PRO AS_editOPalette_Done, event
+
+  @as_scatterheader.macro
+  
   WIDGET_CONTROL, Event.top, /DESTROY
 END
 
 PRO AS_editOPalette_Cleanup, baseID
+
+@as_scatterheader.macro
 
 Widget_Control, baseID, GET_UVALUE = info, /NO_COPY
   
@@ -249,6 +262,8 @@ END
   
 
 PRO AS_editOPalette, CUSTOMPALETTE=customPalette, HIDECUSTOM = hideCustom, INDEX = index, NEWRGB = newRGB, CUSTOMTABLES = customTables, TABLEINDEX = tableIndex, MODAL = modal, GROUPLEADER = groupleader
+
+@as_scatterheader.macro
 
 IF !d.name EQ 'X' THEN colorModel = 0 ELSE colorModel = 1
 

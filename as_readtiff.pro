@@ -3,6 +3,8 @@
 ;
 function AS_ReadTiff, file, header, data, header_only=header_only
 
+  @as_scatterheader.macro
+
     CATCH, error
     
     IF error NE 0 THEN BEGIN

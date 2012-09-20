@@ -1,11 +1,15 @@
 PRO as_ADMap_PollEvent, event
 
+  @as_scatterheader.macro
+
   Widget_Control, event.id, GET_UVALUE = as_ADMap
   IF Obj_Valid(as_ADMAP) THEN as_ADMap->event, event 
 
 END
 
 PRO as_ADMap_PropertyEvent, event
+
+  @as_scatterheader.macro
 
   prop = Widget_Info(event.handler, FIND_BY_UNAME = 'PropSheet')
   Widget_Control, prop, GET_UVALUE = as_ADMap
@@ -14,6 +18,8 @@ PRO as_ADMap_PropertyEvent, event
 END
 
 FUNCTION as_areadetectormap::init, detectorStruct, NOTIFYOBJ = notifyObj
+
+  @as_scatterheader.macro
 
   IF Keyword_Set(notifyObj) THEN $
     IF TypeName(notifyObj[0]) EQ 'NOTIFY' $
@@ -45,6 +51,8 @@ FUNCTION as_areadetectormap::init, detectorStruct, NOTIFYOBJ = notifyObj
 END
 
 PRO as_areadetectormap::Event, event
+
+  @as_scatterheader.macro
 
   widgetName = Widget_Info(event.id, /UNAME)
 
@@ -108,6 +116,8 @@ END
 
 PRO as_areadetectormap::ShowGUI, base, GROUP_LEADER = groupLeader
   
+  @as_scatterheader.macro
+  
   IF Widget_Info(self.prop,/VALID) THEN BEGIN
     Widget_Control, Widget_Info(self.prop,/PARENT), /MAP
     RETURN
@@ -133,6 +143,8 @@ END
 
 PRO as_areadetectormap::poll, start
   
+  @as_scatterheader.macro
+  
   IF N_Elements(self.areaDetectors) EQ 0 THEN BEGIN
     result = Dialog_Message('No detectors defined, polling not started.')
     RETURN
@@ -149,6 +161,8 @@ END
 
 PRO as_areadetectormap::Stop
  
+  @as_scatterheader.macro
+ 
   FOREACH det, *self.areaDetectors DO BEGIN
     det->SetProperty, ACQUIRE = 0
     ;det->SetProperty, 
@@ -157,6 +171,8 @@ PRO as_areadetectormap::Stop
 END
 
 PRO as_areadetectormap::Acquire
+  
+  @as_scatterheader.macro
   
   castartgroup
   FOR i = 0, N_Elements(*self.areaDetectors) - 1 DO BEGIN
@@ -172,12 +188,16 @@ END
 
 FUNCTION as_areadetectormap::GetFrame, detId
 
+  @as_scatterheader.macro
+
   frame = Reverse((*self.areaDetectors)[detId]->GetArray(),2)
   RETURN, frame
 
 END
 
 PRO as_areadetectormap::StoreParams, paramObj
+
+  @as_scatterheader.macro
 
   ADMAP = !Null
 
@@ -189,11 +209,15 @@ END
 
 PRO as_areadetectormap::RefreshPropertySheet
 
+  @as_scatterheader.macro
+
   IF self.prop GT 0 THEN Widget_Control, self.prop, SET_VALUE = *self.areaDetectors
 
 END
 
 PRO as_areadetectormap::NewParams, paramObj
+
+  @as_scatterheader.macro
 
   paramObj->GetParameters, ADMAP=ADMap
 
@@ -216,6 +240,8 @@ END
 
 PRO as_areadetectormap::GetProperty, detID, _REF_EXTRA = extra
 
+  @as_scatterheader.macro
+
   IF detID GT N_Elements(*self.areaDetectors) - 1 THEN RETURN
   IF ~Obj_Valid((*self.areaDetectors)[0]) THEN RETURN
   
@@ -233,6 +259,8 @@ END
 
 PRO as_areadetectormap::SetProperty, detID, _REF_EXTRA = extra
 
+  @as_scatterheader.macro
+
   IF N_Elements(detID) GT 0 THEN (*self.areaDetectors)[detID]->SetProperty, _EXTRA=extra ELSE BEGIN
   
     FOR i = 0, N_Elements((*self.areaDetectors)) - 1 DO BEGIN
@@ -245,6 +273,8 @@ PRO as_areadetectormap::SetProperty, detID, _REF_EXTRA = extra
 END
 
 PRO as_areadetectormap::notify, event
+
+  @as_scatterheader.macro
 
   FOREACH notify, self.notifyObj DO IF Obj_Valid(notify) THEN notify.notify, event
 

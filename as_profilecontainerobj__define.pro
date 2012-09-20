@@ -1,14 +1,22 @@
 PRO as_profilecontainerobj_baseevent, event
+
+  @as_scatterheader.macro
+  
   Widget_Control, event.top, GET_UVALUE=as_profilecontainerobj
   as_profilecontainerobj->baseEvent, event
 END
 
 PRO as_profilecontainerobj_drawevent, event
+  
+  @as_scatterheader.macro
+
   Widget_Control, Widget_Info(event.id, /PARENT), GET_UVALUE=as_profilecontainerobj
   as_profilecontainerobj->drawEvent, event
 END
 
 PRO AS_ProfileContainerObj::baseEvent, event
+
+  @as_scatterheader.macro
 
   widgetName = Widget_Info(event.id, /UNAME)
 
@@ -55,6 +63,8 @@ PRO AS_ProfileContainerObj::baseEvent, event
 END
 
 PRO AS_ProfileContainerObj::drawEvent, event
+
+  @as_scatterheader.macro
   
   IF event.type NE 4 THEN BEGIN
     self.profileXAxis->GetProperty, LOCATION=location, CRANGE=crange, XCOORD_CONV=xcoord_conv
@@ -270,6 +280,8 @@ END
 
 FUNCTION AS_ProfileContainerObj::Init, GROUPLEADER=groupLeader, PLOTPALETTE = plotPalette, NOTIFY_OBJ = notifyObj, _REF_Extra=extra
 
+  @as_scatterheader.macro
+
   IF KeyWord_Set(plotPalette) THEN self.plotPalette = plotPalette ELSE BEGIN
     profilePalette_obj = Obj_New('IDLgrPalette')
     profilePalette_obj->LoadCT, 34
@@ -403,6 +415,8 @@ END
 
 PRO AS_ProfileContainerObj::Cleanup
 
+  @as_scatterheader.macro
+
   Obj_Destroy, self.profileWindow
   Obj_Destroy, self.profileView
   Obj_Destroy, self.profileXAxis
@@ -429,6 +443,8 @@ PRO AS_ProfileContainerObj::Cleanup
 END
 
 PRO AS_ProfileContainerObj::NewParams, paramObj, configNo, ALL=all
+  
+  @as_scatterheader.macro
 
   IF N_Elements(configNo) GT 0 THEN normParams = configNo[0] ELSE normParams = 0
   paramObj.GetParameters, NORMPARAMS = normParams
@@ -440,11 +456,15 @@ END
 
 PRO AS_ProfileContainerObj::StoreParams, paramObj, CONFIGNO = config
 
+  @as_scatterheader.macro
+
   paramObj->SetParameters, ABSCAL=self.CSCalib, USEABSCAL=self.usecalib, NORMTYPE = self.nrmType, I0Norm = self.IoNrm, IBSNORM = self.ibsnrm, CONFIGNO = config
 
 END
 
 FUNCTION AS_ProfileContainerObj::GetProfiles, plotIndex
+
+  @as_scatterheader.macro
 
   data = list()
   FOREACH index, plotIndex DO BEGIN
@@ -457,6 +477,8 @@ FUNCTION AS_ProfileContainerObj::GetProfiles, plotIndex
 END
 
 PRO AS_ProfileContainerObj::SaveProfiles, fileName, MULTIPLE=multiple
+
+  @as_scatterheader.macro
   
   IF N_Elements(fileName) EQ 0 THEN fileName = ''
   IF ~File_Test(fileName) THEN BEGIN
@@ -503,7 +525,7 @@ PRO AS_ProfileContainerObj::SaveProfiles, fileName, MULTIPLE=multiple
     profileArr = FltArr(3,maxElem,numProfiles)
     
     FOREACH item, profileList DO BEGIN
-      profileArr(*,0:N_Elements(item(0,*))-1,i) = item
+      profileArr[*,0:N_Elements(item[0,*])-1,i] = item
       i += 1
     ENDFOREACH
     IF numProfiles GT 1 THEN profileArr = Reform(Transpose(profileArr,[0,2,1]), 3*numProfiles, maxElem)
@@ -525,6 +547,8 @@ END
 
 FUNCTION AS_ProfileContainerObj::GetPlotImage
 
+  @as_scatterheader.macro
+
   imageObj = self.profileWindow.read()
   imageObj.GetProperty, DATA = image
   RETURN, image
@@ -532,6 +556,8 @@ FUNCTION AS_ProfileContainerObj::GetPlotImage
 END
 
 PRO AS_ProfileContainerObj::SavePlotImage, FILENAME = fileName
+
+  @as_scatterheader.macro
 
   filters = [['*.bmp;*.gif;*.jpg;*.jpeg;*.png;*.tif;*.tiff','*.bmp', '*.gif', '*.jpg;*.jpeg', '*.png', '*.tif;*.tiff','*.*'], $
              ['All Image Formats','Bitmap','GIF','JPEG','PNG','TIFF','All Files']]
@@ -547,6 +573,8 @@ PRO AS_ProfileContainerObj::SavePlotImage, FILENAME = fileName
 END
 
 FUNCTION AS_ProfileContainerObj::FitPeak, index, FULLRANGE = fullRange, PLOT = plot
+  
+  @as_scatterheader.macro
 
   temp = IntArr(N_Elements(index))
   peak = Float(temp)
@@ -592,6 +620,8 @@ FUNCTION AS_ProfileContainerObj::FitPeak, index, FULLRANGE = fullRange, PLOT = p
 END
 
 PRO AS_ProfileContainerObj::LinLog, AXIS, _REF_Extra=extra
+  
+  @as_scatterheader.macro
   
   CASE AXIS OF
     'X'       : BEGIN
@@ -651,6 +681,8 @@ END
 
 PRO AS_ProfileContainerObj::SetNormParams, normStruct, NOUPDATEPLOTS=noUpdatePlots
 
+  @as_scatterheader.macro
+
   IF Where(Tag_Names(normStruct) EQ 'NORMTYPE') GE 0 THEN BEGIN
     IF normStruct.normType GE 0 THEN BEGIN
       self.useCalib = 0
@@ -705,6 +737,9 @@ PRO AS_ProfileContainerObj::SetNormParams, normStruct, NOUPDATEPLOTS=noUpdatePlo
 END
 
 PRO AS_ProfileContainerObj::ShowHidePlot, index
+
+  @as_scatterheader.macro
+
   temp = (hidden = IntArr(N_Elements(index)))
   FOR i = 0, N_Elements(index) - 1 DO temp[i] = Where((*self.profileRefs).refNum EQ index[i])
   index = temp
@@ -717,6 +752,8 @@ END
 
 PRO AS_ProfileContainerObj::HidePlot, index
 
+  @as_scatterheader.macro
+
   temp = IntArr(N_Elements(index))
   FOR i = 0, N_Elements(index) - 1 DO temp[i] = Where((*self.profileRefs).refNum EQ index[i])
   index = temp
@@ -726,6 +763,8 @@ END
 
 PRO AS_ProfileContainerObj::ShowPlot, index
 
+  @as_scatterheader.macro
+
   temp = IntArr(N_Elements(index))
   FOR i = 0, N_Elements(index) - 1 DO temp[i] = Where((*self.profileRefs).refNum EQ index[i])
   index = temp
@@ -734,6 +773,8 @@ PRO AS_ProfileContainerObj::ShowPlot, index
 END
 
 PRO AS_ProfileContainerObj::LineWidth, index, width, ADD = add
+
+  @as_scatterheader.macro
 
   temp = IntArr(N_Elements(index))
   FOR i = 0, N_Elements(index) - 1 DO temp[i] = Where((*self.profileRefs).refNum EQ index[i])
@@ -751,6 +792,8 @@ END
 
 PRO AS_ProfileContainerObj::LineOpacity, index, opacity
 
+  @as_scatterheader.macro
+
   temp = IntArr(N_Elements(index))
   FOR i = 0, N_Elements(index) - 1 DO temp[i] = Where((*self.profileRefs).refNum EQ index[i])
   index = temp
@@ -761,6 +804,8 @@ END
 
 PRO AS_ProfileContainerObj::MultOffset, index, MULT=mult, OFFSET=offset
 
+  @as_scatterheader.macro
+  
   temp = IntArr(N_Elements(index))
   FOR i = 0, N_Elements(index) - 1 DO temp[i] = Where((*self.profileRefs).refNum EQ index[i])
   index = temp
@@ -780,6 +825,8 @@ PRO AS_ProfileContainerObj::MultOffset, index, MULT=mult, OFFSET=offset
 END
 
 PRO AS_ProfileContainerObj::PlotProfile, profile, fname, LIVE = live, REPLOT = Replot, XLOG = xLog, YLOG = yLog, KEEPZOOM = keepZoom, _Extra=extra
+
+  @as_scatterheader.macro
 
   IF ~KeyWord_Set(xLog) THEN xLog = self.xLog
   IF ~KeyWord_Set(yLog) THEN yLog = self.yLog
@@ -908,6 +955,8 @@ END
 
 PRO AS_ProfileContainerObj::UpdatePlot, void, KEEPFIT = keepFit
 
+  @as_scatterheader.macro
+
   IF ~KeyWord_Set(keepFit) THEN BEGIN
     self.messageObj.SetProperty, STRINGS = ''
     self.peakFit.SetProperty, HIDE = 1
@@ -917,6 +966,8 @@ PRO AS_ProfileContainerObj::UpdatePlot, void, KEEPFIT = keepFit
 END
 
 PRO AS_ProfileContainerObj::ReplaceWithLast, index
+
+  @as_scatterheader.macro
 
   temp = Where((*self.profileRefs).refNum EQ index[0])
   index = temp
@@ -971,6 +1022,8 @@ END
 
 PRO AS_ProfileContainerObj::MoveProfile, index, newPosition
 
+  @as_scatterheader.macro
+
   IF index EQ newPosition THEN RETURN
 
   tempProfileRef = (*self.profileRefs)[index]
@@ -986,6 +1039,8 @@ PRO AS_ProfileContainerObj::MoveProfile, index, newPosition
 END
 
 PRO AS_ProfileContainerObj::DeleteProfile, index, ALL=all, NONOTIFY = noNotify
+
+  @as_scatterheader.macro
 
   IF ~Ptr_Valid(self.profileRefs) THEN RETURN
   IF KeyWord_Set(ALL) THEN index = IndGen(N_Elements(*self.profileRefs)) ELSE BEGIN
@@ -1039,6 +1094,8 @@ END
 
 PRO AS_ProfileContainerObj::AddProfile, q_arr, data, error, fname, NOPLOT = noplot, SETBLANK = setBlank, LIVE = live, PROFILEINDEX = profileIndex, _REF_Extra=extra
 
+  @as_scatterheader.macro
+
   IF KeyWord_Set(live) THEN BEGIN
     IF self.realTime THEN BEGIN
       self.liveProfile.SetProperty, PROFILE = data, QVECTOR=q_arr, ERROR = error, _EXTRA=extra
@@ -1089,6 +1146,8 @@ END
 
 PRO AS_ProfileContainerObj::SelectPlot, plotNo, DOUBLE=double
 
+  @as_scatterheader.macro
+
   IF plotNo[0] GE 0 THEN BEGIN
     plotRef = !Null
     FOREACH plot, plotNo DO BEGIN
@@ -1128,6 +1187,8 @@ PRO AS_ProfileContainerObj::SelectPlot, plotNo, DOUBLE=double
 END
 
 FUNCTION AS_ProfileContainerObj::SetBlank, index, blank
+
+  @as_scatterheader.macro
 
   temp = IntArr(N_Elements(index))
   FOR i = 0, N_Elements(index) - 1 DO temp[i] = Where((*self.profileRefs).refNum EQ index[i])
@@ -1206,11 +1267,15 @@ END
 
 PRO AS_ProfileContainerObj::NotifyObject, event
 
+  @as_scatterheader.macro
+
   FOREACH notify, self.notifyObj DO IF Obj_Valid(notify) THEN notify.notify, event
     
 END
 
 PRO AS_ProfileContainerObj::LinLogQMarkers
+
+  @as_scatterheader.macro
 
   self->UpdatePlot
   
@@ -1225,6 +1290,8 @@ PRO AS_ProfileContainerObj::LinLogQMarkers
 END
 
 PRO AS_ProfileContainerObj::AddQMarker, q
+
+  @as_scatterheader.macro
 
   self.profileXAxis->GetProperty, XCOORD_CONV=xcoord_conv
   self.profileYAxis->GetProperty, YCOORD_CONV=ycoord_conv
@@ -1258,6 +1325,8 @@ PRO AS_ProfileContainerObj::AddQMarker, q
 END
 
 PRO AS_ProfileContainerObj::DeleteQMarker, q
+
+  @as_scatterheader.macro
 
   IF ~Ptr_Valid(self.qMarkersObj) THEN RETURN
 
@@ -1296,6 +1365,8 @@ PRO AS_ProfileContainerObj::DeleteQMarker, q
 END
 
 PRO AS_ProfileContainerObj::NormCalc, globals=globals, all=all, series=series
+
+@as_scatterheader.macro
 
 ;*******************************************************************************
 ;   saxs_norm_recalc
@@ -1385,6 +1456,8 @@ END
 
 PRO AS_ProfileContainerObj::ReOrgColours
 
+  @as_scatterheader.macro
+
   IF Ptr_Valid(self.profileRefs) THEN $
   FOR i = 0, N_Elements((*self.profileRefs).plotColour) -1 DO BEGIN
     (*self.profileRefs)[i].plotColour = Ptr_New(i)
@@ -1395,6 +1468,8 @@ PRO AS_ProfileContainerObj::ReOrgColours
 END
 
 FUNCTION AS_ProfileContainerObj::FindByFName, fName
+
+  @as_scatterheader.macro
 
   IF ~Ptr_Valid(self.profileRefs) THEN RETURN, -1
   FOREACH profile, (*self.profileRefs).profiles, key DO BEGIN
@@ -1407,6 +1482,8 @@ FUNCTION AS_ProfileContainerObj::FindByFName, fName
 END
 
 PRO AS_ProfileContainerObj::GetProperty, BASE=base, MEDMEAN=medmean, COLOUR=colour, MULT=mult, OFFSET=offset, FNAME=fName, XRANGEZOOM=xRangeZoom, IBSNRM=ibsnrm, CSCALIB=CSCalib, _REF_Extra=extra
+
+@as_scatterheader.macro
 
   IF Arg_Present(base) THEN base = self.wBase
   IF Arg_Present(medmean) THEN medmean = self.medmean
@@ -1447,6 +1524,8 @@ END
 
 PRO AS_ProfileContainerObj::SetProperty, NORMTYPE = normType, REALTIME = realTime, IGNORELIVE = ignoreLive, NOTIFY_OBJ = notifyObj
 
+@as_scatterheader.macro
+
 IF KeyWord_Set(normType) THEN self.nrmtype = normType
 IF N_Elements(realTime) GE 1 THEN BEGIN
   self.realTime = realTime
@@ -1464,6 +1543,8 @@ END
 
 PRO AS_ProfileContainerObj::UpdateProfileWidgets, _extra
 
+  @as_scatterheader.macro
+
   IF Ptr_Valid(self.profilerefs) THEN BEGIN
     IF N_Elements((*self.profileRefs)) LE self.current THEN self.current = N_Elements((*self.profileRefs))-1
    (*self.profileRefs)[self.current].profiles->UpdateProfileWidgets, self.groupleader
@@ -1472,6 +1553,8 @@ PRO AS_ProfileContainerObj::UpdateProfileWidgets, _extra
 END
 
 PRO AS_ProfileContainerObj::ReSize, x, y
+
+  @as_scatterheader.macro
 
   self.drawSize = [x, y]
   

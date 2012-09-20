@@ -47,6 +47,8 @@
 
 FUNCTION AS_MakeFNameSeq, f_name1, f_name2, inc=inc, fext=fext, nameformat=nameformat, nosequence=nosequence, outputext=outputext
 
+  @as_scatterheader.macro
+
     IF ~Keyword_Set(fext) THEN fext = ''
     IF ~Keyword_Set(nameformat) THEN nameformat = ''
 
