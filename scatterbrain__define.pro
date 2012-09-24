@@ -987,6 +987,8 @@ END
 
 PRO scatterbrain::saveXML
 
+  @as_scatterheader.macro
+
   IF self.pollEpics GT 0 THEN self.areaDetectorObj.StoreParams, self.scatterXMLGUI_obj 
   self.scatterXMLGUI_obj->SaveFile
   widgetIDS = [Widget_Info(self.wScatterBase, FIND_BY_UNAME = 'NEW EXPERIMENT EMPTY'),Widget_Info(self.wScatterBase, FIND_BY_UNAME = 'NEW EXPERIMENT FILES')]

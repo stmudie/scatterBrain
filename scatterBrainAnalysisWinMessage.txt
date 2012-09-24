@@ -1,3 +1,6 @@
+This latest version adds more default error checking. scatterBrain should hopefully crash less often.
+
+Version 1.38 Message:
 This newest version adds a dialog box asking if you wish to save the experiment file when you save a configuration.
 
 Version 1.36 Message:
