@@ -499,6 +499,13 @@ PRO scatterbrain::event, event
                                  wSubmitButton = Widget_Button(wNatureBase, VALUE = 'Submit')
                                  Widget_Control, wNatureBase, /REALIZE
         END
+        
+        'EXPORT LOGFILE' : BEGIN
+                                   self.scatterXMLGUI_obj.GetParameters, RAWLOG = rawLog
+                                   exportLogfile = as_exportstruct(rawLog)
+        
+        END
+        
         'NO. SECTORS'      :
         ; ** SCAN MENU **
         ; ** SCAN -> Mode
@@ -2003,6 +2010,8 @@ FUNCTION scatterbrain::init     $
     SWITCH_IT_IBS = Widget_Button(MENU_TOOLS, VALUE = 'Switch beamstop and transmission data', UNAME = 'SWITCH IBS IT')
     
     EXPORT_NATURE_PAPER = Widget_Button(MENU_TOOLS, VALUE = 'Export Nature Paper', UNAME = 'EXPORT NATURE PAPER')
+    
+    EXPORT_LOGFILE_TO_EXCEL = Widget_Button(MENU_TOOLS, VALUE = 'Export Logfile', UNAME = 'EXPORT LOGFILE')
 
 ;    MENU_TOOLS = Widget_Button(SAXS_BASE_MBAR, UNAME='MENU_TOOLS',VALUE='Tools')
 ;

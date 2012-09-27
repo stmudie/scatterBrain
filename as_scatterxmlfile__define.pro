@@ -635,7 +635,7 @@ PRO as_scatterXMLFile::SetParameters, MASK=mask, CHANGEDMASKNAMES = changedMaskN
 
 END
 
-PRO as_scatterXMLFile::GetParameters, MASK=mask, BEAMSTOP = beamstop, CAKE=cake, FRAME=frame, ADMAP=ADMap, PVMAP=PVMap, NORMPARAMS = normParams, LOGPARAMS = logParams
+PRO as_scatterXMLFile::GetParameters, MASK=mask, BEAMSTOP = beamstop, CAKE=cake, FRAME=frame, ADMAP=ADMap, PVMAP=PVMap, NORMPARAMS = normParams, LOGPARAMS = logParams, RAWLOG = rawLog
 
   @as_scatterheader.macro
 
@@ -712,8 +712,7 @@ PRO as_scatterXMLFile::GetParameters, MASK=mask, BEAMSTOP = beamstop, CAKE=cake,
                yc      : ((*self.configurations).beamy)[i], $
                detangle: ((*self.configurations).waxsangle)[i]}]
    
-   ENDFOR
-             
+   ENDFOR          
              
  ENDIF
  
@@ -755,6 +754,8 @@ PRO as_scatterXMLFile::GetParameters, MASK=mask, BEAMSTOP = beamstop, CAKE=cake,
     ENDFOR
 
   ENDIF
+
+  IF Arg_Present(rawLog) THEN rawLog = *self.loglines
 
 END
 

@@ -32,7 +32,7 @@ version = StrCompress(StrJoin(StrSplit(version,'.',/EXTRACT),'_'),/REMOVE_ALL)
 
 .COMPILE 'drawButton.pro'
 .COMPILE 'scatterbrainanalysis.pro'
-;.COMPILE 'scatterbraincontrol.pro'
+.COMPILE 'scatterbraincontrol.pro'
 
 class = List()
 

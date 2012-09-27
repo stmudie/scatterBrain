@@ -12,6 +12,13 @@ FUNCTION AS_TalkToExcel::init, VISIBLE=visible
   
 END
 
+PRO AS_TalkToExcel::NewFile
+
+  self.excelObj.GetProperty, WORKBOOKS = workBooks
+  workbook = workBooks.add()
+
+END
+
 PRO AS_TalkToExcel::OpenFile, file
 
   @as_scatterheader.macro

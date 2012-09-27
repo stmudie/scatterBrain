@@ -498,7 +498,7 @@ PRO AS_ProfileContainerObj::SaveProfiles, fileName, MULTIPLE=multiple
     profileList.add, profileRef.profiles.GetData(/BACK, XLOG=0, YLOG=0)
     profileRef.profiles.GetProperty, fname=name
     nameList.add, name
-    maxElem = maxElem > N_Elements(profileList(-1))/3
+    maxElem = maxElem > N_Elements(profileList[-1])/3
   ENDFOREACH 
   numProfiles = N_Elements(profileList)
         

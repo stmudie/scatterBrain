@@ -1,7 +1,8 @@
+Version 1.41
+Fix for export profiles. Add export logfile under tools menu. Exporting direct to Excel works, but is very slow. Hence I recommend using the export the CSV (comma separated values) and then importing this directly into whatever viewer you want to use.
+
+Version 1.39
 This latest version adds more default error checking. scatterBrain should hopefully crash less often.
 
 Version 1.38 Message:
 This newest version adds a dialog box asking if you wish to save the experiment file when you save a configuration.
-
-Version 1.36 Message:
-This version adds an auto update checker on startup. By default this is enabled (unless you are upgrading from the short lived 1.35 version). You can turn it on and off in the Settings->General Settings page. I recommend you leave it on so you are notified of new versions as they become available. However, if you are running your computer offline, or the AS website is down, then you will get a short pause at start up as the checker tries to connect to the server. If you find this pause annoying then you will always be able to stop the auto update checker using the Settings->General Settings page

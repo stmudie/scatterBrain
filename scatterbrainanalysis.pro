@@ -1,5 +1,5 @@
 PRO scatterBrainAnalysis, _REF_EXTRA = extra
-  version = 1.39
+  version = 1.41
   scatter = scatterBrain(_EXTRA = extra, version = version)
 
 END
