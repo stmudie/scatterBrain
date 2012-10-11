@@ -69,14 +69,19 @@ CASE TAG_NAMES( event, /STRUCTURE ) OF
                             
                             IF draggedWidgets[i] NE Widget_Info(event.drag_id, /CHILD) THEN BEGIN
                             
-                              Widget_Control, draggedWidgets[i], GET_VALUE = f_name1
+                              Widget_Control, draggedWidgets[i], GET_UVALUE = uvalue
+                              
+                              IF ISA(uvalue, 'STRUCT') THEN self.notify, {PLOTDATDROP, filename : uvalue.filename} $
+                              ELSE BEGIN
+                                Widget_Control, draggedWidgets[i], GET_VALUE = f_name1
+                                self.notify, {PLOTDROP, filename : f_name1}
+                              ENDELSE
                               
                               ;f_name1 = saxs_get_filenames(/single)
                               ;if f_name1 EQ 'NULL' then return
                               ;retval = saxs_image_proc(f_name1, INFO = info)
                               
-                              self.notify, {PLOTDROP, name : f_name1}
-                                                       
+                                                                                     
                               ;sf=info.frame_obj->GetImage(f_name1)
                               ;setup_pts = info.frame_obj->CakeSetup()
                               ;IF info.frame_obj->cake() LE 1 THEN RETURN 
@@ -215,14 +220,14 @@ CASE TAG_NAMES( event, /STRUCTURE ) OF
                               self.oProfiles->GetProperty, MULT = mult, OFFSET = offset
                               infoArray = ['Mult = ' + String(mult),'Offset = ' + String(offset)]
                               Widget_Control, self.wInfoBox, SET_VALUE = infoArray
-                              self.notify, {PLOTSELECT, name : temp, clicks : 1 }
+                              self.notify, {PLOTSELECT, filename : temp, clicks : 1 }
                             ENDIF 
                           ENDIF
                           IF event.clicks EQ 2 THEN BEGIN
                             selProfile = (WIDGET_INFO( self.wProfileTree, /TREE_SELECT ))[0]
                             IF selProfile EQ -1 THEN RETURN
                             Widget_Control, selProfile, GET_UVALUE = temp
-                            self.notify, {PLOTSELECT, name : temp, clicks : 2 }
+                            self.notify, {PLOTSELECT, filename : temp, clicks : 2 }
                           ENDIF
                           
                           IF plots NE !Null THEN self.lastSelected = List(plots, /EXTRACT) ELSE self.lastSelected = List()
@@ -594,7 +599,7 @@ PRO AS_PlotControl::RePlot, index
   FOR i = 0, N_Elements(index) -1 DO BEGIN
     fname = index[i]
     self.oProfiles->GetProperty, FNAME=fname
-    self.notify, {PLOTREPLOT, name : fname}
+    self.notify, {PLOTREPLOT, filename : fname}
     self.oProfiles->ReplaceWithLast, index[i]
 ;    allLeaves = Widget_Info(self.wProfileTree, /ALL_CHILDREN)
 ;    Widget_Control, allLeaves(N_Elements(allLeaves)-1),/DESTROY

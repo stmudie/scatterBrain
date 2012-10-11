@@ -1,8 +1,9 @@
+Version 1.50
+You can plot DAT files directly. Use Tools->Dat File Mode.
+Error bars can be included in plot. Turn on in Settings->General Settings.
+
 Version 1.41
 Fix for export profiles. Add export logfile under tools menu. Exporting direct to Excel works, but is very slow. Hence I recommend using the export the CSV (comma separated values) and then importing this directly into whatever viewer you want to use.
 
 Version 1.39
 This latest version adds more default error checking. scatterBrain should hopefully crash less often.
-
-Version 1.38 Message:
-This newest version adds a dialog box asking if you wish to save the experiment file when you save a configuration.

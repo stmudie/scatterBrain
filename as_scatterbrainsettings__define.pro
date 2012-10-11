@@ -20,10 +20,10 @@ FUNCTION as_scatterBrainSettings::init
   self.recentFile = Ptr_New(replicate({RECENTFILE},8))
   self.attRecentFile = Ptr_New({ATTRIBUTESRECENTFILE, recentFile :['']})
   
-  void = {GENERAL, generalSettings : '', zingerThresh : '', binSize : '', startingDirectory : '', autoCheckUpdates : ''}
+  void = {GENERAL, generalSettings : '', zingerThresh : '', binSize : '', startingDirectory : '', autoCheckUpdates : '', errorBars : ''}
   self.general = Ptr_New({GENERAL})
-  self.attGeneral = Ptr_New({ATTRIBUTESGENERAL, generalSettings : ['zingerThresh', 'binSize', 'startingDirectory', 'autoCheckUpdates']})
-  
+  self.attGeneral = Ptr_New({ATTRIBUTESGENERAL, generalSettings : ['zingerThresh', 'binSize', 'startingDirectory', 'autoCheckUpdates', 'errorBars']})
+    
   RETURN, self.as_xmlparamfile::init()
 
 END
@@ -147,7 +147,8 @@ PRO as_scatterBrainSettings::GetProperty, $
   RECENTFILE = recentFile, $
   SETTINGSPATH = settingsPath, $
   STARTINGDIRECTORY = startingDirectory, $
-  AUTOCHECKUPDATES = autoCheckUpdates
+  AUTOCHECKUPDATES = autoCheckUpdates, $
+  ERRORBARS = errorBars
 
   @as_scatterheader.macro
 
@@ -174,6 +175,7 @@ PRO as_scatterBrainSettings::GetProperty, $
   IF Arg_Present(settingsPath) THEN settingsPath = self.settingsPath
   IF Arg_Present(startingDirectory) THEN startingDirectory = (*self.general).startingDirectory
   IF Arg_Present(autoCheckUpdates) THEN autoCheckUpdates = Fix((*self.general).autoCheckUpdates)
+  IF Arg_Present(errorBars) THEN errorBars = Fix((*self.general).errorBars)
 
 END
 
@@ -201,7 +203,8 @@ PRO as_scatterBrainSettings::SetProperty, $
   RECENTFILE = recentFile, $
   STARTINGDIRECTORY = startingDirectory, $
   AUTOCHECKUPDATES = autoCheckUpdates, $
-  NOSAVE = noSave
+  NOSAVE = noSave, $
+  ERRORBARS = errorBars
 
   @as_scatterheader.macro
 
@@ -254,15 +257,18 @@ PRO as_scatterBrainSettings::SetProperty, $
   IF N_Elements(binSize) AND Ptr_Valid(self.general) THEN (*self.general).binSize = binSize  
   IF N_Elements(recentFile) GT 0 THEN BEGIN
     recentFileList = [recentFile,(*self.recentFile)[*].recentFile]
+    recentFileList = recentFileList[Where(recentFileList NE '')]
     index = Sort(recentFileList)
-    uniqueFiles = uniq(recentFileList, index)
+    uniqueFiles = uniq(recentFileList,index)
     recentFileList = recentFileList[uniqueFiles[sort(uniqueFiles)]]
-    numRecentFiles = N_Elements(recentFileList) < 8 
-    recentFileList = recentFileList[0:numRecentFiles-1]
-    (*self.recentFile)[0:numRecentFiles-1].recentFile = recentFileList
+    numRecentFiles = N_Elements(recentFileList) < 8
+    newRecentFileList = StrArr(8)
+    newRecentFileList[0:numRecentFiles-1] = recentFileList
+    (*self.recentFile)[*].recentFile = newRecentFileList
   ENDIF
   IF ISA(startingDirectory, 'STRING') AND Ptr_Valid(self.general) THEN (*self.general).startingDirectory = startingDirectory
   IF Ptr_Valid(self.general) THEN (*self.general).autoCheckUpdates = KeyWord_Set(autoCheckUpdates)
+  IF N_Elements(errorBars) AND Ptr_Valid(self.general) THEN (*self.general).errorBars = String(errorBars)
   
   IF ~KeyWord_Set(NOSAVE) THEN self.SaveFile
   

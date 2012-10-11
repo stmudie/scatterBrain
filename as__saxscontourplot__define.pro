@@ -210,8 +210,13 @@ PRO as__saxscontourplot::event, event
     'Blank Draw'  :  BEGIN
                       leafID = Widget_Info(event.drag_id, /TREE_SELECT)
                       IF N_Elements(leafID) GT 1 THEN result = Dialog_Message('You have dropped multiple blanks - using first in list')
-                      Widget_Control, leafID[0], GET_VALUE = value
-                      self.notify, {CONTOURBLANK, name : value }
+                      Widget_Control, leafID[0], GET_UVALUE = uvalue
+                      IF ISA(uvalue, 'STRUCT') THEN BEGIN
+                        IF Tag_Names(uvalue, /STRUCTURE_NAME) EQ 'DAT' THEN self.notify, {DATCONTOURBLANK, name : uvalue.filename }
+                      ENDIF ELSE BEGIN
+                        Widget_Control, leafID[0], GET_VALUE = value
+                        self.notify, {CONTOURBLANK, name : value }
+                      ENDELSE  
                      END
     'NO BLANK'    : BEGIN
                       self.noBlank = event.select
@@ -665,7 +670,7 @@ FUNCTION as__saxscontourplot::UpdateContour, x, y, z, YTITLE = yTitle, YSTRINGS 
 
 END
 
-FUNCTION as__saxscontourplot::Init, x, y, z, FILENAMES=fileNames, NOTIFYOBJ = notifyObj, IRREGULAR = irregular
+FUNCTION as__saxscontourplot::Init, x, y, z, FILENAMES=fileNames, NOTIFYOBJ = notifyObj, IRREGULAR = irregular, GROUPLEADER = groupLeader
   
   @as_scatterheader.macro
   
@@ -698,7 +703,7 @@ FUNCTION as__saxscontourplot::Init, x, y, z, FILENAMES=fileNames, NOTIFYOBJ = no
     FOR i = 0, N_Elements(self.yTypeNames) - 1 DO self.initY.Add, y.(i)
     y = y.(0)
   ENDIF ELSE BEGIN
-    self.initY = List(y, /EXTRACT)
+    self.initY = List(y)
     self.yTypeNames = List()
   ENDELSE
   self.initZ = List(z, /EXTRACT)
@@ -717,8 +722,8 @@ FUNCTION as__saxscontourplot::Init, x, y, z, FILENAMES=fileNames, NOTIFYOBJ = no
   ;hist = Histogram(y, LOCATIONS = yValues)
   ;self.plotIndex = List(yValues[Where(hist NE 0)], /EXTRACT)
   self.plotIndex = List(IndGen(N_Elements(y)),/EXTRACT)
-  
-  wContourBase = Widget_Base(/ROW, TITLE = 'scatterBrain Contour Plot', /TLB_SIZE_EVENTS)
+  IF N_Elements(groupLeader) GT 0 THEN wContourBase = Widget_Base(GROUP_LEADER = groupLeader, /ROW, TITLE = 'scatterBrain Contour Plot', /TLB_SIZE_EVENTS, /FLOATING) $
+                                  ELSE wContourBase = Widget_Base(/ROW, TITLE = 'scatterBrain Contour Plot', /TLB_SIZE_EVENTS)
   self.wContourBase = wContourBase
   WIDGET_CONTROL, wContourBase, SET_UVALUE = self
   wControlBase = Widget_Base(wContourBase, /COLUMN, UNAME = 'Contour Type Base')
@@ -785,6 +790,7 @@ FUNCTION as__saxscontourplot::Init, x, y, z, FILENAMES=fileNames, NOTIFYOBJ = no
   self.oContour.SetProperty, PLANAR = 1, GEOMZ = -.01, N_LEVELS = 24, /FILL, PALETTE = contourPalette, C_COLOR = IndGen(24)*255/23.
   
   xTitle = IDLgrText('q (' + String("305B) + '!U-1!N)', /ENABLE_FORMATTING, RECOMPUTE_DIMENSIONS = 2)
+  IF self.yTypeNames.count() EQ 0 THEN self.yTypeNames.add, 'index'
   yTitle = IDLgrText((self.yTypeNames)[0], RECOMPUTE_DIMENSIONS = 2)
   
   self.xAxis = IDLgrAxis(TITLE=xTitle, LOCATION = [0,Min(y),0],RANGE = [Min(x), Max(x)], /EXACT, TICKDIR=1)

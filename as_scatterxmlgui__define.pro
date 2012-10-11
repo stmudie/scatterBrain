@@ -61,7 +61,6 @@ PRO as_scatterXMLGUI::event, event
 ;                          Widget_Control, Widget_Info(event.id, /TREE_ROOT), SET_TREE_SELECT=event.id
 ;                          selected = event.id
 ;                        ENDIF
-                        print, event.id
                         nameList = list()
                         FOREACH s, selected DO BEGIN
                           IF s GE 0 AND s NE self.filetree THEN BEGIN 
@@ -192,6 +191,7 @@ PRO as_scatterXMLGUI::event, event
                     END
     'Deselect'    : BEGIN
                       Widget_Control, self.fileTreeParent, SET_TREE_SELECT = 0
+                      self.notify, {Type: 'DESELECT'}
                     END
     ELSE:
   

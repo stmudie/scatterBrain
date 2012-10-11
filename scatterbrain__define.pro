@@ -414,6 +414,8 @@ PRO scatterbrain::event, event
                                  self.frame_obj.GetProperty, STEP = step
                                  IF step LE 0 THEN step = 1
                                  binSize = CW_Field(self.settingsBase, TITLE = 'q-vector bin size', VALUE = step, /FLOATING, /RETURN_EVENTS, UNAME = 'Q BIN SIZE')
+                                 errorBarsButtons = CW_BGROUP(self.settingsBase, ['None','Last Selected Only', 'All'],LABEL_TOP = 'Show Error Bars',/ROW,/EXCLUSIVE, UNAME = 'SHOW ERROR BARS')
+                                 Widget_Control, errorBarsButtons, SET_VALUE=self.settingsObj.ErrorBars
                                  startingDirectory = Widget_Button(self.settingsBase, VALUE = 'Set Starting Directory', UNAME = 'STARTING DIRECTORY')
                                  nonExclusiveSettings2 = Widget_Base(self.settingsBase, /COLUMN,/NONEXCLUSIVE)
                                  autoCheckForUpdates = Widget_Button(nonExclusiveSettings2, VALUE = 'Check For Updates on start up?', UNAME = 'AUTO CHECK UPDATE')
@@ -449,6 +451,9 @@ PRO scatterbrain::event, event
         'EXPORT IMAGE ALL' : BEGIN
                                self.ExportCurrentImage
         END
+        'DAT FILE MODE'    : BEGIN
+                               datfileobject = as_datfileloader(['Raw Dat','Average','Subtracted', 'Manual'],[self.experimentDir + Path_Sep() + 'raw_dat', self.experimentDir + Path_Sep() + 'avg', self.experimentDir + Path_Sep() + 'sub', self.experimentDir + Path_Sep() + 'manual'], GROUPLEADER = self.wScatterBase, NOTIFYOBJECT = notify('DatCallback', self))
+        END
         'SET ZINGER MASK'  :BEGIN
                               IF Widget_Info(self.settingsBase, /VALID) THEN Widget_Control, Widget_Info(self.settingsBase, FIND_BY_UNAME = 'ZINGER THRESHOLD'), GET_VALUE = threshold $
                                                                         ELSE threshold = 1000000l
@@ -467,6 +472,10 @@ PRO scatterbrain::event, event
         'AUTO CHECK UPDATE' : BEGIN
                                 self.settingsObj.autoCheckUpdates = event.select
                               END
+        'SHOW ERROR BARS'  : BEGIN
+                               self.settingsObj.errorBars = event.value
+                               self.profiles_obj.showErrorPlot, event.value
+                             END
         'CONVERT SAXS15'   : BEGIN
                                convertObj = as__convertsaxs15toscatterbrain()
                                xmlFile = ''
@@ -504,6 +513,12 @@ PRO scatterbrain::event, event
                                    self.scatterXMLGUI_obj.GetParameters, RAWLOG = rawLog
                                    exportLogfile = as_exportstruct(rawLog)
         
+        END
+        'EXPORT LOGFILE FILES' : BEGIN
+                                   self.scatterXMLGUI_obj.GetParameters, RAWLOG = rawLog
+                                   indicies = List()
+                                   FOREACH name, self.currentlySelected DO indicies.add, self.scatterXMLGUI_obj.GetIndex(name)
+                                   exportLogFile = as_exportstruct(rawLog[indicies.toArray()])
         END
         
         'NO. SECTORS'      :
@@ -1138,7 +1153,14 @@ PRO scatterbrain::LogFileSelected, Selected
     RETURN
   ENDIF
 
-  CASE Selected.type OF
+  IF selected.type EQ 'DESELECT'THEN BEGIN
+    self.currentlySelected = List()
+    RETURN
+  ENDIF
+
+  self.currentlySelected = selected.name
+
+  CASE Selected.type OF 
     'SELECT' : BEGIN
                  self.fileSelectList = selected.name
                  ;self.profiles_obj.
@@ -1263,7 +1285,7 @@ PRO scatterbrain::LogFileSelected, Selected
                  FOREACH prof, data, index DO BEGIN
                    zContour[*,index] =  Reform(prof[1,inRange])
                  ENDFOREACH
-                 self.contourPlot = as__saxscontourplot(q, yStruct, zContour, NOTIFYOBJ = notify('ContourCallback',self))
+                 self.contourPlot = as__saxscontourplot(q, yStruct, zContour, GROUPLEADER = self.wScatterBase, NOTIFYOBJ = notify('ContourCallback',self))
                  ;profiler, /REPORT, FILENAME = 'profiler.dat'
                END
     'MOVIE' : BEGIN
@@ -1338,7 +1360,7 @@ PRO scatterbrain::LogFileSelected, Selected
                  
                  y = {Sector : y}
                  
-                 self.contourPlot = as__saxscontourplot(q, y, zContour, FILENAMES = selected.name.toArray(), NOTIFYOBJ = notify('ContourCallback',self))
+                 self.contourPlot = as__saxscontourplot(q, y, zContour, FILENAMES = selected.name.toArray(), GROUPLEADER = self.wScatterBase, NOTIFYOBJ = notify('ContourCallback',self))
                  
                END
     'NIGEL'  : BEGIN
@@ -1589,7 +1611,84 @@ PRO scatterbrain::ContourCallback, event
                        self.profiles_obj.DeleteProfile, blankID
                        self.contourPlot.SetBlank, Reform(blank.toArray()), event.name
                      END
+    'DATCONTOURBLANK' : BEGIN
+                          profile = self.ReadDat(event.name)
+                          self.contourPlot.SetBlank, transpose([[profile.q.toarray()], [profile.intensity.toarray()], [profile.error.toarray()]]), File_Basename(event.name)
+                        END
   ENDCASE
+END
+
+FUNCTION scatterBrain::ReadDat, filename
+
+  OpenR, fileLun, filename, /GET_LUN
+    tempStr = ''
+    ReadF, fileLun, tempStr
+    ReadF, fileLun, tempStr
+    tempFlt = FltArr(3)
+    q = List()
+    i = List()
+    e = List()
+    WHILE ~EOF(fileLun) DO BEGIN
+      ReadF, fileLun, tempFlt
+      q.add, tempFlt[0]
+      i.add, tempFlt[1]
+      e.add, tempFlt[2]
+    ENDWHILE
+  Free_LUN, fileLun
+
+  RETURN, {q : q, intensity : i, error : e}
+
+END
+
+PRO scatterBrain::PlotDat, filenames
+
+  FOREACH filename, filenames DO BEGIN
+    data = self.ReadDat(filename)
+    q = data.q
+    i = data.intensity
+    e = data.error
+    self.profiles_obj.AddProfile, q.ToArray(), i.ToArray(), e.ToArray(), File_Basename(filename), CONFIGNAME = 'dat', /PRENORM, PROFILEINDEX = profileIndex
+  ENDFOREACH
+  self.profiles_obj->UpdateProfileWidgets
+  
+END
+
+PRO scatterBrain::ContourDat, filenames
+
+  data = list()
+
+  FOREACH file, filenames, key DO BEGIN
+  
+    temp = self.ReadDat(file)
+    data.add, (temp.intensity).toArray()
+    
+    IF key EQ 0 THEN nPoints = (temp.q).count()
+    
+    IF (temp.q).count() NE nPoints THEN BEGIN
+      result = Dialog_Message('Not all profiles have the same number of points. Returning...')
+      RETURN
+    ENDIF
+  
+  ENDFOREACH
+
+  zContour = fltarr(nPoints,filenames.count())
+  FOREACH profile, data, key DO zContour[*,key] = profile
+  q = temp.q
+  
+  self.contourPlot = as__saxscontourplot(q.toArray(), indgen(filenames.count()), zContour, GROUPLEADER = self.wScatterBase, NOTIFYOBJ = notify('ContourCallback',self))
+  
+
+END
+
+PRO scatterBrain::DatCallback, event
+
+  @as_scatterheader.macro
+
+  CASE Tag_Names(event, /STRUCTURE_NAME) OF
+    'SELECT' : self.plotdat, event.filenames
+    'CONTOUR': self.contourdat, event.filenames
+  ENDCASE 
+  
 END
 
 PRO scatterbrain::FrameCallback, event
@@ -1644,20 +1743,24 @@ PRO scatterbrain::PlotControlCallback, event
 
   CASE Tag_Names(event, /STRUCTURE_NAME) OF
     'PLOTSELECT' : BEGIN
-                     fileName = event.name
+                     fileName = event.filename
                      IF event.clicks EQ 2 THEN BEGIN
                        self.profiles_obj->SelectPlot, fileName, /DOUBLE
                        self.profiles_obj->UpdateProfileWidgets
                        self.profiles_obj->GetProperty, FNAME=fileName 
+                       IF StrUpCase((StrSplit(filename, '.',/EXTRACT))[-1]) NE 'TIF' THEN BREAK
                        sf = self.frame_obj.GetImage(fileName)
                        Widget_Control, Widget_Info(self.wScatterBase, FIND_BY_UNAME = 'SIMAGE'), SET_VALUE = fileName
                      ENDIF
                    END
     'PLOTDROP'   : BEGIN
-                     result = self.ProcessImage(event.name)
+                     result = self.ProcessImage(event.filename)
+                   END
+    'PLOTDATDROP': BEGIN
+                     self.PlotDat, event.filename
                    END
     'PLOTREPLOT' : BEGIN
-                     result = self.ProcessImage(event.name)
+                     result = self.ProcessImage(event.filename)
                    END
   ENDCASE
 
@@ -1833,6 +1936,8 @@ FUNCTION scatterbrain::init     $
    self.filenames.autopbat    = 0               
    self.filenames.psplot      = 'saxs15id.ps'
 
+   self.currentlySelected = List()
+
    self.settingsObj = as_scatterbrainsettings()
    self.settingsObj.ParseFile
    
@@ -1995,6 +2100,8 @@ FUNCTION scatterbrain::init     $
 
     MENU_TOOLS = Widget_Button(SAXS_BASE_MBAR, UNAME='MENU_TOOLS',VALUE='Tools')
     
+    DAT_MODE = Widget_Button(MENU_TOOLS, VALUE = 'Dat File Mode', UNAME = 'DAT FILE MODE')
+    
     EXPORT_IMAGE = Widget_Button(MENU_TOOLS, VALUE = 'Export Image', /MENU)
     
     EXPORT_IMAGE_CURRENT = Widget_Button(EXPORT_IMAGE, VALUE = 'Export Current Image', UNAME = 'EXPORT IMAGE')
@@ -2011,7 +2118,13 @@ FUNCTION scatterbrain::init     $
     
     EXPORT_NATURE_PAPER = Widget_Button(MENU_TOOLS, VALUE = 'Export Nature Paper', UNAME = 'EXPORT NATURE PAPER')
     
-    EXPORT_LOGFILE_TO_EXCEL = Widget_Button(MENU_TOOLS, VALUE = 'Export Logfile', UNAME = 'EXPORT LOGFILE')
+    EXPORT_LOGFILE = Widget_Button(MENU_TOOLS, VALUE = 'Export Logfile', /MENU)
+    
+    EXPORT_LOGFILE_COMPLETE = Widget_Button(EXPORT_LOGFILE, VALUE = 'Including All Files', UNAME = 'EXPORT LOGFILE')
+    
+    EXPORT_LOGFILE_COMPLETE = Widget_Button(EXPORT_LOGFILE, VALUE = 'Selected Files Only', UNAME = 'EXPORT LOGFILE FILES')
+    
+    
 
 ;    MENU_TOOLS = Widget_Button(SAXS_BASE_MBAR, UNAME='MENU_TOOLS',VALUE='Tools')
 ;
@@ -2248,6 +2361,7 @@ FUNCTION scatterbrain::init     $
     blue  = blue[0:15]
     profilePalette_obj.SetProperty, RED_VALUES = red, GREEN_VALUES = green, BLUE_VALUES = blue
     profiles_obj = Obj_New('AS_ProfileContainerObj', GROUPLEADER= wScatterBase, plotPalette = profilePalette_obj)
+    profiles_obj.showErrorPlot, self.settingsObj.errorBars
     
 ;    ;Create box object for setting zoom on frame.
 ;    DATA = Transpose([[0,0,0,0,0],[0,0,0,0,0]])
@@ -2447,7 +2561,8 @@ void = {scatterbrain, $
        programDir         : '',              $
        updateProgressLabel: 0L,              $
        settingsObj        : Obj_New(),       $
-       operatingSystem     : ''               $ 
+       currentlySelected  : List(),          $
+       operatingSystem     : ''              $ 
        }                                     
 
 END

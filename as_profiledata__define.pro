@@ -1,6 +1,8 @@
-FUNCTION AS_Profiledata::Init, profile, error, fname, CONFIGNAME = configName, QVECTOR = qVector, DSPACE = dSpace, TWOTHETA = twoTheta, PIXEL = pixel, BACK = back, TIME = time, I0COUNT = I0count, IBSCOUNT = IBSCount, I0NORM = I0Norm, IBSNorm = IBSNorm
+FUNCTION AS_Profiledata::Init, profile, error, fname, PRENORM = preNorm, CONFIGNAME = configName, QVECTOR = qVector, DSPACE = dSpace, TWOTHETA = twoTheta, PIXEL = pixel, BACK = back, TIME = time, I0COUNT = I0count, IBSCOUNT = IBSCount, I0NORM = I0Norm, IBSNorm = IBSNorm
 
   @as_scatterheader.macro
+
+  IF KeyWord_Set(preNorm) THEN self.preNorm = 1
 
   IF Obj_Valid(back) THEN self.back = back
   IF Obj_Valid(logfileobj) THEN self.logfileobj = logfileobj
@@ -172,7 +174,7 @@ FUNCTION AS_Profiledata::GetData, PLOT_DSPACE = plotDSpace, PLOT_TWOTHETA = plot
   error = *self.error
   IF N_Elements(profile) EQ 0 THEN RETURN, -1
   IF N_Elements(error) NE N_Elements(profile) THEN error = FltArr(N_Elements(profile))
-  IF ~KeyWord_Set(noNorm) THEN BEGIN
+  IF ~KeyWord_Set(noNorm) AND self.preNorm NE 1 THEN BEGIN
     profile = self.sf*profile
     error = self.sf*error
   ENDIF
@@ -196,8 +198,8 @@ FUNCTION AS_Profiledata::GetData, PLOT_DSPACE = plotDSpace, PLOT_TWOTHETA = plot
   IF KeyWord_Set(YLOG) THEN BEGIN
     posElements = WHERE(profile GT 0, nPos)
     IF (nPos GT 0) THEN BEGIN
+      error = [[ALog10(profile + error)],[ALog10(profile - error)]] - ALog10(profile)#Replicate(1,2)
       profile = ALog10(profile)
-      error = ALog10(error)
     ENDIF ELSE result = Dialog_Message('All points non-positive, log plot will be garbage!')  
   ENDIF
     
@@ -205,12 +207,12 @@ FUNCTION AS_Profiledata::GetData, PLOT_DSPACE = plotDSpace, PLOT_TWOTHETA = plot
     IF KeyWord_Set(plotDSpace) AND ~(KeyWord_Set(plotTwoTheta) OR KeyWord_Set(plotPixel)) THEN RETURN, Transpose([[ALOG10(*self.dSpace)],[profile],[error]])
     IF KeyWord_Set(plotTwoTheta) AND ~(KeyWord_Set(plotDSpace) OR KeyWord_Set(plotPixel)) THEN RETURN, Transpose([[ALOG10(*self.twoTheta)],[profile],[error]])
     IF KeyWord_Set(plotPixel) AND ~(KeyWord_Set(plotTwoTheta) OR KeyWord_Set(plotDSpace)) THEN RETURN, Transpose([[ALOG10(*self.pixel)],[profile],[error]])
-    RETURN, Transpose([[ALOG10(*self.qVector)],[profile],[error]])
+    RETURN, [Transpose(ALog10(*self.qVector)),Transpose(profile),Transpose(error)]
   ENDIF ELSE BEGIN  
     IF KeyWord_Set(plotDSpace) AND ~(KeyWord_Set(plotTwoTheta) OR KeyWord_Set(plotPixel)) THEN RETURN, Transpose([[*self.dSpace],[profile],[error]])
     IF KeyWord_Set(plotTwoTheta) AND ~(KeyWord_Set(plotDSpace) OR KeyWord_Set(plotPixel)) THEN RETURN, Transpose([[*self.twoTheta],[profile],[error]])
     IF KeyWord_Set(plotPixel) AND ~(KeyWord_Set(plotTwoTheta) OR KeyWord_Set(plotDSpace)) THEN RETURN, Transpose([[*self.pixel],[profile],[error]])
-    RETURN, Transpose([[*self.qVector],[profile],[error]])
+    RETURN, [Transpose(*self.qVector),Transpose(profile),Transpose(error)]
   ENDELSE
 END
 
@@ -307,7 +309,8 @@ PRO as_profiledata__define
           timestamp     : '',        $
           I0IBSNorm     : 0.0,       $ ; Factor to normalise I0 and Ibs - derived from I0/IBS from clear air shot.
           tnrm          : 0.0,       $ ; Factor to normalise I0 and It - derived from It/I0 from a clear air shot. This value is filled in from the profile container obj.
-          normType      : 0          $
+          normType      : 0,         $
+          preNorm       : 0          $
           }
        
 END

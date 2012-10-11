@@ -772,6 +772,31 @@ PRO AS_ProfileContainerObj::ShowPlot, index
   FOR i =0, N_Elements(index) - 1 DO (*self.profileRefs)[index[i]].profilePlot->SetProperty, HIDE = 0
 END
 
+PRO AS_ProfileContainerObj::ShowErrorPlot, show
+
+  @as_scatterheader.macro
+  
+  IF N_Elements(show) GT 0 THEN self.showErrorBars = show
+  
+  IF ~Ptr_Valid(self.profileRefs) THEN RETURN
+  
+  SWITCH self.showErrorBars OF
+    0:  
+    2:  BEGIN 
+          FOREACH profile, ((*self.profileRefs).profilePlot) DO profile.showErrorPlot, self.showErrorBars
+          BREAK
+        END
+    1:  BEGIN
+          FOREACH profile, ((*self.profileRefs).profilePlot) DO profile.showErrorPlot, 0
+          IF self.current EQ -1 THEN RETURN
+          ((*self.profileRefs)[self.current].profilePlot).showErrorPlot, 1
+        END
+  ENDSWITCH
+  
+  self.UpdatePlot
+  
+END
+
 PRO AS_ProfileContainerObj::LineWidth, index, width, ADD = add
 
   @as_scatterheader.macro
@@ -847,10 +872,11 @@ PRO AS_ProfileContainerObj::PlotProfile, profile, fname, LIVE = live, REPLOT = R
       (*self.profileRefs)[profile].plotColour = Ptr_New(plotColourTemp)
     ENDIF
   
-    (*self.profileRefs)[profile].profilePlot = Obj_New('IDLgrPlot', NAME= fname, COLOR = *(*self.profileRefs)[profile].plotColour)
-    (*self.profileRefs)[profile].profilePlot->SetProperty, DATAX = data[0,*], DATAY = data[1,*], _EXTRA=extra
-
-     self->Add, (*self.profileRefs)[profile].profilePlot
+    (*self.profileRefs)[profile].profilePlot = Obj_New('as_plotobject', NAME= fname, COLOR = *(*self.profileRefs)[profile].plotColour)
+    self->Add, (*self.profileRefs)[profile].profilePlot
+    IF KeyWord_Set(ylog) THEN errorBars = data[2:3, *] ELSE errorBars = Reform(data[2,*])
+    IF self.showErrorBars EQ 2 THEN showErrorBars = 1 ELSE showErrorBars = 0
+    (*self.profileRefs)[profile].profilePlot->SetProperty, DATAX = data[0,*], DATAY = data[1,*], ERRORBARS = errorBars, SHOWERRORBARS = showErrorBars, _EXTRA=extra
     (*self.profileRefs)[profile].showPlot = 1
 
   ENDELSE
@@ -1180,10 +1206,12 @@ PRO AS_ProfileContainerObj::SelectPlot, plotNo, DOUBLE=double
                             ELSE self.absGui.CalibPoints, AveDetCounts, I0Arr/self.ionrm, BSArr/self.ibsnrm
     ENDIF
   ENDIF ELSE BEGIN
+    self.current = -1
     IF Obj_Valid(self.absGui) THEN BEGIN
       self.absGui.CalibPoints, /CLEAR
     ENDIF
   ENDELSE
+  self.showErrorPlot
 END
 
 FUNCTION AS_ProfileContainerObj::SetBlank, index, blank
@@ -1199,7 +1227,8 @@ FUNCTION AS_ProfileContainerObj::SetBlank, index, blank
     FOR i = 0, N_Elements(index) - 1 DO BEGIN
       (*self.profileRefs)[index[i]].profiles->SetProperty, BACK=''
       data = (*self.profileRefs)[index[i]].profiles->GetData(/BACK,XLOG=self.xlog, YLOG=self.ylog)
-      (*self.profileRefs)[index[i]].profilePlot->SetProperty, DATAX= data[0,*], DATAY=data[1,*]
+      IF KeyWord_Set(self.ylog) THEN errorBars = data[2:3, *] ELSE errorBars = Reform(data[2,*])
+      (*self.profileRefs)[index[i]].profilePlot->SetProperty, DATAX= data[0,*], DATAY=data[1,*], ERRORBARS = errorBars
     ENDFOR
   
   ENDIF ELSE BEGIN
@@ -1209,8 +1238,9 @@ FUNCTION AS_ProfileContainerObj::SetBlank, index, blank
     FOR i = 0, N_Elements(index) - 1 DO BEGIN
       (*self.profileRefs)[index[i]].profiles->SetProperty, BACK=(*self.profileRefs)[blank].profiles
       data = (*self.profileRefs)[index[i]].profiles->GetData(/BACK,XLOG=self.xlog, YLOG=self.ylog)
+      IF KeyWord_Set(self.ylog) THEN errorBars = data[2:3, *] ELSE errorBars = Reform(data[2,*])
       IF N_Elements(data) EQ 1 AND data[0] EQ -1 THEN RETURN, -1
-      (*self.profileRefs)[index[i]].profilePlot->SetProperty, DATAX= data[0,*], DATAY=data[1,*]
+      (*self.profileRefs)[index[i]].profilePlot->SetProperty, DATAX= data[0,*], DATAY=data[1,*], ERRORBARS = errorBars
     ENDFOR
   
   ENDELSE
@@ -1481,7 +1511,7 @@ FUNCTION AS_ProfileContainerObj::FindByFName, fName
   
 END
 
-PRO AS_ProfileContainerObj::GetProperty, BASE=base, MEDMEAN=medmean, COLOUR=colour, MULT=mult, OFFSET=offset, FNAME=fName, XRANGEZOOM=xRangeZoom, IBSNRM=ibsnrm, CSCALIB=CSCalib, _REF_Extra=extra
+PRO AS_ProfileContainerObj::GetProperty, BASE=base, MEDMEAN=medmean, COLOUR=colour, MULT=mult, OFFSET=offset, FNAME=fName, XRANGEZOOM=xRangeZoom, IBSNRM=ibsnrm, CSCALIB=CSCalib, SHOWERRORBARS = showErrorBars, _REF_Extra=extra
 
 @as_scatterheader.macro
 
@@ -1517,12 +1547,13 @@ PRO AS_ProfileContainerObj::GetProperty, BASE=base, MEDMEAN=medmean, COLOUR=colo
     CSCalib = self.CSCalib
   ENDIF
   
+  IF Arg_Present(showErrorBars) THEN showErrorBars = self.showErrorBars
   
   self->IDLgrModel::GetProperty, _Extra=extra
 
 END
 
-PRO AS_ProfileContainerObj::SetProperty, NORMTYPE = normType, REALTIME = realTime, IGNORELIVE = ignoreLive, NOTIFY_OBJ = notifyObj
+PRO AS_ProfileContainerObj::SetProperty, NORMTYPE = normType, REALTIME = realTime, IGNORELIVE = ignoreLive, SHOWERRORBARS = showErrorBars, NOTIFY_OBJ = notifyObj
 
 @as_scatterheader.macro
 
@@ -1535,6 +1566,8 @@ IF N_Elements(ignoreLive) GE 1 THEN BEGIN
   self.ignoreLive = ignoreLive
 ENDIF
 
+IF KeyWord_Set(showErrorBars) THEN self.showErrorPlot, showErrorBars
+
 IF Keyword_Set(notifyObj) THEN $
     IF TypeName(notifyObj[0]) EQ 'NOTIFY' $
       THEN self.notifyObj = List(notifyObj,/EXTRACT)
@@ -1546,7 +1579,7 @@ PRO AS_ProfileContainerObj::UpdateProfileWidgets, _extra
   @as_scatterheader.macro
 
   IF Ptr_Valid(self.profilerefs) THEN BEGIN
-    IF N_Elements((*self.profileRefs)) LE self.current THEN self.current = N_Elements((*self.profileRefs))-1
+    IF N_Elements((*self.profileRefs)) LE self.current THEN self.current = -1
    (*self.profileRefs)[self.current].profiles->UpdateProfileWidgets, self.groupleader
   ENDIF
 
@@ -1616,7 +1649,8 @@ PRO AS_ProfileContainerObj__Define
                qCalibGUI          : Obj_New(), $
                peakFit            : Obj_New(), $
                messageObj         : Obj_New(), $
-               notifyObj          : List() $
+               notifyObj          : List()   , $
+               showErrorBars      : 0          $
                }
 END
 
