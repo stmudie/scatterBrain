@@ -269,7 +269,9 @@ PRO AS_MaskObj::ShowMaskTable, show
     primaryMonitor = monitorObj.GetPrimaryMonitorIndex()
     monitorSize = monitorObj.GetRectangles(/EXCLUDE_TASKBAR)
     
-    defineMaskBase = Widget_Base(GROUP_LEADER=self.frame.group_leader, TITLE = 'scatterBrain Mask Definitions', /TLB_SIZE_EVENT, /TLB_KILL_REQUEST_EVENTS, UVALUE=self, /COLUMN, Y_SCROLL_SIZE = monitorSize[3]-200, X_SCROLL_SIZE = 800, UNAME = 'Mask Base')
+    defineMaskBase = Widget_Base(GROUP_LEADER=self.frame.group_leader, TITLE = 'scatterBrain Mask Definitions', /TLB_SIZE_EVENT, /TLB_KILL_REQUEST_EVENTS, UVALUE=self, /COLUMN, MBAR = menuBar, Y_SCROLL_SIZE = monitorSize[3]-200, X_SCROLL_SIZE = 800, UNAME = 'Mask Base')
+    addButton = Widget_Button(menuBar, VALUE='Add Mask', UNAME = 'Add Mask')
+    applyButton = Widget_Button(menuBar, VALUE='Apply Masks', UNAME = 'Apply Masks')
     maskPropertiesBase = Widget_Base(defineMaskBase, /ROW)
     defineBeamStopPropertySheet = Widget_PropertySheet(maskPropertiesBase, VALUE = self.mask.beamStop, EVENT_PRO = 'AS_DefineBeamStopPropertyEvent', UNAME = 'Beamstop Property')
     defineUserMasksBase = Widget_Base(maskPropertiesBase, /COLUMN)
@@ -287,8 +289,7 @@ PRO AS_MaskObj::ShowMaskTable, show
       IF data NE !null THEN Widget_Control, defineMaskTable, SET_VALUE = data
       i += 1
     ENDFOREACH
-    addButton = Widget_Button(defineMaskBase, VALUE='Add Mask', UNAME = 'Add Mask')
-    applyButton = Widget_Button(defineMaskBase, VALUE='Apply Masks', UNAME = 'Apply Masks')
+
     Widget_Control, defineMaskBase, MAP = show
     Widget_Control, defineMaskBase, /REALIZE
     Widget_Control, defineMaskPropertySheet, TIMER = 1
@@ -321,7 +322,7 @@ PRO AS_MaskObj::AddDefinedMasks
     SWITCH StrCompress(StrUpCase(mask.shape)) OF
             'POLYGON' :
             '0'       : BEGIN
-                          maskObject.SetProperty, MASKTYPE = mask.type, MASKSHAPE = mask.shape, DATA = *mask.params, FILLOPACITY = 0.5, NAME = mask.name
+                          maskObject.SetProperty, MASKTYPE = mask.type, MASKSHAPE = mask.shape, DATA = *mask.params, FILLOPACITY = 0.5, NAME = mask.name, BEAMRELATIVE=mask.auto, COLOUR = mask.colour, LOCK=mask.lock
                           BREAK
                         END
             'CIRCLE'  :  
@@ -329,7 +330,7 @@ PRO AS_MaskObj::AddDefinedMasks
                           params = FltArr(6)
                           params[4] = 360  ; Default is a circle
                           params[0:N_Elements(*mask.params)-1] = *mask.params
-                          maskObject.SetProperty, MASKTYPE=mask.type, MASKSHAPE=mask.shape, CENTREX=params[0], CENTREY=params[1], RADIUSMAX=params[2], RADIUSMIN=params[3], ANGLEMAX=params[4], ANGLEMIN=params[5], FILLOPACITY = 0.5, NAME = mask.name 
+                          maskObject.SetProperty, MASKTYPE=mask.type, MASKSHAPE=mask.shape, CENTREX=params[0], CENTREY=params[1], RADIUSMAX=params[2], RADIUSMIN=params[3], ANGLEMAX=params[4], ANGLEMIN=params[5], FILLOPACITY = 0.5, NAME = mask.name, COLOUR = mask.colour, LOCK = mask.lock
                           BREAK
                         END
     ENDSWITCH
@@ -456,7 +457,7 @@ PRO AS_MaskObj::StoreParams, paramObj, CONFIG = config
       IF Size(params,/TNAME) EQ 'STRUCT' THEN BEGIN
         CASE params.maskShape OF
           'Beamstop' : beamstop = params 
-          ELSE       : maskdef = [maskdef,{name : params.name, shape : params.maskShape, type : params.maskType, auto : params.beamRelative, params: Ptr_New(params.data)} ]
+          ELSE       : maskdef = [maskdef,{name : params.name, shape : params.maskShape, type : params.maskType, auto : params.beamRelative, colour : params.colour, lock : params.lock, params: Ptr_New(params.data)} ]
         ENDCASE
       ENDIF
     ENDFOREACH

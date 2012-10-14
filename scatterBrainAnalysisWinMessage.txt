@@ -1,3 +1,9 @@
+Version 1.51
+Save mask colours, lock and beamrelative parameters. Rearrange mask window to make it easier to use. Numbered files in recent file list.
+
+Version 1.505
+Bug fix for 1.50. (Recent file list issues).
+
 Version 1.50
 You can plot DAT files directly. Use Tools->Dat File Mode.
 Error bars can be included in plot. Turn on in Settings->General Settings.

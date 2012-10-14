@@ -96,9 +96,11 @@ FUNCTION as_maskObject::GetSaveParams
   
   IF N_Elements(*self.data) EQ 0 THEN RETURN, -1
   
+  self.GetProperty, COLOUR = colour
+  
   CASE self.maskShape OF
-    0 : RETURN, {name : self.NAME, maskshape : 'Polygon', masktype : self.maskType, data : *self.data, beamrelative : self.beamRelative}
-    1 : RETURN, {name : self.NAME, maskshape : 'Circle',  masktype : self.maskType, data : [self.centreX, self.centreY, self.radiusMax, self.radiusMin, self.angleMax, self.angleMin], beamrelative : self.beamRelative}
+    0 : RETURN, {name : self.NAME, maskshape : 'Polygon', masktype : self.maskType, data : *self.data, beamrelative : self.beamRelative, colour : colour, lock : self.lock}
+    1 : RETURN, {name : self.NAME, maskshape : 'Circle',  masktype : self.maskType, data : [self.centreX, self.centreY, self.radiusMax, self.radiusMin, self.angleMax, self.angleMin], beamrelative : self.beamRelative, colour : colour, lock : self.lock}
     ELSE : RETURN, -1
   ENDCASE
   
@@ -127,8 +129,7 @@ PRO as_maskObject::SetProperty, $
   _Ref_extra = extra
   
   @as_scatterheader.macro
-  
-  IF N_Elements(lock)          THEN self.lock = lock
+
   IF self.lock THEN RETURN
   IF N_Elements(colour)        THEN BEGIN
     self.oPolygon.SetProperty, COLOR=COLOUR
@@ -193,6 +194,8 @@ PRO as_maskObject::SetProperty, $
   ENDIF
   
   self->IDLgrModel::SetProperty, _EXTRA = extra
+
+  IF N_Elements(lock)          THEN self.lock = lock
   
 END
 

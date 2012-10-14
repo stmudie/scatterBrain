@@ -226,7 +226,7 @@ PRO scatterbrain::event, event
         END
 
         'RECENT_FILE' : BEGIN
-                          Widget_Control, event.id, GET_VALUE = recentFile
+                          Widget_Control, event.id, GET_UVALUE = recentFile
                           CD, File_DirName(recentFile)
                           self.loadXML, recentFile
                         END
@@ -1039,7 +1039,7 @@ PRO scatterbrain::loadXML, xmlFile
   IF xmlFile EQ '' THEN RETURN
   self.experimentDir = File_DirName(xmlFile, /MARK_DIRECTORY)
   
-  imagesDir = self.experimentDir + 'images'
+  imagesDir = self.experimentDir + 'images' + Path_Sep()
   self.imagesDir = File_Test(imagesDir, /DIRECTORY) ? imagesDir : self.experimentDir
 
   self.scatterXMLGUI_obj->ParseFile, FILENAME = xmlFile
@@ -1505,10 +1505,10 @@ PRO scatterbrain::updateRecentFileList
 
   self.settingsObj.GetProperty, RECENTFILE = recentFileList
   
-  recentFileList[Where(recentFileList EQ !Null)] = ''
+  recentFileList[Where(recentFileList EQ !Null,/NULL)] = ''
   
   FOREACH recentFile, recentFileList, key DO $ 
-    Widget_Control, Widget_Info(self.wScatterBase, FIND_BY_UNAME = 'RECENT_FILE_' + StrCompress(key, /REMOVE_ALL)), SET_VALUE = recentFile
+    Widget_Control, Widget_Info(self.wScatterBase, FIND_BY_UNAME = 'RECENT_FILE_' + StrCompress(key, /REMOVE_ALL)), SET_VALUE = StrCompress(key, /REMOVE_ALL) + ': ' + recentFile, SET_UVALUE = recentFile
   
 END
 
@@ -2054,8 +2054,9 @@ FUNCTION scatterbrain::init     $
     recentFiles = self.settingsObj.recentFile
     
     FOREACH file, recentFiles, key DO BEGIN
-      FILE_RECENT = Widget_Button(MENU_RECENT, VALUE=file, UNAME='RECENT_FILE_' + StrCompress(key,/REMOVE_ALL), UVALUE = key)
-    ENDFOREACH   
+      stringKey = StrCompress(key,/REMOVE_ALL)
+      FILE_RECENT = Widget_Button(MENU_RECENT, VALUE=stringKey + ': ' + file, UNAME='RECENT_FILE_' + stringKey, UVALUE=file)
+    ENDFOREACH
     
     FILE_EXIT = Widget_Button(MENU_FILE, UNAME='FILE_EXIT',VALUE='Exit', EVENT_PRO = 'scatterBrain_Quit')
 

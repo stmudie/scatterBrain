@@ -256,14 +256,14 @@ PRO as_scatterBrainSettings::SetProperty, $
   IF N_Elements(zingerThresh) AND Ptr_Valid(self.general) THEN (*self.general).zingerThresh = zingerThresh
   IF N_Elements(binSize) AND Ptr_Valid(self.general) THEN (*self.general).binSize = binSize  
   IF N_Elements(recentFile) GT 0 THEN BEGIN
-    recentFileList = [recentFile,(*self.recentFile)[*].recentFile]
+    recentFileList = (*self.recentFile)[*].recentFile
+    alreadyPresent = Where(recentFileList EQ recentFile,/NULL)
+    IF alreadyPresent NE !NULL THEN recentFileList[alreadyPresent] = ''
     recentFileList = recentFileList[Where(recentFileList NE '')]
-    index = Sort(recentFileList)
-    uniqueFiles = uniq(recentFileList,index)
-    recentFileList = recentFileList[uniqueFiles[sort(uniqueFiles)]]
+    recentFileList = [recentFile,recentFileList]
     numRecentFiles = N_Elements(recentFileList) < 8
     newRecentFileList = StrArr(8)
-    newRecentFileList[0:numRecentFiles-1] = recentFileList
+    newRecentFileList[0:numRecentFiles-1] = recentFileList[0:numRecentFiles-1]
     (*self.recentFile)[*].recentFile = newRecentFileList
   ENDIF
   IF ISA(startingDirectory, 'STRING') AND Ptr_Valid(self.general) THEN (*self.general).startingDirectory = startingDirectory

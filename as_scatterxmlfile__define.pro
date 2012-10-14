@@ -27,9 +27,9 @@ FUNCTION as_scatterXMLFile::init, NOTIFYOBJECT = notifyObject
   self.detectorDefs = Ptr_New({DETECTORDEF})
   self.attDetectorDefs = Ptr_New({ATTDETECTORDEF, DETECTORDEF : ['XSIZE','YSIZE','PIXELSIZE','BASEPV', 'CAMPV', 'IMAGEPV', 'LOGFILEPV', 'FILEPV', 'CONTROL', 'SOFTWARETRIGGER', 'AUTOLOAD']})
   
-  void = {USERMASK, USERMASK: '', MASKNAME: '', SHAPE: '', AUTO: ''}
+  void = {USERMASK, USERMASK: '', MASKNAME: '', SHAPE: '', AUTO: '', COLOUR: '', LOCK: ''}
   self.userMasks    = Ptr_New({USERMASK})
-  self.attUserMasks = Ptr_New({ATTUSERMASK, USERMASK : ['MASKNAME','SHAPE','AUTO']})
+  self.attUserMasks = Ptr_New({ATTUSERMASK, USERMASK : ['MASKNAME','SHAPE','AUTO', 'COLOUR', 'LOCK']})
   
   void = {PV, PV: '', SET: '', READ: '', LOG: '', ACQUIRE: '', ACQUIREHIGH: '', ACQUIRELOW: '', TRANS: '', TRANSHIGH: '', TRANSLOW: ''}
   self.PVs = Ptr_New({PV})
@@ -78,6 +78,8 @@ FUNCTION as_scatterXMLFile::init, NOTIFYOBJECT = notifyObject
               '<!ATTLIST USERMASK SHAPE (Polygon|Circle|Arc) #IMPLIED>' + String([10B]) + $
               '<!ATTLIST USERMASK MASKNAME CDATA #IMPLIED>' + String([10B]) + $
               '<!ATTLIST USERMASK AUTO (true|false) #IMPLIED>' + String([10B]) + $
+              '<!ATTLIST USERMASK COLOUR CDATA #IMPLIED>' + String([10B]) + $
+              '<!ATTLIST USERMASK LOCK CDATA #IMPLIED>' + String([10B]) + $
               '<!ATTLIST DETECTORDEF BASEPV CDATA #IMPLIED>' + String([10B]) + $
               '<!ATTLIST DETECTORDEF CAMPV CDATA #IMPLIED>' + String([10B]) + $
               '<!ATTLIST DETECTORDEF IMAGEPV CDATA #IMPLIED>' + String([10B]) + $
@@ -531,11 +533,13 @@ PRO as_scatterXMLFile::SetParameters, MASK=mask, CHANGEDMASKNAMES = changedMaskN
     *self.usermasks = !Null
     FOREACH m, mask DO BEGIN
     IF m.auto EQ 0 THEN auto = 'false' ELSE auto = 'true'
+    IF m.lock EQ 0 THEN lock = 'false' ELSE lock = 'true'
       IF Size((*m.params),/N_DIMENSIONS) EQ 2 THEN BEGIN
         params = '['+ StrJoin(Transpose(StrCompress((*m.params)[0,*], /REMOVE_ALL)),',') + ']'
         params = params + '['+ StrJoin(Transpose(StrCompress((*m.params)[1,*], /REMOVE_ALL)),',') + ']'
       ENDIF ELSE params = '['+ StrJoin(StrCompress((*m.params), /REMOVE_ALL),',') + ']'
-      *self.usermasks = [*self.usermasks,{USERMASK, usermask : params, MASKNAME : m.name, SHAPE :m.shape, AUTO : auto}]
+      colour = '[' + strcompress(strjoin(string(m.colour, format = '(I)'),','),/REMOVE_ALL) + ']'
+      *self.usermasks = [*self.usermasks,{USERMASK, usermask : params, MASKNAME : m.name, SHAPE :m.shape, AUTO : auto, COLOUR : colour, LOCK : lock}]
     ENDFOREACH 
 
     usedMasks = Where(mask.type GE 0)
@@ -643,7 +647,7 @@ PRO as_scatterXMLFile::GetParameters, MASK=mask, BEAMSTOP = beamstop, CAKE=cake,
    
    IF Size(mask, /TYPE) EQ 0 THEN mask = 0
    
-   void = { maskdef, name: '', type: 0, shape: '', auto: 0b, params: Ptr_New() }
+   void = { maskdef, name: '', type: 0, shape: '', auto: 0b, lock: 0b, colour : IntArr(3), params: Ptr_New() }
    
      IF N_Elements(*self.usermasks) GE 1 THEN IF (*self.usermasks)[0].usermask NE '' THEN BEGIN
      
@@ -660,7 +664,9 @@ PRO as_scatterXMLFile::GetParameters, MASK=mask, BEAMSTOP = beamstop, CAKE=cake,
            tempParams2 = StrSplit(tempParams[1],',',/EXTRACT)
            params = Transpose([[tempParams1],[tempParams2]])
          ENDIF ELSE params = tempParams1
-         maskdef[i] = { name: ((*self.userMasks).maskname)[i], type: type, shape: ((*self.userMasks).shape)[i], auto: ((*self.userMasks).auto)[i] EQ 'true', params : Ptr_New(Float(params)) }
+         IF ((*self.userMasks).colour)[i] EQ '' THEN colour = '[0,0,0]' ELSE colour = ((*self.userMasks).colour)[i]
+         colour = Fix([strsplit(colour,'[,]',/EXTRACT)])
+         maskdef[i] = { name: ((*self.userMasks).maskname)[i], type: type, shape: ((*self.userMasks).shape)[i], auto: ((*self.userMasks).auto)[i] EQ 'true', lock: ((*self.userMasks).lock)[i] EQ 'true', colour: colour, params : Ptr_New(Float(params)) }
        ENDFOR
        
        mask = maskdef
