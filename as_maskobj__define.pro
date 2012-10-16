@@ -270,8 +270,10 @@ PRO AS_MaskObj::ShowMaskTable, show
     monitorSize = monitorObj.GetRectangles(/EXCLUDE_TASKBAR)
     
     defineMaskBase = Widget_Base(GROUP_LEADER=self.frame.group_leader, TITLE = 'scatterBrain Mask Definitions', /TLB_SIZE_EVENT, /TLB_KILL_REQUEST_EVENTS, UVALUE=self, /COLUMN, MBAR = menuBar, Y_SCROLL_SIZE = monitorSize[3]-200, X_SCROLL_SIZE = 800, UNAME = 'Mask Base')
-    addButton = Widget_Button(menuBar, VALUE='Add Mask', UNAME = 'Add Mask')
-    applyButton = Widget_Button(menuBar, VALUE='Apply Masks', UNAME = 'Apply Masks')
+    addButtonMenu = Widget_Button(menuBar, /MENU, VALUE='Add Mask')
+    addButton = Widget_Button(addButtonMenu, VALUE='Add Mask', UNAME = 'Add Mask')
+    applyButtonMenu = Widget_Button(menuBar, /MENU, VALUE='Apply Masks')
+    applyButton = Widget_Button(applyButtonMenu, VALUE='Apply Masks', UNAME = 'Apply Masks')
     maskPropertiesBase = Widget_Base(defineMaskBase, /ROW)
     defineBeamStopPropertySheet = Widget_PropertySheet(maskPropertiesBase, VALUE = self.mask.beamStop, EVENT_PRO = 'AS_DefineBeamStopPropertyEvent', UNAME = 'Beamstop Property')
     defineUserMasksBase = Widget_Base(maskPropertiesBase, /COLUMN)
