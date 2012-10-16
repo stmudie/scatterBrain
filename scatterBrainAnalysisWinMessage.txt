@@ -1,3 +1,8 @@
+
+
+Version 1.515
+Bug fix.
+
 Version 1.51
 Save mask colours, lock and beamrelative parameters. Rearrange mask window to make it easier to use. Numbered files in recent file list.
 

@@ -1953,7 +1953,7 @@ FUNCTION scatterbrain::init     $
    
     CD, startingDirectory
     
-    IF self.settingsObj.autoCheckUpdate AND ~KeyWord_Set(epics) THEN BEGIN
+    IF self.settingsObj.autoCheckUpdates AND ~KeyWord_Set(epics) THEN BEGIN
     
       CASE self.operatingSystem OF 
         'Windows' : programName = 'scatterbrainanalysiswin'
@@ -1967,7 +1967,7 @@ FUNCTION scatterbrain::init     $
         Obj_Destroy, updateObj
         
         IF version LT newVersion THEN BEGIN
-          result = Dialog_Message(['Version ' + StrCompress(String(newVersion, FORMAT = '(D7.3)')) + ' is available. Please go to Help->Check for Updates to upgrade.', 'Version notes:', as_splitmessage(versionMessage,500)],/INFORMATION)
+          result = Dialog_Message(['Newer Version ' + StrCompress(String(newVersion, FORMAT = '(D7.3)')) + ' is available. Please go to Help->Check for Updates to upgrade.', 'Version notes:', as_splitmessage(versionMessage,500)],/INFORMATION)
         ENDIF
       ENDIF
     ENDIF
