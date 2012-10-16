@@ -79,7 +79,7 @@ FUNCTION as_scatterXMLFile::init, NOTIFYOBJECT = notifyObject
               '<!ATTLIST USERMASK MASKNAME CDATA #IMPLIED>' + String([10B]) + $
               '<!ATTLIST USERMASK AUTO (true|false) #IMPLIED>' + String([10B]) + $
               '<!ATTLIST USERMASK COLOUR CDATA #IMPLIED>' + String([10B]) + $
-              '<!ATTLIST USERMASK LOCK CDATA #IMPLIED>' + String([10B]) + $
+              '<!ATTLIST USERMASK LOCK (true|false) #IMPLIED>' + String([10B]) + $
               '<!ATTLIST DETECTORDEF BASEPV CDATA #IMPLIED>' + String([10B]) + $
               '<!ATTLIST DETECTORDEF CAMPV CDATA #IMPLIED>' + String([10B]) + $
               '<!ATTLIST DETECTORDEF IMAGEPV CDATA #IMPLIED>' + String([10B]) + $

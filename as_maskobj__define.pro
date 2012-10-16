@@ -332,7 +332,7 @@ PRO AS_MaskObj::AddDefinedMasks
                           params = FltArr(6)
                           params[4] = 360  ; Default is a circle
                           params[0:N_Elements(*mask.params)-1] = *mask.params
-                          maskObject.SetProperty, MASKTYPE=mask.type, MASKSHAPE=mask.shape, CENTREX=params[0], CENTREY=params[1], RADIUSMAX=params[2], RADIUSMIN=params[3], ANGLEMAX=params[4], ANGLEMIN=params[5], FILLOPACITY = 0.5, NAME = mask.name, COLOUR = mask.colour, LOCK = mask.lock
+                          maskObject.SetProperty, MASKTYPE=mask.type, MASKSHAPE=mask.shape, CENTREX=params[0], CENTREY=params[1], RADIUSMAX=params[2], RADIUSMIN=params[3], ANGLEMAX=params[4], ANGLEMIN=params[5], FILLOPACITY = 0.5, NAME = mask.name, COLOUR = mask.colour, LOCK = mask.lock, BEAMRELATIVE=mask.auto
                           BREAK
                         END
     ENDSWITCH
