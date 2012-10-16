@@ -73,6 +73,8 @@ class.add, 'as_beamstopmaskobject'
 class.add, 'as_scatterbrainsettings'
 class.add, 'as_newexperimentfromtemplate'
 class.add, 'as__convertsaxs15toscatterbrain'
+class.add, 'as_datfileloader'
+class.add, 'as_plotobject'
 
 ;Other clases to be resolved
 
