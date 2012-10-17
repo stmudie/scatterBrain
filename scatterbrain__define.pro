@@ -1518,7 +1518,9 @@ PRO scatterbrain::exportLUT
   QVECTOR = self.qData_Obj.GetProperty(/Q_ARR)
   IF N_Elements(LUT) GT 1 THEN result = caput(LUTPV, [N_Elements(QVECTOR),LUT])
   IF N_Elements(QVECTOR) GT 1 THEN result = caput(QVECTORPV, QVECTOR)
-  result = caput(NORMPV,1/((self.profiles_obj).ibsnrm*(self.profiles_obj).CSCalib))
+  normParam = 1/((self.profiles_obj).ibsnrm*(self.profiles_obj).CSCalib)
+  IF Finite(normParam) NE 1 THEN normParam = 1
+  result = caput(NORMPV,normParam)
   ;result = caput(NORMPV,1/self.profiles_obj.CSCalib)
 END
 
