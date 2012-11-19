@@ -330,6 +330,12 @@ CASE widgetName OF
             'DEFINE MASKS' : BEGIN
                             self->DefineMasks, event.select 
             END
+            'UNDO MASKS' : BEGIN
+                            self.UndoAddClick
+            END
+            'APPLY MASKS' : BEGIN
+                              self.ApplyMasks
+            END
                   ; ***********  FRAME DISPLAY EVENTS
             
             'HIST_BUT' : BEGIN
@@ -638,7 +644,9 @@ FUNCTION as__saxsimagegui::init, base, qData, profileObj, RESOURCE=resource, _RE
         Widget_Control, wShowMasks, SET_BUTTON = 1
       wMaskOpacity = Widget_Slider(wBotScatterCol4, TITLE='Mask Opacity', MINIMUM = 0, MAXIMUM = 100, UNAME = 'MASK OPACITY',/DRAG)
       wDefineMasks = CW_BGROUP(wBotScatterCol4, 'Define Masks', /NONEXCLUSIVE, UNAME = 'DEFINE MASKS')
-
+      wMasksUndoAdd = Widget_Button(wBotScatterCol4, VALUE = 'Undo Add Vertex', UNAME = 'UNDO MASKS')
+      wApplyMasks = Widget_Button(wBotScatterCol4, VALUE = 'Apply Masks', UNAME = 'APPLY MASKS')
+      
     wBotScatterCol5 = Widget_Base(wBotScatterColTab, TITLE='Image', UNAME = 'ImageTab',/COLUMN)
       self.wHistBut = CW_BGroup(wBotScatterCol5, 'Show Histogram', SET_VALUE=0, UNAME = 'HIST_BUT', /NONEXCLUSIVE, /COLUMN)
       wAutoScaleBut = CW_BGroup(wBotScatterCol5, 'Auto Scale', UNAME = 'AUTO_BUT', SET_VALUE = 1, /NONEXCLUSIVE, /COLUMN)

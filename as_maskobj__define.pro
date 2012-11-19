@@ -94,6 +94,7 @@ FUNCTION AS_MaskObj::Init, MASKNOTIFY = notifyObj, _REF_Extra=extra
   self.mask.maskObjects = IDLgrModel()
   self.mask.beamStop = as_beamstopmaskobject(500,500,20,30,10,500)
   self.mask.maskObjects.add, self.mask.beamStop 
+  self.mask.lastVertex = list()
   
   self.mask.oldMaskPoly = Ptr_New(/ALLOCATE_HEAP)
   
@@ -228,6 +229,13 @@ PRO AS__MaskObj::MakeMaskPolygon, FRAMEBORDER=frameborder, BEAMSTOP=beamstop
         self.mask.x[1,0:self.mask.npts[1]-1] = maskxy[0,*] + xc
         self.mask.y[1,0:self.mask.npts[1]-1] = maskxy[1,*] + yc
     ENDIF
+END
+
+PRO AS_MaskObj::ApplyMasks
+
+  self.PolyChanged, /SET
+  self.UpdateMaskArray
+
 END
 
 PRO AS_MaskObj::ShowMasks, CLEAR=clear, UNFILLED=unfilled, OPACITY = opacity
@@ -368,6 +376,21 @@ PRO AS_MaskObj::UpdateTable, updatedMask
 
 END
 
+PRO AS_MaskObj::UndoAddClick
+
+  IF self.mask.lastVertex.count() EQ 0 THEN RETURN
+  
+  lastVertex = (self.mask.lastVertex).remove(-1)
+
+  IF Obj_Valid(lastVertex.mask) EQ 1 THEN BEGIN
+    lastVertex.mask.selectvertex, lastVertex.vertex
+    lastVertex.mask.deletevertex
+    lastvertex.mask = Obj_New()
+    lastVertex.vertex = 0
+  ENDIF
+
+END
+
 PRO AS_MaskObj::SetSelected, selectedObj
 
   @as_scatterheader.macro
@@ -500,6 +523,7 @@ PRO AS_MaskObj::Event, event
     'Mask Base'  : BEGIN
                      IF TAG_NAMES(event, /STRUCTURE_NAME) EQ 'WIDGET_KILL_REQUEST' THEN BEGIN
                        self.showMaskTable, 0
+                       self.mask.definingMask = 0
                        self.masknotify, {MASKWINDOW, event : 'Close' } 
                      ENDIF ELSE Widget_Control, event.id, SCR_XSIZE = event.x
                    END
@@ -631,11 +655,7 @@ PRO AS_MaskObj::Event, event
                        RETURN
                        
     END
-    'Apply Masks' : BEGIN
-                      self.PolyChanged, /SET
-                      self.UpdateMaskArray
-                      
-    END
+    'Apply Masks' : self.ApplyMasks
     ELSE          :
   ENDCASE
   
@@ -708,6 +728,8 @@ PRO AS_MaskObj::Event, event
           ENDIF ELSE BEGIN
             IF event.press EQ 1 THEN BEGIN
               self.mask.selectedMask.MoveVertex, [x,y], /ADD
+              self.mask.selectedMask.GetProperty, Selectedvertex = Vertex
+              self.mask.lastVertex.add, {mask : self.mask.selectedMask, vertex : vertex}
             ENDIF ELSE self.mask.selectedMask.MoveVertex, [x,y]
             self.UpdateTable
           ENDELSE
@@ -878,6 +900,7 @@ mask = { AS_MaskObj_Struc,            $ ; CURRENT MASK POLYGON DEFINITIONS
           selectedMask    : Obj_New(),      $
           oldMaskPoly     : Ptr_New(),      $
           nameChanges     : Ptr_New(),      $
+          lastVertex      : List(),         $
           notify          : List()          $
 ;          type:       intarr(10),     $ ; Type code: 0=unused, 1=inclusive, 2=exclusive
 ;          shape:      intarr(10),     $ ; Shape code: 0=general, 1=circle, 2=sector, 3=qz, 4=qy
