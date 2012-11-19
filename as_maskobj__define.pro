@@ -272,6 +272,8 @@ PRO AS_MaskObj::ShowMaskTable, show
     defineMaskBase = Widget_Base(GROUP_LEADER=self.frame.group_leader, TITLE = 'scatterBrain Mask Definitions', /TLB_SIZE_EVENT, /TLB_KILL_REQUEST_EVENTS, UVALUE=self, /COLUMN, MBAR = menuBar, Y_SCROLL_SIZE = monitorSize[3]-200, X_SCROLL_SIZE = 800, UNAME = 'Mask Base')
     addButtonMenu = Widget_Button(menuBar, /MENU, VALUE='Add Mask')
     addButton = Widget_Button(addButtonMenu, VALUE='Add Mask', UNAME = 'Add Mask')
+    deleteButtonMenu = Widget_Button(menuBar, /MENU, VALUE='Delete Mask')
+    deleteButton = Widget_Button(deleteButtonMenu, VALUE='Delete Mask', UNAME = 'Delete Mask Base')
     applyButtonMenu = Widget_Button(menuBar, /MENU, VALUE='Apply Masks')
     applyButton = Widget_Button(applyButtonMenu, VALUE='Apply Masks', UNAME = 'Apply Masks')
     maskPropertiesBase = Widget_Base(defineMaskBase, /ROW)
@@ -576,9 +578,18 @@ PRO AS_MaskObj::Event, event
                       Widget_Control, prop, SCR_XSIZE = event.x, SCR_YSIZE = event.y
     END
     'Add Mask'    : BEGIN
-                      void = self.mask.maskObjects.get(/ALL, ISA = 'as_maskobject', COUNT = maskNo)
+                      masks = self.mask.maskObjects.get(/ALL, ISA = 'as_maskobject', COUNT = maskNo)
+                      maskNames = list()
+                      FOREACH mask, masks DO maskNames.add, mask.name
                       maskObject = as_maskobject()
-                      maskObject.SetProperty, fillOpacity = 0.5, NAME = 'Mask ' + StrCompress(maskNo+1)
+                      newName = ''
+                      i=1
+                      WHILE newName EQ '' DO BEGIN
+                        newName = 'Mask ' + StrCompress(maskNo+i)
+                        IF maskNames.where(newName) NE !NULL THEN newName = ''
+                        i++
+                      ENDWHILE
+                      maskObject.SetProperty, fillOpacity = 0.5, NAME = newName, maskType = 1
                       self.mask.maskObjects.add, maskObject
                       prop = Widget_Info(event.top, FIND_BY_UNAME='defineMaskPropSheet')
                       Widget_Control, prop, SET_VALUE = self.mask.maskObjects.get(/ALL, ISA = 'as_maskobject') 
@@ -586,6 +597,39 @@ PRO AS_MaskObj::Event, event
                       defineMaskTable = Widget_Table(tableBase, XSIZE = 2, YSIZE = self.mask.numPoints*2, SCR_XSIZE = 214-86*(maskNo GT 0), COLUMN_WIDTHS = 60, /ALL_EVENTS, /EDITABLE, /CONTEXT_EVENTS, ALIGNMENT = 2, NO_ROW_HEADERS = maskNo, UVALUE = {CellChangedFlag: 0, CellBuffer: [0,0], CellPosition: [0,0]}, UNAME='Mask Table ' + StrCompress(maskNo,/REMOVE_ALL))
                       Widget_Control, defineMaskTable, SCR_YSIZE = (Widget_Info(defineMaskTable,/ROW_HEIGHTS))[0] * (self.mask.numPoints+2)
                       self.SetSelected, maskNo 
+    END
+    'Delete Mask Base' : BEGIN
+                      masks = self.mask.maskobjects.get(/all, isa='as_maskobject')
+                      maskNames = List()
+                      FOREACH mask, masks DO maskNames.add, mask.name
+                      wMaskDeleteBase = Widget_Base(GROUP_LEADER = event.top, /COLUMN, /MODAL)
+                      wMaskNameList = Widget_List(wMaskDeleteBase, YSIZE = maskNames.count(), /MULTIPLE, VALUE = maskNames.toArray(), UNAME = 'MASK NAME LIST')
+                      wDeleteMask = Widget_Button(wMaskDeleteBase, VALUE = 'Delete Mask(s)', EVENT_PRO = 'AS_DefineMask_event', UNAME = 'DELETE MASKS')
+                      Widget_Control, wMaskDeleteBase, /REALIZE
+                      Widget_Control, wMaskDeleteBase, SET_UVALUE = self
+    END
+    'DELETE MASKS' : BEGIN
+                       wListID = Widget_Info(event.top, FIND_BY_UNAME = 'MASK NAME LIST')
+                       selected = Widget_Info(wListID, /LIST_SELECT)
+                       IF N_Elements(selected) EQ 1 THEN result = Dialog_Message('Are you sure you want to delete this mask? This mask will also become unavailable in other configs for this experiment file.', /QUESTION) $
+                                        ELSE result = Dialog_Message('Are you sure you want to delete these masks? These masks will also become unavailable in other configs for this experiment file.', /QUESTION)
+                       IF result EQ 'No' THEN RETURN
+                       masks = self.mask.maskobjects.get(/all, isa='as_maskobject')
+                       Obj_Destroy, masks[selected]
+                       numDeleted = 0
+                       FOR maskNo=0, N_Elements(masks)-1 DO BEGIN
+                         tableID = Widget_Info(self.mask.defineMaskBase, FIND_BY_UNAME = 'Mask Table ' + StrCompress(maskNo,/REMOVE_ALL))
+                         IF Where(maskNo EQ selected, /NULL) NE !NULL THEN BEGIN
+                           numDeleted ++
+                           Widget_Control, tableID, /DESTROY
+                         ENDIF ELSE Widget_Control, tableID, SET_UNAME = 'Mask Table ' + StrCompress(maskNo-numDeleted,/REMOVE_ALL)
+                       ENDFOR
+                       self.SetSelected, N_Elements(mask) - N_Elements(selected)
+                       prop = Widget_Info(self.mask.defineMaskBase, FIND_BY_UNAME = 'defineMaskPropSheet')
+                       Widget_Control, prop, SET_VALUE = self.mask.maskObjects.get(/ALL, ISA = 'as_maskobject')
+                       Widget_Control, event.top, /DESTROY
+                       RETURN
+                       
     END
     'Apply Masks' : BEGIN
                       self.PolyChanged, /SET
@@ -778,6 +822,7 @@ PRO AS_MaskObj::UpdateMaskArray
       maskObject.GetProperty, MASKTYPE=type
       IF type EQ 1 THEN BEGIN
           maskObject.GetProperty, DATA=data
+          IF N_Elements(data) EQ 0 THEN CONTINUE
           polyvec = PolyFillV(data[0,*], data[1,*],self.frame.nxpix,self.frame.nypix)
           nmsk = nmsk+1
 

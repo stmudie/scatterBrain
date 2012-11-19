@@ -164,6 +164,7 @@ PRO AS_ProfileContainerObj::drawEvent, event
                IF Obj_Valid((*self.profileRefs)[i].profilePlot) THEN BEGIN
                 (*self.profileRefs)[i].profilePlot->GetProperty, HIDE = hide, THICK = thick
                 data = (*self.profileRefs)[i].profiles->GetData(/BACK)
+                IF N_Elements(data) EQ 1 and data[0] EQ -1 THEN RETURN
                 xrange = [min(data[0,*]),max(data[0,*])]
                 yrange = [min(data[1,*]),max(data[1,*])]
                 IF self.xlog EQ 1 AND xrange[0] LE 0 THEN BEGIN
@@ -1014,7 +1015,7 @@ PRO AS_ProfileContainerObj::ReplaceWithLast, index
   (*self.profileRefs)[last].profiles = tempObj
   self->DeleteProfile, (*self.profileRefs)[last].refNum
   data = (*self.profileRefs)[index].profiles->GetData(XLOG=self.xlog, YLOG=self.ylog, /BACK)
-  (*self.profileRefs)[index].profilePlot->SetProperty, DATAX= data[0,*], DATAY=data[1,*]
+  IF N_Elements(data) GT 1 OR data[0] GT -1 THEN (*self.profileRefs)[index].profilePlot->SetProperty, DATAX= data[0,*], DATAY=data[1,*], ERRORBARS = data[2,*]
 
   (*self.profileRefs)[index].profiles->GetProperty, FNAME=fName, CONFIGNAME=configName
 
@@ -1238,8 +1239,11 @@ FUNCTION AS_ProfileContainerObj::SetBlank, index, blank
     FOR i = 0, N_Elements(index) - 1 DO BEGIN
       (*self.profileRefs)[index[i]].profiles->SetProperty, BACK=(*self.profileRefs)[blank].profiles
       data = (*self.profileRefs)[index[i]].profiles->GetData(/BACK,XLOG=self.xlog, YLOG=self.ylog)
+      IF N_Elements(data) EQ 1 AND data[0] EQ -1 THEN BEGIN
+        (*self.profileRefs)[index[i]].profiles->SetProperty, BACK=''
+        RETURN, -1
+      ENDIF
       IF KeyWord_Set(self.ylog) THEN errorBars = data[2:3, *] ELSE errorBars = Reform(data[2,*])
-      IF N_Elements(data) EQ 1 AND data[0] EQ -1 THEN RETURN, -1
       (*self.profileRefs)[index[i]].profilePlot->SetProperty, DATAX= data[0,*], DATAY=data[1,*], ERRORBARS = errorBars
     ENDFOR
   

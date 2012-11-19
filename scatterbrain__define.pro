@@ -320,6 +320,14 @@ PRO scatterbrain::event, event
 
         'ACQ_EXPORTLUT' : self.ExportLUT
 
+        'ACQ_EXPORTTEMPLATE' : BEGIN
+                                 xmlFile = Dialog_Pickfile(filter = '*.xml', PATH = self.settingsObj.settingsPath, TITLE = 'Save Template File', /WRITE, /OVERWRITE_PROMPT)
+                                 IF xmlFile NE '' THEN BEGIN
+                                   IF self.pollEpics GT 0 THEN self.areaDetectorObj.StoreParams, self.scatterXMLGUI_obj
+                                   self.scatterXMLGUI_obj->SaveFile, xmlFile, /EMPTY
+                                 ENDIF
+                               END
+        
         ; ** ACQUIRE -> Data Path
         
         'DATA PATH' : BEGIN
@@ -1318,7 +1326,7 @@ PRO scatterbrain::LogFileSelected, Selected
                   image[0:2,geomFrame[2]+10:geomFrame[2]+10+geomPlot[2]-1,(height-geomPlot[3])/2:(height-geomPlot[3])/2+geomPlot[3]-1]=plotImage
                   IF frameNo EQ 0 THEN streamIndex = videoObj.AddVideoStream(N_Elements(image[0,*,0]),N_Elements(image[0,0,*]), 5, BIT_RATE = 4e7)
                   void = videoObj.Put(streamIndex, image)
-                  frameNo += frameNo
+                  frameNo++
                 ENDFOREACH
                   
                 Obj_Destroy, videoObj
@@ -2085,6 +2093,8 @@ FUNCTION scatterbrain::init     $
         REVEAL_EXCEL = Widget_Button(MENU_SCAN, VALUE = 'Reveal Excel', SENSITIVE = 1, UNAME='REVEAL_EXCEL')
 
         ACQUIRE_EXPORT_LUT = Widget_Button(MENU_ACQUIRE, VALUE = 'Export LUT', UNAME = 'ACQ_EXPORTLUT')
+        
+        ACQUIRE_EXPORT_TEMPLATE = Widget_Button(MENU_ACQUIRE, VALUE = 'Export Experiment Template', UNAME = 'ACQ_EXPORTTEMPLATE')
 ;        
 ;        ACQUIRE_SETUP = Widget_Button(MENU_ACQUIRE, UNAME='ACQ_SETUP' $
 ;                      , VALUE='Setup')

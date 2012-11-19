@@ -1,7 +1,12 @@
 
+Version 1.61
+Bug fixes.
 
-Version 1.515
-Bug fix.
+Version 1.6
+Delete masks. Subtract profiles with different number of points (as long as the q positions are the same for the existing points). Couple of fixes for bugs introduced with error bars.
+
+Version 1.516 and 1.516 
+Bug fixes.
 
 Version 1.51
 Save mask colours, lock and beamrelative parameters. Rearrange mask window to make it easier to use. Numbered files in recent file list.
@@ -15,6 +20,3 @@ Error bars can be included in plot. Turn on in Settings->General Settings.
 
 Version 1.41
 Fix for export profiles. Add export logfile under tools menu. Exporting direct to Excel works, but is very slow. Hence I recommend using the export the CSV (comma separated values) and then importing this directly into whatever viewer you want to use.
-
-Version 1.39
-This latest version adds more default error checking. scatterBrain should hopefully crash less often.

@@ -15,7 +15,11 @@ PRO as_plotobject::SetProperty, ERRORBARS = errorBars, SHOWERRORBARS = showError
 
   @as_scatterheader.macro
   
-  IF N_Elements(errorBars) GT 0 THEN IF Ptr_Valid(self.errorBars) THEN *self.errorBars = errorBars ELSE self.errorBars = Ptr_New(errorBars)
+  geom = Size(errorBars)
+  IF geom[0] GT 0 THEN BEGIN
+    IF geom[0] EQ 2 AND geom[1] EQ 1 THEN errorBars = Reform(errorBars)
+    IF Ptr_Valid(self.errorBars) THEN *self.errorBars = errorBars ELSE self.errorBars = Ptr_New(errorBars)
+  ENDIF
   IF N_Elements(showErrorBars) GT 0 THEN self.showErrorPlot, showErrorBars
 
   IF KeyWord_Set(XCoord_Conv) THEN BEGIN

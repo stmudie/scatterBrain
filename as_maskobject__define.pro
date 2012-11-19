@@ -40,7 +40,7 @@ FUNCTION as_maskObject::init, x, y
   self->RegisterProperty, 'angleMax', 3, NAME = 'Angle Max', VALID_RANGE = [-360D,360D]
   self->RegisterProperty, 'beamRelative', 1, NAME = 'Beam Relative', /ADVANCED_ONLY
   self->RegisterProperty, 'lock', 1, NAME = 'Lock Mask'
-    
+
   RETURN, Result
 
 END

@@ -170,6 +170,7 @@ FUNCTION AS_Profiledata::GetData, PLOT_DSPACE = plotDSpace, PLOT_TWOTHETA = plot
 
   @as_scatterheader.macro
 
+  qvector = *self.qvector
   profile = *self.profile
   error = *self.error
   IF N_Elements(profile) EQ 0 THEN RETURN, -1
@@ -182,17 +183,15 @@ FUNCTION AS_Profiledata::GetData, PLOT_DSPACE = plotDSpace, PLOT_TWOTHETA = plot
   
   IF KeyWord_Set(BACK) AND Obj_Valid(self.back) THEN BEGIN
     background = self.back->GetData(PLOT_DSPACE = plotDSpace, PLOT_TWOTHETA = plotTwoTheta, PLOT_PIXEL = plotPixel)
-    IF N_Elements(background[0,*]) NE N_Elements(*self.qVector) THEN BEGIN
+    back_ind = as_where_array(Reform(background[0,*]),qVector, prof_ind)
+    IF N_Elements(back_ind) EQ 1 THEN BEGIN
       result = Dialog_Message('Background and sample have different q-vectors, returning.')
       RETURN, -1
-    ENDIF ELSE BEGIN
-      IF Total(Abs((background[0,*] - *self.qVector))) GT 0 THEN BEGIN
-        result = Dialog_Message('Background and sample have different q-vectors, returning.')
-        RETURN, -1
-      ENDIF
-    ENDELSE
-    profile = profile - background[1,*]
-    error = error + background[2,*]
+    ENDIF
+    
+    profile = profile[prof_ind] - background[1,back_ind]
+    error = error[prof_ind] + background[2,back_ind]
+    qvector = qvector[prof_ind]
   ENDIF
   
   IF KeyWord_Set(YLOG) THEN BEGIN
@@ -200,19 +199,22 @@ FUNCTION AS_Profiledata::GetData, PLOT_DSPACE = plotDSpace, PLOT_TWOTHETA = plot
     IF (nPos GT 0) THEN BEGIN
       error = [[ALog10(profile + error)],[ALog10(profile - error)]] - ALog10(profile)#Replicate(1,2)
       profile = ALog10(profile)
-    ENDIF ELSE result = Dialog_Message('All points non-positive, log plot will be garbage!')  
+    ENDIF ELSE BEGIN
+      result = Dialog_Message('All points non-positive, log plot will be garbage!')
+      RETURN, -1
+    ENDELSE  
   ENDIF
     
   IF KeyWord_Set(XLOG) THEN BEGIN
     IF KeyWord_Set(plotDSpace) AND ~(KeyWord_Set(plotTwoTheta) OR KeyWord_Set(plotPixel)) THEN RETURN, Transpose([[ALOG10(*self.dSpace)],[profile],[error]])
     IF KeyWord_Set(plotTwoTheta) AND ~(KeyWord_Set(plotDSpace) OR KeyWord_Set(plotPixel)) THEN RETURN, Transpose([[ALOG10(*self.twoTheta)],[profile],[error]])
     IF KeyWord_Set(plotPixel) AND ~(KeyWord_Set(plotTwoTheta) OR KeyWord_Set(plotDSpace)) THEN RETURN, Transpose([[ALOG10(*self.pixel)],[profile],[error]])
-    RETURN, [Transpose(ALog10(*self.qVector)),Transpose(profile),Transpose(error)]
+    RETURN, [Transpose(ALog10(qVector)),Transpose(profile),Transpose(error)]
   ENDIF ELSE BEGIN  
     IF KeyWord_Set(plotDSpace) AND ~(KeyWord_Set(plotTwoTheta) OR KeyWord_Set(plotPixel)) THEN RETURN, Transpose([[*self.dSpace],[profile],[error]])
     IF KeyWord_Set(plotTwoTheta) AND ~(KeyWord_Set(plotDSpace) OR KeyWord_Set(plotPixel)) THEN RETURN, Transpose([[*self.twoTheta],[profile],[error]])
     IF KeyWord_Set(plotPixel) AND ~(KeyWord_Set(plotTwoTheta) OR KeyWord_Set(plotDSpace)) THEN RETURN, Transpose([[*self.pixel],[profile],[error]])
-    RETURN, [Transpose(*self.qVector),Transpose(profile),Transpose(error)]
+    RETURN, [Transpose(qVector),Transpose(profile),Transpose(error)]
   ENDELSE
 END
 
