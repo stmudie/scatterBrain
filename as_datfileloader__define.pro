@@ -60,6 +60,10 @@ PRO as_datfileloader::event, event
                         WIDGET_DISPLAYCONTEXTMENU, event.id, event.x, event.y, wContextBase
                         RETURN
                        END
+    'WIDGET_TIMER'  : BEGIN
+                        self.refresh
+                        IF self.polling EQ 1 THEN Widget_Control, event.id, TIMER = 2
+                      END
     ELSE:
   ENDCASE
 
@@ -70,16 +74,8 @@ PRO as_datfileloader::event, event
   CASE widgetName OF
       'REFRESH' : self.refresh
       'DESELECT' : Widget_Control, uvalue, SET_TREE_SELECT = 0
-      'CONTOUR' : BEGIN
-                    selected = Widget_Info(uvalue, /TREE_SELECT)
-                    filenames = list()
-                    FOREACH select, selected DO BEGIN
-                      Widget_Control, select, GET_UVALUE = filename
-                      filenames.add, filename.filename
-                    ENDFOREACH
-                    event = {CONTOUR, filenames:filenames}
-                    self.notify, event
-                  END
+      'CONTOUR' : self.contour, Widget_Info(uvalue, /TREE_SELECT)
+      'AUTOCONTOUR' : self.contour, Widget_Info(uvalue, /TREE_SELECT), /AUTO
       'MOVIE' :
     ELSE :  
   ENDCASE
@@ -122,10 +118,36 @@ PRO as_datfileloader::notify, event
 
 END
 
-PRO as_datfileloader::contour
+PRO as_datfileloader::polling, poll
 
+  CASE poll OF
+    0: BEGIN
+         self.polling = 0
+       END
+    1: BEGIN
+         self.polling = 1
+         Widget_Control, self.wBase, TIMER = 2
+       END
+    ELSE :
+  ENDCASE
+
+END
+
+PRO as_datfileloader::contour, selected, AUTO = auto
+
+  filenames = list()
+  FOREACH select, selected DO BEGIN
+    Widget_Control, select, GET_UVALUE = filename
+    filenames.add, filename.filename
+  ENDFOREACH
+  IF KeyWord_Set(auto) THEN BEGIN
+    self.polling, 1
+    Widget_Control, Widget_Info(Widget_Info(select,/PARENT),/PARENT), GET_UVALUE = folder
+    self.autocontour = folder
+  ENDIF
+  event = {CONTOUR, filenames:filenames}
+  self.notify, event
   
-
 END
 
 PRO as_datfileloader::addTab, names, folders, EXTENSION = extension
@@ -145,7 +167,7 @@ PRO as_datfileloader::addTab, names, folders, EXTENSION = extension
   Widget_Control, self.wBase, UPDATE = 0
 
   FOREACH name, self.names, key DO BEGIN
-    wTabBase = Widget_Base(wTab, TITLE = name, /COLUMN)
+    wTabBase = Widget_Base(wTab, TITLE = name, UVALUE = name, /COLUMN)
     wTree = Widget_Tree(wTabBase, /MULTIPLE, /CONTEXT_EVENTS, /DRAGGABLE, UNAME = name)
     files = File_Search((self.folders)[key] + Path_Sep() + '*.' + self.extension, /NOSORT)
     
@@ -157,6 +179,7 @@ PRO as_datfileloader::addTab, names, folders, EXTENSION = extension
      
     wDeselect = Widget_Button(wContextBase, VALUE = 'Deselect All', UVALUE = wTree, UNAME = 'DESELECT')
     wContour = Widget_Button(wContextBase, VALUE = 'Contour', UVALUE = wTree, UNAME = 'CONTOUR')
+    wContour = Widget_Button(wContextBase, VALUE = 'Auto Contour', UVALUE = wTree, UNAME = 'AUTOCONTOUR')
     wMovie = Widget_Button(wContextBase, VALUE = 'Movie', UVALUE = wTree, UNAME = 'MOVIE')
     
   ENDFOREACH
@@ -186,17 +209,25 @@ PRO as_datfileloader::refresh
     ENDFOREACH
     leaf = leaf.toArray()
     FOREACH file, files DO BEGIN
-      IF Where(leaf EQ File_Basename(file), /NULL) EQ !NULL THEN leafID = Widget_Tree(treeID, VALUE = File_Basename(file), UVALUE = {DAT, filename : file}, EVENT_PRO = 'as_datfileloader_selectfile')
+      IF Where(leaf EQ File_Basename(file), /NULL) EQ !NULL THEN BEGIN
+        leafID = Widget_Tree(treeID, VALUE = File_Basename(file), UVALUE = {DAT, filename : file}, EVENT_PRO = 'as_datfileloader_selectfile')
+        IF self.autocontour EQ name THEN self.notify, {CONTOURUPDATE, filenames: List(file)} 
+      ENDIF
     ENDFOREACH
   ENDFOREACH
   
+END
+
+PRO as_datfileloader::contourclosed
+
+  self.polling, 0
+
 END
 
 PRO as_datfileloader::Cleanup
 
   IF Widget_Info(self.wBase, /VALID) THEN Widget_Control, self.wBase, /DESTROY
   
-
 END
 
 PRO as_datfileloader__define
@@ -208,6 +239,8 @@ PRO as_datfileloader__define
           extension : '', $
           notifyObject : List(), $
           diffXSize : 0, $
-          diffYSize : 0 }
+          diffYSize : 0, $
+          polling : 0, $
+          autocontour : '' }
 
 END

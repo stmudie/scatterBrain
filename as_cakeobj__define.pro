@@ -316,6 +316,7 @@ FUNCTION AS_CakeObj::CakeSetup, force_range=force_range, sectors=sectors
         for i = 0,n_elements(pcount)-1 do begin
             if pcount[i] GT 0 then p_temp[i] = total(temp[plut[plut[i]:plut[i+1]-1]])/pcount[i]
         endfor
+        p_temp = p_temp[nonZeroPixBins]
     endif else p_temp = ((dindgen(n_elements(rcountOrig)))[nonZeroPixBins] + 0.5) * self.cake.step
 
     tthrad_temp = atan(p_temp * self.frame.psize / self.frame.len)
@@ -604,8 +605,8 @@ PRO AS_CakeObj::SetProperty, STEP = step, _REF_Extra = extra
 
   @as_scatterheader.macro
 
-  IF KeyWord_Set(step) THEN BEGIN
-    IF step GE 1 THEN self.cake.step = step
+  IF N_Elements(step) GT 0 THEN BEGIN
+    IF step GE 0 THEN self.cake.step = step
     self.cake.ok = 0
   ENDIF
   

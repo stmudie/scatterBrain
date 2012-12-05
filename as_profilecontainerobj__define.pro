@@ -495,12 +495,13 @@ PRO AS_ProfileContainerObj::SaveProfiles, fileName, MULTIPLE=multiple
   nameList = list()
   maxElem = 0
     
-  FOREACH profileRef, *self.profileRefs DO BEGIN
+  FOR profileIndex = 0, N_Elements(*self.profileRefs) - 1 DO BEGIN
+    profileRef = (*self.profileRefs)[profileIndex]
     profileList.add, profileRef.profiles.GetData(/BACK, XLOG=0, YLOG=0)
     profileRef.profiles.GetProperty, fname=name
     nameList.add, name
     maxElem = maxElem > N_Elements(profileList[-1])/3
-  ENDFOREACH 
+  ENDFOR
   numProfiles = N_Elements(profileList)
         
   titleList = list('q   ', 'I   ', 'Err   ')
@@ -875,7 +876,7 @@ PRO AS_ProfileContainerObj::PlotProfile, profile, fname, LIVE = live, REPLOT = R
   
     (*self.profileRefs)[profile].profilePlot = Obj_New('as_plotobject', NAME= fname, COLOR = *(*self.profileRefs)[profile].plotColour)
     self->Add, (*self.profileRefs)[profile].profilePlot
-    IF KeyWord_Set(ylog) THEN errorBars = data[2:3, *] ELSE errorBars = Reform(data[2,*])
+    IF KeyWord_Set(ylog) AND N_Elements(DATA) GT 1 THEN errorBars = data[2:3, *] ELSE errorBars = Reform(data[2,*])
     IF self.showErrorBars EQ 2 THEN showErrorBars = 1 ELSE showErrorBars = 0
     (*self.profileRefs)[profile].profilePlot->SetProperty, DATAX = data[0,*], DATAY = data[1,*], ERRORBARS = errorBars, SHOWERRORBARS = showErrorBars, _EXTRA=extra
     (*self.profileRefs)[profile].showPlot = 1

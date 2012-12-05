@@ -1,3 +1,5 @@
+Version 1.65
+Fixed insidious bug with profile export (due to some IDL weirdness). Also big change to Mask Definition screen, but this is not finished yet - hopefully will finish properly in a couple of days.
 
 Version 1.61
 Bug fixes.

@@ -11,15 +11,26 @@ PRO as__saxscontourplot::event, event
 
   @as_scatterheader.macro
 
-  IF Tag_Names(event, /STRUCTURE) EQ 'WIDGET_BASE' THEN BEGIN
-    geom = Widget_Info(Widget_Info(event.id, FIND_BY_UNAME = 'Contour Type Base'),/GEOMETRY)
-    Widget_Control, Widget_Info(event.id, FIND_BY_UNAME = 'Contour Draw'), XSIZE = event.x-geom.xsize, YSIZE = event.y
-    self.oContourWindow.Draw
-    RETURN
-  ENDIF
+  widgetName = Widget_Info(event.ID, /UNAME)
+
+  CASE Tag_Names(event, /STRUCTURE) OF
+   'WIDGET_BASE' : BEGIN
+                     geom = Widget_Info(Widget_Info(event.id, FIND_BY_UNAME = 'Contour Type Base'),/GEOMETRY)
+                     Widget_Control, Widget_Info(event.id, FIND_BY_UNAME = 'Contour Draw'), XSIZE = event.x-geom.xsize, YSIZE = event.y
+                     self.oContourWindow.Draw
+                     RETURN
+                   END
   
-  IF Tag_Names(event, /STRUCTURE) EQ 'FSC_FIELD_EVENT' THEN Widget_Control, event.id, GET_UVALUE = widgetName $
-                                                       ELSE widgetName = Widget_Info(event.ID, /UNAME)
+   'FSC_FIELD_EVENT' : Widget_Control, event.id, GET_UVALUE = widgetName
+   
+   'WIDGET_KILL_REQUEST' : BEGIN
+                              Obj_Destroy, self
+                              RETURN
+                            END
+  ELSE:
+  ENDCASE
+  
+  
   
   CASE widgetName OF
     'Contour Plot Index' : IF event.select EQ 1 THEN self.plotIndex
@@ -332,6 +343,17 @@ PRO as__saxscontourplot::plotSurface, CREATE = create
 
 END
 
+PRO as__saxscontourplot::addProfiles, z, FILENAMES = fileNames
+
+  (self.initY)[0] = [(self.initY)[0], N_Elements(z[0,*]) + N_Elements((self.initY)[0])]
+  IF N_Elements(z) GT 0 THEN self.initZ.add, z, /EXTRACT
+  IF KeyWord_Set(filenames) THEN self.fileNames.add, filenames
+
+  void = self.UpdateContour()
+  self.ZoomOut, /PRESERVEQ, /PRESERVELOWY
+
+END
+
 PRO as__saxscontourplot::plotAtQ, CREATE = create, SAVE = save
 
   @as_scatterheader.macro
@@ -556,7 +578,7 @@ PRO as__saxscontourplot::Notify, event
 
 END
 
-PRO as__saxscontourplot::ZoomOut
+PRO as__saxscontourplot::ZoomOut, PRESERVEQ = preserveQ, PRESERVELOWY = preserveLowY
 
   @as_scatterheader.macro
 
@@ -564,7 +586,12 @@ PRO as__saxscontourplot::ZoomOut
   y = (self.initY)[self.yPlotType];.toArray()
   z = self.initZ.toArray()
  
-  IF self.irregular THEN self.zoomPos = List(Indgen(self.initX.count())) ELSE self.zoomPos = List(Indgen(self.initX.count()),Indgen(N_Elements((self.initY)[self.yPlotType])))
+  IF self.irregular THEN self.zoomPos = List(Indgen(self.initX.count())) ELSE BEGIN
+    currentZoom = self.zoomPos
+    self.zoomPos = List(Indgen(self.initX.count()),Indgen(N_Elements((self.initY)[self.yPlotType])))
+    IF KeyWord_Set(preserveQ) THEN (self.zoomPos)[0] = currentZoom[0]
+    IF KeyWord_Set(preserveLowY) THEN (self.zoomPos)[1] = Where((self.zoomPos)[1] GE Min((currentZoom)[1]))
+  ENDELSE
  
   result = self.UpdateContour()
  
@@ -670,6 +697,13 @@ FUNCTION as__saxscontourplot::UpdateContour, x, y, z, YTITLE = yTitle, YSTRINGS 
 
 END
 
+PRO as__saxscontourplot::cleanup
+
+  self.notify, {KILLCONTOUR, id : 0}
+  IF Widget_Info(self.wContourBase, /VALID) THEN Widget_Control, self.wContourBase, /DESTROY
+
+END
+
 FUNCTION as__saxscontourplot::Init, x, y, z, FILENAMES=fileNames, NOTIFYOBJ = notifyObj, IRREGULAR = irregular, GROUPLEADER = groupLeader
   
   @as_scatterheader.macro
@@ -722,8 +756,8 @@ FUNCTION as__saxscontourplot::Init, x, y, z, FILENAMES=fileNames, NOTIFYOBJ = no
   ;hist = Histogram(y, LOCATIONS = yValues)
   ;self.plotIndex = List(yValues[Where(hist NE 0)], /EXTRACT)
   self.plotIndex = List(IndGen(N_Elements(y)),/EXTRACT)
-  IF N_Elements(groupLeader) GT 0 THEN wContourBase = Widget_Base(GROUP_LEADER = groupLeader, /ROW, TITLE = 'scatterBrain Contour Plot', /TLB_SIZE_EVENTS, /FLOATING) $
-                                  ELSE wContourBase = Widget_Base(/ROW, TITLE = 'scatterBrain Contour Plot', /TLB_SIZE_EVENTS)
+  IF N_Elements(groupLeader) GT 0 THEN wContourBase = Widget_Base(GROUP_LEADER = groupLeader, /ROW, TITLE = 'scatterBrain Contour Plot', /TLB_SIZE_EVENTS, /FLOATING, /TLB_KILL_REQUEST_EVENTS) $
+                                  ELSE wContourBase = Widget_Base(/ROW, TITLE = 'scatterBrain Contour Plot', /TLB_SIZE_EVENTS, /TLB_KILL_REQUEST_EVENTS)
   self.wContourBase = wContourBase
   WIDGET_CONTROL, wContourBase, SET_UVALUE = self
   wControlBase = Widget_Base(wContourBase, /COLUMN, UNAME = 'Contour Type Base')

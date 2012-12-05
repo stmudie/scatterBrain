@@ -277,7 +277,7 @@ PRO AS_MaskObj::ShowMaskTable, show
     primaryMonitor = monitorObj.GetPrimaryMonitorIndex()
     monitorSize = monitorObj.GetRectangles(/EXCLUDE_TASKBAR)
     
-    defineMaskBase = Widget_Base(GROUP_LEADER=self.frame.group_leader, TITLE = 'scatterBrain Mask Definitions', /TLB_SIZE_EVENT, /TLB_KILL_REQUEST_EVENTS, UVALUE=self, /COLUMN, MBAR = menuBar, Y_SCROLL_SIZE = monitorSize[3]-200, X_SCROLL_SIZE = 800, UNAME = 'Mask Base')
+    defineMaskBase = Widget_Base(GROUP_LEADER=self.frame.group_leader, TITLE = 'scatterBrain Mask Definitions', /TLB_SIZE_EVENT, /TLB_KILL_REQUEST_EVENTS, UVALUE=self, /COLUMN, MBAR = menuBar, Y_SCROLL_SIZE = monitorSize[3]-200, X_SCROLL_SIZE = 500, UNAME = 'Mask Base')
     addButtonMenu = Widget_Button(menuBar, /MENU, VALUE='Add Mask')
     addButton = Widget_Button(addButtonMenu, VALUE='Add Mask', UNAME = 'Add Mask')
     deleteButtonMenu = Widget_Button(menuBar, /MENU, VALUE='Delete Mask')
@@ -288,15 +288,19 @@ PRO AS_MaskObj::ShowMaskTable, show
     defineBeamStopPropertySheet = Widget_PropertySheet(maskPropertiesBase, VALUE = self.mask.beamStop, EVENT_PRO = 'AS_DefineBeamStopPropertyEvent', UNAME = 'Beamstop Property')
     defineUserMasksBase = Widget_Base(maskPropertiesBase, /COLUMN)
     maskObjects = (self.mask.maskObjects.GET(/ALL, ISA = 'as_maskobject',COUNT = nMasks))
+    self.mask.wMaskTab = Widget_Tab(defineUserMasksBase, /MULTILINE)
     IF nMasks EQ 0 THEN maskObjects = ObjArr(1) 
-    defineMaskPropertySheet = Widget_PropertySheet(defineUserMasksBase,  VALUE = maskObjects, SCR_XSIZE = 70+150*N_Elements(maskObjects[0:*:2]), ysize = 17, EVENT_PRO = 'AS_DefineMaskPropertyEvent', UNAME = 'defineMaskPropSheet') 
+    
     i = 0
-    defineMaskTableBase = Widget_Base(defineUserMasksBase, /ROW, UNAME = 'Mask Table Base')
-    buffer = Widget_Label(defineMaskTableBase, VALUE = '', XSIZE = 36)
     FOREACH mask, maskObjects DO BEGIN
       IF ~Obj_Valid(mask) THEN CONTINUE
+      tabBase = Widget_Base(self.mask.wMaskTab, TITLE = mask.name, /COLUMN, UNAME='Mask Tab ' + StrCompress(String(i),/REMOVE_ALL)) 
+      ;defineMaskPropertySheet = Widget_PropertySheet(defineUserMasksBase,  VALUE = maskObjects, SCR_XSIZE = 70+150*N_Elements(maskObjects[0:*:2]), ysize = 17, EVENT_PRO = 'AS_DefineMaskPropertyEvent', UNAME = 'defineMaskPropSheet') 
+      defineMaskPropertySheet = Widget_PropertySheet(tabBase,  VALUE = mask, ysize = 17, EVENT_PRO = 'AS_DefineMaskPropertyEvent', UNAME = 'defineMaskPropSheet') 
+      defineMaskTableBase = Widget_Base(tabBase, /ROW, UNAME = 'Mask Table Base')
+      buffer = Widget_Label(tabBase, VALUE = '', XSIZE = 36)
       mask.getproperty, DATA=data, /RELATIVE
-      defineMaskTable = Widget_Table(defineMaskTableBase, XSIZE = 2, YSIZE = self.mask.numPoints*2, SCR_XSIZE = 196-64*(i GT 0), COLUMN_WIDTHS = 60, FORMAT = '(F7.2)', /ALL_EVENTS, /EDITABLE, /CONTEXT_EVENTS, ALIGNMENT = 2, NO_ROW_HEADERS = i, UVALUE = {CellChangedFlag: 0, CellBuffer: [0,0], CellPosition: [0,0]}, UNAME='Mask Table ' + StrCompress(String(i),/REMOVE_ALL))
+      defineMaskTable = Widget_Table(tabBase, XSIZE = 2, YSIZE = self.mask.numPoints*2, SCR_XSIZE = 196, COLUMN_WIDTHS = 60, FORMAT = '(F7.2)', /ALL_EVENTS, /EDITABLE, /CONTEXT_EVENTS, ALIGNMENT = 2, UVALUE = {CellChangedFlag: 0, CellBuffer: [0,0], CellPosition: [0,0]}, UNAME='Mask Table ' + StrCompress(String(i),/REMOVE_ALL))
       Widget_Control, defineMaskTable, SCR_YSIZE = (Widget_Info(defineMaskTable,/ROW_HEIGHTS))[0] * (self.mask.numPoints+2)
       IF data NE !null THEN Widget_Control, defineMaskTable, SET_VALUE = data
       i += 1
@@ -615,10 +619,9 @@ PRO AS_MaskObj::Event, event
                       ENDWHILE
                       maskObject.SetProperty, fillOpacity = 0.5, NAME = newName, maskType = 1
                       self.mask.maskObjects.add, maskObject
-                      prop = Widget_Info(event.top, FIND_BY_UNAME='defineMaskPropSheet')
-                      Widget_Control, prop, SET_VALUE = self.mask.maskObjects.get(/ALL, ISA = 'as_maskobject') 
-                      tableBase = Widget_Info(event.top, FIND_BY_UNAME='Mask Table Base')
-                      defineMaskTable = Widget_Table(tableBase, XSIZE = 2, YSIZE = self.mask.numPoints*2, SCR_XSIZE = 214-86*(maskNo GT 0), COLUMN_WIDTHS = 60, /ALL_EVENTS, /EDITABLE, /CONTEXT_EVENTS, ALIGNMENT = 2, NO_ROW_HEADERS = maskNo, UVALUE = {CellChangedFlag: 0, CellBuffer: [0,0], CellPosition: [0,0]}, UNAME='Mask Table ' + StrCompress(maskNo,/REMOVE_ALL))
+                      tabBase = Widget_Base(self.mask.wMaskTab, TITLE = maskObject.name, /COLUMN)
+                      defineMaskPropertySheet = Widget_PropertySheet(tabBase,  VALUE = maskObject, ysize = 17, EVENT_PRO = 'AS_DefineMaskPropertyEvent', UNAME = 'defineMaskPropSheet') 
+                      defineMaskTable = Widget_Table(tabBase, XSIZE = 2, YSIZE = self.mask.numPoints*2, SCR_XSIZE = 196, COLUMN_WIDTHS = 60, /ALL_EVENTS, /EDITABLE, /CONTEXT_EVENTS, ALIGNMENT = 2, UVALUE = {CellChangedFlag: 0, CellBuffer: [0,0], CellPosition: [0,0]}, UNAME='Mask Table ' + StrCompress(maskNo,/REMOVE_ALL))
                       Widget_Control, defineMaskTable, SCR_YSIZE = (Widget_Info(defineMaskTable,/ROW_HEIGHTS))[0] * (self.mask.numPoints+2)
                       self.SetSelected, maskNo 
     END
@@ -642,15 +645,17 @@ PRO AS_MaskObj::Event, event
                        Obj_Destroy, masks[selected]
                        numDeleted = 0
                        FOR maskNo=0, N_Elements(masks)-1 DO BEGIN
+                         tabID = Widget_Info(self.mask.defineMaskBase, FIND_BY_UNAME = 'Mask Tab ' + StrCompress(maskNo,/REMOVE_ALL))
                          tableID = Widget_Info(self.mask.defineMaskBase, FIND_BY_UNAME = 'Mask Table ' + StrCompress(maskNo,/REMOVE_ALL))
                          IF Where(maskNo EQ selected, /NULL) NE !NULL THEN BEGIN
                            numDeleted ++
-                           Widget_Control, tableID, /DESTROY
-                         ENDIF ELSE Widget_Control, tableID, SET_UNAME = 'Mask Table ' + StrCompress(maskNo-numDeleted,/REMOVE_ALL)
+                           Widget_Control, tabID, /DESTROY
+                         ENDIF ELSE BEGIN
+                           Widget_Control, tabID, SET_UNAME = 'Mask Tab ' + StrCompress(maskNo-numDeleted,/REMOVE_ALL)
+                           Widget_Control, tableID, SET_UNAME = 'Mask Table ' + StrCompress(maskNo-numDeleted,/REMOVE_ALL)
+                         ENDELSE
                        ENDFOR
                        self.SetSelected, N_Elements(mask) - N_Elements(selected)
-                       prop = Widget_Info(self.mask.defineMaskBase, FIND_BY_UNAME = 'defineMaskPropSheet')
-                       Widget_Control, prop, SET_VALUE = self.mask.maskObjects.get(/ALL, ISA = 'as_maskobject')
                        Widget_Control, event.top, /DESTROY
                        RETURN
                        
@@ -893,6 +898,7 @@ mask = { AS_MaskObj_Struc,            $ ; CURRENT MASK POLYGON DEFINITIONS
           numPoints:        25,             $ ; Default number of points for a mask
           maskdef:          Ptr_New(),      $
           maskObjects:      Obj_New(),      $
+          wMaskTab    :      0l,      $
           beamStop:         Obj_New(),      $ ; Beamstop mask.
           definingMask:     0,              $ ;Flag indicating that a mask is being defined using the cursor.
           defineMaskBase  : 0L,             $

@@ -418,10 +418,16 @@ PRO scatterbrain::event, event
                                  zingerBase = Widget_Base(self.settingsBase, /COLUMN, /FRAME)
                                  zingerThreshold = CW_FSlider(zingerBase, TITLE = '', VALUE = 10000, MINIMUM = 0, MAXIMUM = 2^20., XSIZE = 200, /EDIT, UNAME = 'ZINGER THRESHOLD')
                                  zingerLabel = Widget_Text(zingerBase, FRAME = 0, VALUE = 'Zinger Threshold. This sets the value used by the zinger mask routine. You must run that routine after changing this value.', YSIZE = 3, /WRAP)
-                                 sectors = Widget_Slider(self.settingsBase, TITLE = 'Number of Sectors', VALUE = 40, MINIMUM = 1, MAXIMUM = 360, UNAME = 'NO. SECTORS')
+                                 row1 = widget_base(self.settingsbase, /ROW, /FRAME)
+                                 sectors = Widget_Slider(row1, TITLE = 'Number of Sectors          ', VALUE = 180, MINIMUM = 1, MAXIMUM = 360, YSIZE = 30, /VERTICAL, UNAME = 'NO. SECTORS')
                                  self.frame_obj.GetProperty, STEP = step
-                                 IF step LE 0 THEN step = 1
-                                 binSize = CW_Field(self.settingsBase, TITLE = 'q-vector bin size', VALUE = step, /FLOATING, /RETURN_EVENTS, UNAME = 'Q BIN SIZE')
+                                 row2 = widget_base(self.settingsbase, /ROW, /FRAME)
+                                 binSize = Widget_Slider(row2, TITLE = 'q-vector bin size          ', VALUE = step > 1, /VERTICAL, MINIMUM = 1, MAXIMUM = 10, YSIZE = 15, UNAME = 'Q BIN SIZE')
+                                 row3 = Widget_Base(row2, /NONEXCLUSIVE)
+                                 pseudoLog = Widget_Button(row3, VALUE = 'Pseudo Log', UNAME = 'PSEUDO LOG')
+                                 Widget_Control, pseudoLog, SET_BUTTON = ~step
+                                 Widget_Control, binSize, SENSITIVE = step
+                                 ;binSize = CW_Field(self.settingsBase, TITLE = 'q-vector bin size', VALUE = step, /FLOATING, /RETURN_EVENTS, UNAME = 'Q BIN SIZE')
                                  errorBarsButtons = CW_BGROUP(self.settingsBase, ['None','Last Selected Only', 'All'],LABEL_TOP = 'Show Error Bars',/ROW,/EXCLUSIVE, UNAME = 'SHOW ERROR BARS')
                                  Widget_Control, errorBarsButtons, SET_VALUE=self.settingsObj.ErrorBars
                                  startingDirectory = Widget_Button(self.settingsBase, VALUE = 'Set Starting Directory', UNAME = 'STARTING DIRECTORY')
@@ -460,7 +466,7 @@ PRO scatterbrain::event, event
                                self.ExportCurrentImage
         END
         'DAT FILE MODE'    : BEGIN
-                               datfileobject = as_datfileloader(['Raw Dat','Average','Subtracted', 'Manual'],[self.experimentDir + Path_Sep() + 'raw_dat', self.experimentDir + Path_Sep() + 'avg', self.experimentDir + Path_Sep() + 'sub', self.experimentDir + Path_Sep() + 'manual'], GROUPLEADER = self.wScatterBase, NOTIFYOBJECT = notify('DatCallback', self))
+                               self.datfileobject = as_datfileloader(['Raw Dat','Average','Subtracted', 'Manual'],[self.experimentDir + Path_Sep() + 'raw_dat', self.experimentDir + Path_Sep() + 'avg', self.experimentDir + Path_Sep() + 'sub', self.experimentDir + Path_Sep() + 'manual'], GROUPLEADER = self.wScatterBase, NOTIFYOBJECT = notify('DatCallback', self))
         END
         'SET ZINGER MASK'  :BEGIN
                               IF Widget_Info(self.settingsBase, /VALID) THEN Widget_Control, Widget_Info(self.settingsBase, FIND_BY_UNAME = 'ZINGER THRESHOLD'), GET_VALUE = threshold $
@@ -473,6 +479,11 @@ PRO scatterbrain::event, event
                                self.frame_obj.SetProperty, step = event.value
                                self.settingsObj.SetProperty, binsize = event.value
         END
+        'PSEUDO LOG' : BEGIN
+                         Widget_Control, Widget_Info(self.settingsBase, FIND_BY_UNAME = 'Q BIN SIZE'), SENSITIVE = ~event.select
+                         self.frame_obj.SetProperty, step = 0
+                         self.settingsObj.SetProperty, binsize = 0
+                       END
         'STARTING DIRECTORY' : BEGIN
                                  startingDirectory = Dialog_Pickfile(/DIRECTORY)
                                  IF File_Test(startingDirectory, /DIRECTORY) THEN self.settingsObj.startingDirectory = startingDirectory
@@ -1293,7 +1304,9 @@ PRO scatterbrain::LogFileSelected, Selected
                  FOREACH prof, data, index DO BEGIN
                    zContour[*,index] =  Reform(prof[1,inRange])
                  ENDFOREACH
-                 self.contourPlot = as__saxscontourplot(q, yStruct, zContour, GROUPLEADER = self.wScatterBase, NOTIFYOBJ = notify('ContourCallback',self))
+                 IF selected.add EQ 1 AND Obj_Valid(self.contourPlot) EQ 1 THEN BEGIN
+                  self.contourPlot.addProfiles, zContour
+                 ENDIF ELSE self.contourPlot = as__saxscontourplot(q, yStruct, zContour, GROUPLEADER = self.wScatterBase, NOTIFYOBJ = notify('ContourCallback',self))
                  ;profiler, /REPORT, FILENAME = 'profiler.dat'
                END
     'MOVIE' : BEGIN
@@ -1342,7 +1355,6 @@ PRO scatterbrain::LogFileSelected, Selected
                     IF yn EQ 'No' THEN BREAK
                   ENDIF ELSE frameList.Add, frame
                 ENDFOREACH
-                IF yn EQ 'No' THEN BREAK
                 IF frameList.count() EQ 0 THEN BEGIN
                   dialog = Dialog_Message('No valid files, returning.')
                   BREAK
@@ -1625,6 +1637,9 @@ PRO scatterbrain::ContourCallback, event
                           profile = self.ReadDat(event.name)
                           self.contourPlot.SetBlank, transpose([[profile.q.toarray()], [profile.intensity.toarray()], [profile.error.toarray()]]), File_Basename(event.name)
                         END
+    'KILLCONTOUR' : BEGIN
+                      IF Obj_Valid(self.datfileobject) EQ 1 THEN self.datfileobject.contourclosed
+                    END
   ENDCASE
 END
 
@@ -1663,7 +1678,7 @@ PRO scatterBrain::PlotDat, filenames
   
 END
 
-PRO scatterBrain::ContourDat, filenames
+PRO scatterBrain::ContourDat, filenames, UPDATE = update
 
   data = list()
 
@@ -1685,7 +1700,11 @@ PRO scatterBrain::ContourDat, filenames
   FOREACH profile, data, key DO zContour[*,key] = profile
   q = temp.q
   
-  self.contourPlot = as__saxscontourplot(q.toArray(), indgen(filenames.count()), zContour, GROUPLEADER = self.wScatterBase, NOTIFYOBJ = notify('ContourCallback',self))
+  IF KeyWord_Set(update) EQ 1 AND Obj_Valid(self.contourPlot) EQ 1 THEN BEGIN
+     self.contourPlot.addProfiles, zContour
+  ENDIF ELSE BEGIN
+    self.contourPlot = as__saxscontourplot(q.toArray(), indgen(filenames.count()), zContour, GROUPLEADER = self.wScatterBase, NOTIFYOBJ = notify('ContourCallback',self))
+  ENDELSE
   
 
 END
@@ -1697,6 +1716,7 @@ PRO scatterBrain::DatCallback, event
   CASE Tag_Names(event, /STRUCTURE_NAME) OF
     'SELECT' : self.plotdat, event.filenames
     'CONTOUR': self.contourdat, event.filenames
+    'CONTOURUPDATE' : self.contourdat, event.filenames, /UPDATE
   ENDCASE 
   
 END
@@ -2393,7 +2413,7 @@ FUNCTION scatterbrain::init     $
      
     IF Size(self.settingsObj.binsize, /TYPE) NE 0 THEN BEGIN
       binsize = self.settingsObj.binsize
-      IF binsize GT 0 THEN frame_obj.SetProperty, STEP = binsize
+      IF binsize GE 0 THEN frame_obj.SetProperty, STEP = binsize
     ENDIF
     
     ;logFile_obj = Obj_New('AS_LogFileObjOld',FRAME=frame_obj,GROUP_LEADER=wLeftScatterBase, /DOCK)
@@ -2575,7 +2595,8 @@ void = {scatterbrain, $
        updateProgressLabel: 0L,              $
        settingsObj        : Obj_New(),       $
        currentlySelected  : List(),          $
-       operatingSystem     : ''              $ 
+       operatingSystem    : '',              $
+       datfileobject      : Obj_New()        $ 
        }                                     
 
 END

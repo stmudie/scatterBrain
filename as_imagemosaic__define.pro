@@ -309,6 +309,7 @@ PRO AS_ImageMosaic::Display, MOVEONLY = moveOnly
       void.Translate,posArray[0,(self.order)[key]],posArray[1,(self.order)[key]],0
      
       IF self.scaleIndividually THEN BEGIN
+        image[where(image gt 2^21.)] = 0
         a = histogram(image,REVERSE_INDICES = r)
         b = r[0:r[0]-1]
         imageMax = (where(b gt b[-1]-self.topChop))[0]

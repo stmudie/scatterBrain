@@ -35,6 +35,7 @@ FUNCTION as_scatterXMLGUI::INIT, GROUP_LEADER = groupLeader, DOCK=dock, _REF_Ext
   wExportProfilesSingle = Widget_Button(self.wContextBase, VALUE = 'Save profiles to one large file', UNAME = 'Export Profiles Single')
   wSum = Widget_Button(self.wContextBase, VALUE = 'Sum Images', UNAME = 'Sum Images')
   wContour = Widget_Button(self.wContextBase, VALUE = 'Contour', UNAME = 'Contour')
+  wAddContour = Widget_Button(self.wContextBase, VALUE = 'Add to Contour', UNAME = 'Add to Contour')
   wMovie = Widget_Button(self.wContextBase, VALUE = 'Movie', UNAME = 'Movie')
   wMosaic = Widget_Button(self.wContextBase, VALUE = 'Mosaic', UNAME = 'Mosaic')
   wSector = Widget_Button(self.wContextBase, VALUE = 'Sector', UNAME = 'Sector')
@@ -157,7 +158,21 @@ PRO as_scatterXMLGUI::event, event
                         Widget_Control, s, GET_VALUE = name
                         nameList.add, name
                       ENDFOREACH
-                      self.notify, {Type: 'CONTOUR', Name: nameList, Clicks: -1}
+                      self.notify, {Type: 'CONTOUR', Name: nameList, Clicks: -1, ADD : 0}
+                      
+                    END
+     'Add to Contour' : BEGIN
+                      
+                      COMPILE_OPT idl2
+                      ON_ERROR, 2
+                      
+                      selected = Widget_Info(self.fileTreeParent,/TREE_SELECT)
+                      nameList = list()
+                      FOREACH s, selected DO BEGIN
+                        Widget_Control, s, GET_VALUE = name
+                        nameList.add, name
+                      ENDFOREACH
+                      self.notify, {Type: 'CONTOUR', Name: nameList, Clicks: -1, ADD : 1}
                       
                     END
     'Movie'       : BEGIN
