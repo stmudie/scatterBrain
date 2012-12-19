@@ -16,10 +16,12 @@ PRO AS__ConvertSAXFile::Convert, saxFileName, XMLFileName, XMLOBJECT = XMLObject
   convStruct = self.readSAXFile(saxFileName)
 
   frameStruct = {len : convStruct.cameraLength, wlen : convStruct.wavelength, xc : convStruct.xcentre, yc : convStruct.ycentre, detangle : 0}
-  detectorStruct = {DetectorDef : convStruct.frametype, XSize : convStruct.xsize, YSize : convStruct.ysize, PixelSize : convStruct.pixelSize, BasePV : '', CamPV :'', ImagePV :'', FilePV :'', Control :'', SoftwareTrigger : '', AutoLoad : ''}
-  maskStruct = Replicate({type : 0, auto : 0, shape : 'Polygon', name : '', params : Ptr_New()},10)
+  detectorStruct = {DetectorDef : convStruct.frametype, XSize : convStruct.xsize, YSize : convStruct.ysize, PixelSize : convStruct.pixelSize, BasePV : '', CamPV :'', ImagePV :'', LogFilePV: '', FilePV :'', Control :'', SoftwareTrigger : '', AutoLoad : ''}
+  maskStruct = Replicate({type : 0, auto : 0, lock: 0, colour: [0,0,0], shape : 'Polygon', name : '', params : Ptr_New()},10)
   FOR i = 0, 9 DO BEGIN
     maskStruct[i].auto = convStruct.masks.auto[i]
+    maskStruct[i].lock = convStruct.masks.lock[i]
+    maskStruct[i].colour = convStruct.masks.colour[i]
     maskStruct[i].name = 'Mask ' + StrCompress(i, /REMOVE_ALL)
     maskStruct[i].params = Ptr_New([convStruct.masks.x[i,0:convStruct.masks.npts[i]-1],convStruct.masks.y[i,0:convStruct.masks.npts[i]-1]])
     CASE convStruct.masks.type[i] OF
@@ -51,6 +53,8 @@ FUNCTION AS__ConvertSAXFile::readSAXFile, saxFileName
                 type    : IntArr(10),    $
                 npts    : IntArr(10),    $
                 auto    : IntArr(10),    $
+                lock    : IntArr(10),    $
+                colour  : IntArr(10,3),  $
                 shape   : IntArr(10),    $
                 cirx    : FltArr(10),    $
                 ciry    : FltArr(10),    $

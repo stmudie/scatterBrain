@@ -522,7 +522,7 @@ PRO as_scatterXMLFile::SetParameters, MASK=mask, CHANGEDMASKNAMES = changedMaskN
   ; TODO Forcing detector 0 at this stage.
   ;detNum = 0 
 
-  IF ~KeyWord_Set(config) THEN config = 0 
+  IF ~KeyWord_Set(config) THEN config = 0   
 
   IF config GE N_Elements(*self.configurations) THEN *self.configurations = [*self.configurations,{CONFIGURATION}]
 
