@@ -217,7 +217,7 @@ IF n_elements(control_str) GT 0 THEN must_exist = 0 ELSE must_exist=1
     
 END
 
-PRO AS_FrameObj::UpdateBeamCursor
+PRO AS_FrameObj::UpdateBeamCursor, HIDE=hide
 
   @as_scatterheader.macro
 
@@ -225,6 +225,8 @@ PRO AS_FrameObj::UpdateBeamCursor
       self.frame.beamCursor = Obj_New('IDLgrPolyline', [0,self.frame.nxpix,self.frame.xc,self.frame.xc,self.frame.xc],[self.frame.yc,self.frame.yc,self.frame.yc,0,self.frame.nypix], LINESTYLE = 2, COLOR = 255)  
       self.PARENT->Add, self.frame.beamCursor
   ENDELSE
+  
+  IF N_Elements(hide) GT 0 THEN self.frame.beamCursor.SetProperty, HIDE=hide
   
   self.DrawImage, /PRESERVE
 

@@ -803,6 +803,8 @@ PRO AS_ProfileContainerObj::LineWidth, index, width, ADD = add
 
   @as_scatterheader.macro
 
+  IF ~Ptr_Valid(self.profileRefs) THEN RETURN 
+
   temp = IntArr(N_Elements(index))
   FOR i = 0, N_Elements(index) - 1 DO temp[i] = Where((*self.profileRefs).refNum EQ index[i])
   index = temp

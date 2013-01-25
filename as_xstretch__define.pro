@@ -724,69 +724,69 @@ PRO AS_XSTRETCH::DRAWLINES, minThresh, maxThresh
   
     'LINEAR': BEGIN
       line = BytScl(Findgen(101))
-      line = Scale_Vector(line, 0.0, !Y.CRange[1])
-      x = Scale_Vector(Findgen(101), minThresh, maxThresh)
+      line = as_scale_vector(line, 0.0, !Y.CRange[1])
+      x = as_scale_vector(Findgen(101), minThresh, maxThresh)
       OPlot, x, line, Color=FSC_Color(self.colors[4]), LineStyle=2, Thick=2
     END
     
     'LINEAR 2%': BEGIN
       line = BytScl(Findgen(101))
-      line = Scale_Vector(line, 0.0, !Y.CRange[1])
-      x = Scale_Vector(Findgen(101), minThresh, maxThresh)
+      line = as_scale_vector(line, 0.0, !Y.CRange[1])
+      x = as_scale_vector(Findgen(101), minThresh, maxThresh)
       OPlot, x, line, Color=FSC_Color(self.colors[4]), LineStyle=2, Thick=2
     END
     
     '^0.2' : BEGIN
       line = BytScl(Findgen(101))
-      line = Scale_Vector(line, 0.0, !Y.CRange[1])
-      x = Scale_Vector(Findgen(101), minThresh, maxThresh)
+      line = as_scale_vector(line, 0.0, !Y.CRange[1])
+      x = as_scale_vector(Findgen(101), minThresh, maxThresh)
       OPlot, x, line, Color=FSC_Color(self.colors[4]), LineStyle=2, Thick=2
     END
     
     'EQUALIZATION': BEGIN
       line = BytScl(Findgen(101))
-      line = Scale_Vector(line, 0.0, !Y.CRange[1])
-      x = Scale_Vector(Findgen(101), minThresh, maxThresh)
+      line = as_scale_vector(line, 0.0, !Y.CRange[1])
+      x = as_scale_vector(Findgen(101), minThresh, maxThresh)
       OPlot, x, line, Color=FSC_Color(self.colors[4]), LineStyle=2, Thick=2
     END
     
     'LOG': BEGIN
       line = LogScl(Findgen(101), Mean=self.mean, Exponent=self.exponent)
-      line = Scale_Vector(line, 0.0, !Y.CRange[1])
-      x = Scale_Vector(Findgen(101), minThresh, maxThresh)
+      line = as_scale_vector(line, 0.0, !Y.CRange[1])
+      x = as_scale_vector(Findgen(101), minThresh, maxThresh)
       OPlot, x, line, Color=FSC_Color(self.colors[4]), LineStyle=2, Thick=2
     END
     
     'GAMMA': BEGIN
       ; Draw the gamma function.
-      line = Scale_Vector(Findgen(101), 0.0, 1.0)
+      line = as_scale_vector(Findgen(101), 0.0, 1.0)
       line = Double(line)^self.gamma
-      line = Scale_Vector(line, 0.0, !Y.CRange[1])
-      x = Scale_Vector(Findgen(101), minThresh, maxThresh)
+      line = as_scale_vector(line, 0.0, !Y.CRange[1])
+      x = as_scale_vector(Findgen(101), minThresh, maxThresh)
       OPlot, x, line, Color=FSC_Color(self.colors[4]), LineStyle=2, Thick=2
     END
     
     'GAUSSIAN': BEGIN
       ; Draw the gaussian function.
-      line = Scale_Vector(Findgen(101), -!PI, !PI)
+      line = as_scale_vector(Findgen(101), -!PI, !PI)
       line = (1/(2*!PI*self.sigma^2))*EXP(-(line^2/(2*self.sigma^2)))
-      line = Scale_Vector(line, 0, !Y.CRange[1])
-      x = Scale_Vector(Findgen(101), minThresh, maxThresh)
+      line = as_scale_vector(line, 0, !Y.CRange[1])
+      x = as_scale_vector(Findgen(101), minThresh, maxThresh)
       OPlot, x, line, Color=FSC_Color(self.colors[4]), LineStyle=2, Thick=2
     END
     
     'SQUARE ROOT': BEGIN
       line = BytScl(Findgen(101))
-      line = Scale_Vector(line, 0.0, !Y.CRange[1])
-      x = Scale_Vector(Findgen(101), minThresh, maxThresh)
+      line = as_scale_vector(line, 0.0, !Y.CRange[1])
+      x = as_scale_vector(Findgen(101), minThresh, maxThresh)
       OPlot, x, line, Color=FSC_Color(self.colors[4]), LineStyle=2, Thick=2
     END
     
     'ASINH': BEGIN
       ; Draw the asinh function.
       line = ASinhScl(Findgen(101), BETA=self.beta)
-      line = Scale_Vector(line, 0.0, !Y.CRange[1])
-      x = Scale_Vector(Findgen(101), minThresh, maxThresh)
+      line = as_scale_vector(line, 0.0, !Y.CRange[1])
+      x = as_scale_vector(Findgen(101), minThresh, maxThresh)
       OPlot, x, line, Color=FSC_Color(self.colors[4]), LineStyle=2, Thick=2
     END
     

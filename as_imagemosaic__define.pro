@@ -319,10 +319,10 @@ PRO AS_ImageMosaic::Display, MOVEONLY = moveOnly
         'LOG'    : BEGIN 
                      image = ALog10(image)
                      image[Where(Finite(image) EQ 0)] = 0
-                     image = scale_vector(image,0,255, MINVALUE = ALog10(imageMin), MAXVALUE = ALog10(imageMax))
+                     image = as_scale_vector(image,0,255, MINVALUE = ALog10(imageMin), MAXVALUE = ALog10(imageMax))
                    END
-        'SQRT'   : image = scale_vector(SqRt(image),0, 255, MINVALUE = SqRt(imageMin), MAXVALUE = SqRt(imageMax))
-        ELSE     : image = scale_vector(image, 0, 255, MINVALUE = imageMin, MAXVALUE = imageMax)
+        'SQRT'   : image = as_scale_vector(SqRt(image),0, 255, MINVALUE = SqRt(imageMin), MAXVALUE = SqRt(imageMax))
+        ELSE     : image = as_scale_vector(image, 0, 255, MINVALUE = imageMin, MAXVALUE = imageMax)
       ENDCASE
      
       ;IF ~self.scaleIndividually THEN image = Fix(255*(image-imageMin)/Float(imageMax)) ELSE image = BytScl(image)

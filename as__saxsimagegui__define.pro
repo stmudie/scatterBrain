@@ -213,6 +213,7 @@ CASE widgetName OF
                               IF Widget_Info(Widget_Info(event.top, FIND_BY_UNAME = 'AUTO FIND 4 SECTORS'), /BUTTON_SET) THEN self.Find4Sectors
                       
             END
+            'HIDE BEAM CURSOR' : self.UpdateBeamCursor, HIDE=event.select
             'SAVE CONFIG' : BEGIN
                               Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME='CONFIG COMBO'), GET_VALUE = value
                               configName = Widget_Info(Widget_Info(self.imageGUIBase,  FIND_BY_UNAME='CONFIG COMBO'), /COMBOBOX_GETTEXT)
@@ -618,6 +619,8 @@ FUNCTION as__saxsimagegui::init, base, qData, profileObj, RESOURCE=resource, _RE
         wDownYButton = drawButton(yCentreBase, leftin, leftout, scale = 0.45, /SENSITIVE, UNAME='Y BEAM DOWN')
         wYCentreField = CW_FIELD(yCentreBase, /FLOAT, TITLE='', XSIZE = 10, /COLUMN, /RETURN_EVENTS, UNAME = 'Y BEAM CENTRE')
         wUpYButton = drawButton(yCentreBase, rightin, rightout, scale = 0.45, /SENSITIVE, UNAME='Y BEAM UP')
+        wHideBeamCursorNonExBase = Widget_Base(wBotScatterCol2, /COLUMN, /NONEXCLUSIVE)
+        wHideBeamCursorButton = Widget_Button(wHideBeamCursorNonExBase, VALUE = 'Hide Beamcursor', UNAME = 'HIDE BEAM CURSOR')
       wBotScatterCol3 = Widget_Base(wBotScatterColTab,TITLE='Norm', UNAME = 'NormTab',/COLUMN)
    
 ;  wSaveParameters = LonArr(2)

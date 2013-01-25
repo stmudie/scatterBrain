@@ -130,7 +130,7 @@ PRO as_maskObject::SetProperty, $
   
   @as_scatterheader.macro
 
-  IF self.lock THEN RETURN
+  IF N_Elements(lock)          THEN self.lock = lock ELSE IF self.lock THEN RETURN
   IF N_Elements(colour)        THEN BEGIN
     self.oPolygon.SetProperty, COLOR=COLOUR
     self.oPolyline.SetProperty, COLOR=COLOUR
@@ -195,8 +195,6 @@ PRO as_maskObject::SetProperty, $
   
   self->IDLgrModel::SetProperty, _EXTRA = extra
 
-  IF N_Elements(lock)          THEN self.lock = lock
-  
 END
 
 PRO as_maskObject::ShowLabels, show
@@ -285,7 +283,7 @@ PRO as_maskObject::MoveVertex, position, ADD=add, RELATIVE=relative
       self.UpdatePolygon, data
       self.selectVertex, self.selectedVertex + 1 
     ENDIF ELSE BEGIN
-      data[*,self.selectedVertex] = position
+      IF data NE !NULL THEN data[*,self.selectedVertex] = position
       self.UpdatePolygon, data
     ENDELSE
   ENDIF
