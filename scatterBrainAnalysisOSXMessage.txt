@@ -1,3 +1,7 @@
+Version 1.71
+A SERVICE PACK FOR IDL HAS BEEN RELEASED. IT IS RECOMMENDED THAT YOU UPGRADE YOUR ENTIRE SCATTERBRAIN INSTALLATION TO TAKE ADVANTAGE OF THIS.
+PLEASE GO TO www.synchrotron.org.au/index.php/aussyncbeamlines/saxswaxs/software-saxswaxs TO DOWNLOAD THE VERSION FOR YOU OPERATING SYSTEM.
+
 Version 1.70
 Various fixes and improvements to mask GUI, psuedo log scale q bining, option to hide beamcursor, 
 fix to imagemosaic intensity scaling, removal of annoying coincidental range error message, other bug fixes.
@@ -10,16 +14,3 @@ Bug fixes.
 
 Version 1.6
 Delete masks. Subtract profiles with different number of points (as long as the q positions are the same for the existing points). Couple of fixes for bugs introduced with error bars.
-
-Version 1.516 and 1.516 
-Bug fixes.
-
-Version 1.51
-Save mask colours, lock and beamrelative parameters. Rearrange mask window to make it easier to use. Numbered files in recent file list.
-
-Version 1.505
-Bug fix for 1.50. (Recent file list issues).
-
-Version 1.50
-You can plot DAT files directly. Use Tools->Dat File Mode.
-Error bars can be included in plot. Turn on in Settings->General Settings.
