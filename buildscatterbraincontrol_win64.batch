@@ -1,0 +1,108 @@
+;.RESET_SESSION
+
+
+class = List()
+
+; Compile project files
+
+CD, 'C:\Perforce\Personal\mudies\ADA\IDL'
+.COMPILE 'ezcaIDL.pro'
+
+class.add, 'epics_ad_base'
+class.add, 'epics_ad_control'
+class.add, 'epics_ad_display'
+class.add, 'epics_ad_file'
+class.add, 'epics_nd_std_arrays'
+class.add, 'epics_ndplugin_base'
+
+RESOLVE_ALL, class = class.toArray(), /CONTINUE_ON_ERROR
+
+CD, 'C:\Users\mudiesLocal\Documents\GitHub\scatterBrain' 
+
+temp = ''
+OpenR, fileLUN, 'scatterbrainanalysis.pro', /GET_LUN
+ReadF, fileLUN, temp
+ReadF, fileLUN, temp
+Free_LUN, fileLUN
+
+version = (StrSplit(temp,'=',/EXTRACT))[-1]
+version = StrCompress(StrJoin(StrSplit(version,'.',/EXTRACT),'_'),/REMOVE_ALL)
+
+.COMPILE 'drawButton.pro'
+.COMPILE 'scatterbrainanalysis.pro'
+.COMPILE 'scatterbraincontrol.pro'
+
+class = List()
+
+class.add, 'notify'
+class.add, 'scatterbrain'
+class.add, 'AS_FrameObj'
+class.add, 'AS_LogFileObj'
+class.add, 'AS__SaxsQData'
+class.add, 'as__saxscontourplot'
+class.add, 'as_saxsimagetools'
+class.add, 'as__saxsimagegui'
+class.add, 'as__saxsprofileaddons'
+class.add, 'as_abscal'
+class.add, 'as_areadetector'
+class.add, 'as_areadetectormap'
+class.add, 'as_cakeobj'
+class.add, 'as_helpfile'
+class.add, 'as_imagemosaic'
+class.add, 'as_imagemosaicgui'
+class.add, 'as_maskobj'
+class.add, 'as_maskobject'
+class.add, 'as_messageobj'
+class.add, 'as_normalisation'
+class.add, 'as_plotcontrol'
+class.add, 'as_pollareadetector'
+class.add, 'as_profilecontainerobj'
+class.add, 'as_profiledata'
+class.add, 'as_proteinexcelscans'
+class.add, 'as_pv'
+class.add, 'as_pvmap'
+class.add, 'as_qcalibration'
+class.add, 'as_saxscontrol'
+class.add, 'as_saxsexcelscans'
+class.add, 'as_scatterxmlfile'
+class.add, 'as_scatterxmlgui'
+class.add, 'as_talktoexcel'
+class.add, 'as_xmlparamfile'
+class.add, 'as_xstretch'
+class.add, 'scatterbrainhelp'
+class.add, 'as_upgradeversion'
+class.add, 'as_beamstopmaskobject'
+class.add, 'as_scatterbrainsettings'
+class.add, 'as_newexperimentfromtemplate'
+class.add, 'as__convertsaxs15toscatterbrain'
+class.add, 'as_exportstruct'
+class.add, 'as_exportstructtocsv'
+class.add, 'as_exportstructtoexcel'
+class.add, 'as_datfileloader'
+class.add, 'as_plotobject'
+
+;Other clases to be resolved
+
+class.add, 'idlgrlegend'
+class.add, 'progressbar'
+
+; Resolve all routines
+RESOLVE_ALL, class = class.toArray(), /CONTINUE_ON_ERROR
+
+; Create the project save file
+SAVE, /ROUTINES, FILENAME='c:\scatterBrain\scatterbraincontrol.sav', /VERBOSE
+
+MAKE_RT, 'scatterBrainControl', 'c:\scatterBrain\scatterBrainControlBeta\', SAVEFILE = 'c:\scatterBrain\scatterbraincontrol.sav',/WIN64, /overwrite,/VM
+
+SPAWN, 'copy .\resources\scatterColourTable.tbl c:\scatterBrain\scatterBrainControlBeta\scatterBrainControl'
+SPAWN, 'copy .\resources\scatterBrainResources.sav c:\scatterBrain\scatterBrainControlBeta\scatterBrainControl'
+SPAWN, 'copy scatterBrainControl64.ini c:\scatterBrain\scatterBrainControlBeta\scatterBrainControl\scatterBrainControl.ini'
+SPAWN, 'copy .\resources\splash.bmp c:\scatterBrain\scatterBrainControlBeta\scatterBrainControl'
+
+;destination = 'S:\Science\SAXSWAXS\scatterBrain\scatterBrainControl\V' + version + '\'
+;if file_test('S:\Science\SAXSWAXS\scatterBrain\scatterBrainControl',/DIRECTORY) THEN file_mkdir,  destination
+;if file_test('S:\Science\SAXSWAXS\scatterBrain\scatterBrainControl',/DIRECTORY) THEN file_copy, 'c:\scatterbraincontrol.sav', destination + 'scatterbraincontrol.sav', /OVERWRITE
+;if file_test('S:\Science\SAXSWAXS\scatterBrain\scatterBrainControl',/DIRECTORY) THEN file_copy, '.\resources\scatterColourTable.tbl', destination + 'scatterColourTable.tbl', /OVERWRITE
+;if file_test('S:\Science\SAXSWAXS\scatterBrain\scatterBrainControl',/DIRECTORY) THEN file_copy, '.\resources\scatterBrainResources.sav', destination + 'scatterBrainResources.sav', /OVERWRITE
+;if file_test('S:\Science\SAXSWAXS\scatterBrain\scatterBrainControl',/DIRECTORY) THEN file_copy, 'scatterBrainControl.ini', destination + 'scatterBrainControl.ini', /OVERWRITE
+;if file_test('S:\Science\SAXSWAXS\scatterBrain\scatterBrainControl',/DIRECTORY) THEN file_copy, '.\resources\splash.bmp', destination + 'splash.bmp', /OVERWRITE

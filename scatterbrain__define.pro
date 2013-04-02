@@ -1120,18 +1120,19 @@ PRO scatterBrain::newXML, event, DATA = data
 
   self.liveLog = current + Path_Sep() + 'livelogfile.log'
 
-  self.settingsObj.GetProperty, LOCALFILEPATH = localPath, REMOTEFILEPATH = remotePath
+  self.settingsObj.GetProperty, LOCALFILEPATH = localPath, REMOTEFILEPATH = remotePath, DETECTOR = detectors
   
   self.scatterXMLGUI_obj.GetParameters, ADMap = ADMap
   
   detID = Where(ADMap.control EQ 1)
   
   FOREACH detNo, detID DO BEGIN
-    localPathPattern = StrJoin(StrSplit(localpath[detNo],Path_Sep(),/EXTRACT),Path_Sep()+Path_Sep())
+    confDetID = Where((ADMap.Detectordef)[detno] EQ detectors)
+    localPathPattern = StrJoin(StrSplit(localpath[confDetID],Path_Sep(),/EXTRACT),Path_Sep()+Path_Sep())
     newPathSuffix = StrSplit(current,localPathPattern,/REGEX,/EXTRACT,/FOLD_CASE)
     newPathSuffix = StrJoin(StrSplit(newPathSuffix,Path_Sep(),/EXTRACT),'/')
-    sep = StrMid(remotePath[detNo],0,1,/REVERSE_OFFSET) EQ '/' ? '' : '/'
-    newRemotePath = remotePath[detNo] + sep + newPathSuffix
+    sep = StrMid(remotePath[confDetID],0,1,/REVERSE_OFFSET) EQ '/' ? '' : '/'
+    newRemotePath = remotePath[confDetID] + sep + newPathSuffix
     self.areaDetectorObj.SetProperty, detNo, filePath=newRemotePath
     self.areaDetectorObj.SetProperty, detNo, logfilepath=newRemotePath
     self.areaDetectorObj.SetProperty, detNo, logfilename='livelogfile.log'
