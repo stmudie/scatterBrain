@@ -929,29 +929,43 @@ PRO scatterbrain::event, event
         'STOP' : BEGIN
             WIDGET_CONTROL, Widget_Info(self.wScatterBase, FIND_BY_UNAME='START'), SENSITIVE=1
             
-            IF self.scanMode GT 1 THEN BEGIN
-              WIDGET_CONTROL, Widget_Info(self.wScatterBase, FIND_BY_UNAME='START'), GET_VALUE = buttonObj
-              buttonObj.setToggle,0
-              buttonObj.setToggle,1
-              WIDGET_CONTROL, Widget_Info(self.wScatterBase, FIND_BY_UNAME='START'), SET_VALUE='Start Scan'
-              self.excelObj.Stop
-              self.excelObj.GetProperty, CURRENTPOINT=currPoint, NUMPOINTS=numPoints
-              IF currPoint EQ 1 THEN point = 'point' ELSE point = 'points'
-              message = 'Scan aborted by user after completing ' + StrCompress(currPoint) + ' ' + point + ' of' + StrCompress(numPoints) + '.' 
-              messageBoxSize = (Widget_Info(Widget_Info(self.wScatterBase, FIND_BY_UNAME='MESBOX'),/GEOM)).XSize
-              result = AS_AddMessage(message, self.wScatterBase,SPLIT=messageBoxSize)
-              resumeID = Widget_Info(event.top, FIND_BY_UNAME = 'RESUME')
-              IF resumeID GT 0 THEN Widget_Control, resumeID, SET_VALUE = 'PAUSE', SET_UVALUE = 'PAUSE'
-              self.scanMode = 1
-            ENDIF ELSE BEGIN
-              self.areaDetectorObj.Stop
-              self.areaDetectorObj.SetProperty, SHUTTER='Closed'
-              message = 'Exposure aborted by user.' 
-              messageBoxSize = (Widget_Info(Widget_Info(self.wScatterBase, FIND_BY_UNAME='MESBOX'),/GEOM)).XSize
-              result = AS_AddMessage(message, self.wScatterBase,SPLIT=messageBoxSize)
-            ENDELSE
-            
-        END
+            ;************New Stop Code************* 
+             result = caput('SR13ID01HU02IOC02:ACQUIRE_STOP_ALL',1) 
+             IF self.scanMode GT 1 THEN BEGIN
+               WIDGET_CONTROL, Widget_Info(self.wScatterBase, FIND_BY_UNAME='START'), GET_VALUE = buttonObj
+               buttonObj.setToggle,0
+               buttonObj.setToggle,1
+               WIDGET_CONTROL, Widget_Info(self.wScatterBase, FIND_BY_UNAME='START'), SET_VALUE='Start Scan'
+             ENDIF ELSE BEGIN
+               message = 'Exposure aborted by user.'
+               messageBoxSize = (Widget_Info(Widget_Info(self.wScatterBase, FIND_BY_UNAME='MESBOX'),/GEOM)).XSize
+               result = AS_AddMessage(message, self.wScatterBase,SPLIT=messageBoxSize)
+             ENDELSE
+             
+;************Old Stop code*************
+;
+;            IF self.scanMode GT 1 THEN BEGIN
+;              WIDGET_CONTROL, Widget_Info(self.wScatterBase, FIND_BY_UNAME='START'), GET_VALUE = buttonObj
+;              buttonObj.setToggle,0
+;              buttonObj.setToggle,1
+;              WIDGET_CONTROL, Widget_Info(self.wScatterBase, FIND_BY_UNAME='START'), SET_VALUE='Start Scan'
+;              self.excelObj.Stop
+;              self.excelObj.GetProperty, CURRENTPOINT=currPoint, NUMPOINTS=numPoints
+;              IF currPoint EQ 1 THEN point = 'point' ELSE point = 'points'
+;              message = 'Scan aborted by user after completing ' + StrCompress(currPoint) + ' ' + point + ' of' + StrCompress(numPoints) + '.' 
+;              messageBoxSize = (Widget_Info(Widget_Info(self.wScatterBase, FIND_BY_UNAME='MESBOX'),/GEOM)).XSize
+;              result = AS_AddMessage(message, self.wScatterBase,SPLIT=messageBoxSize)
+;              resumeID = Widget_Info(event.top, FIND_BY_UNAME = 'RESUME')
+;              IF resumeID GT 0 THEN Widget_Control, resumeID, SET_VALUE = 'PAUSE', SET_UVALUE = 'PAUSE'
+;              self.scanMode = 1
+;            ENDIF ELSE BEGIN
+;              self.areaDetectorObj.Stop
+;              self.areaDetectorObj.SetProperty, SHUTTER='Closed'
+;              message = 'Exposure aborted by user.' 
+;              messageBoxSize = (Widget_Info(Widget_Info(self.wScatterBase, FIND_BY_UNAME='MESBOX'),/GEOM)).XSize
+;              result = AS_AddMessage(message, self.wScatterBase,SPLIT=messageBoxSize)
+;            ENDELSE
+		END
        
         'PAUSE' : BEGIN
                 crackedGlass = self.GetResource('crackedGlass') 
