@@ -857,6 +857,8 @@ FUNCTION as__saxscontourplot::Init, x, y, z, FILENAMES=fileNames, NOTIFYOBJ = no
   
   self.zoomout
   self.SetAxes
+  
+  self.plotindex
     
   self.oContourWindow.Draw, viewObj
   

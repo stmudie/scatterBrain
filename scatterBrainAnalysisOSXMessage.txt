@@ -1,6 +1,6 @@
 Version 1.71
 A SERVICE PACK FOR IDL HAS BEEN RELEASED. IT IS RECOMMENDED THAT YOU UPGRADE YOUR ENTIRE SCATTERBRAIN INSTALLATION TO TAKE ADVANTAGE OF THIS.
-PLEASE GO TO www.synchrotron.org.au/index.php/aussyncbeamlines/saxswaxs/software-saxswaxs TO DOWNLOAD THE VERSION FOR YOU OPERATING SYSTEM.
+PLEASE GO TO www.synchrotron.org.au/index.php/aussyncbeamlines/saxswaxs/software-saxswaxs TO DOWNLOAD THE VERSION FOR YOUR OPERATING SYSTEM.
 
 Version 1.70
 Various fixes and improvements to mask GUI, psuedo log scale q bining, option to hide beamcursor, 
