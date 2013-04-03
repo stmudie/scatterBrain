@@ -409,11 +409,13 @@ PRO AS_MaskObj::SetSelected, selectedObj
   IF Size(selectedObj, /TYPE) GE 1 AND Size(selectedObj, /TYPE) LE 5 THEN BEGIN
     selectedObj = (self.mask.maskObjects.Get(/ALL, ISA = 'as_maskobject'))[Fix(selectedObj)]
   ENDIF
-  IF Obj_Valid(selectedObj) THEN IF Where(selectedObj EQ self.mask.maskObjects.Get(/ALL, ISA = 'as_maskobject')) GE 0 THEN BEGIN
+  IF Obj_Valid(selectedObj) THEN maskNum = Where(selectedObj EQ self.mask.maskObjects.Get(/ALL, ISA = 'as_maskobject')) ELSE maskNum = -1
+   IF maskNum GE 0 THEN BEGIN
     IF Obj_Valid(self.mask.selectedMask) THEN self.mask.selectedMask.ShowLabels, 0
     self.mask.selectedMask = selectedObj
     self.mask.selectedMask.ShowLabels, 1
     self.DrawImage, /PRESERVEVIEWPLANE
+    Widget_Control, self.mask.wMaskTab, SET_TAB_CURRENT = maskNum + 1
   ENDIF
 
 END
@@ -664,7 +666,7 @@ PRO AS_MaskObj::Event, event
                            Widget_Control, tableID, SET_UNAME = 'Mask Table ' + StrCompress(maskNo-numDeleted,/REMOVE_ALL)
                          ENDELSE
                        ENDFOR
-                       self.SetSelected, N_Elements(mask) - N_Elements(selected)
+                       self.SetSelected, -1
                        Widget_Control, event.top, /DESTROY
                        RETURN
                        
