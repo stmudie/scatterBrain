@@ -1,3 +1,6 @@
+Version 1.72
+Bug fix to contour/sector plots.
+
 Version 1.71
 A SERVICE PACK FOR IDL HAS BEEN RELEASED. IT IS RECOMMENDED THAT YOU UPGRADE YOUR ENTIRE SCATTERBRAIN INSTALLATION TO TAKE ADVANTAGE OF THIS.
 PLEASE GO TO www.synchrotron.org.au/index.php/aussyncbeamlines/saxswaxs/software-saxswaxs TO DOWNLOAD THE VERSION FOR YOUR OPERATING SYSTEM.

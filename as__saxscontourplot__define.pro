@@ -566,7 +566,7 @@ PRO as__saxscontourplot::PlotIndex, FILENAMES = fileNames
     result = self.updateContour()
   ENDELSE
   IF Obj_Valid(self.plotObj) THEN self.plotAtQ
-  self.SetAxes, FILENAMES = KeyWord_Set(fileNames)
+  self.SetAxes;, YTITLE = 'Filenames (Plot Index)'; FILENAMES = KeyWord_Set(fileNames)
   
 END
 
@@ -858,7 +858,7 @@ FUNCTION as__saxscontourplot::Init, x, y, z, FILENAMES=fileNames, NOTIFYOBJ = no
   self.zoomout
   self.SetAxes
   
-  self.plotindex
+  ;self.plotindex
     
   self.oContourWindow.Draw, viewObj
   
