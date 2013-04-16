@@ -1,3 +1,6 @@
+Version 1.74
+Minor fixes
+
 Version 1.72/1.73
 Bug fix to contour/sector plots and mask deletion.
 
@@ -14,6 +17,3 @@ Fixed insidious bug with profile export (due to some IDL weirdness). Also big ch
 
 Version 1.61
 Bug fixes.
-
-Version 1.6
-Delete masks. Subtract profiles with different number of points (as long as the q positions are the same for the existing points). Couple of fixes for bugs introduced with error bars.

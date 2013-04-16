@@ -595,6 +595,8 @@ PRO as_scatterXMLFile::SetParameters, MASK=mask, CHANGEDMASKNAMES = changedMaskN
      ((*self.configurations)[config].beamx)      = frame.xc
      ((*self.configurations)[config].beamy)      = frame.yc
      ((*self.configurations)[config].waxsangle)  = frame.detangle
+     ;((*self.configurations)[config].waxsangle)  = frame.detoffsetv
+     ;((*self.configurations)[config].waxsangle)  = frame.detoffseth
      
    ENDIF
 
@@ -655,19 +657,38 @@ PRO as_scatterXMLFile::GetParameters, MASK=mask, BEAMSTOP = beamstop, CAKE=cake,
        knownMasks = StrSplit(textSplit[0],',',/EXTRACT)
        IF N_Elements(textSplit) GT 1 THEN maskType = StrSplit(textSplit[1],',',/EXTRACT)
        maskdef = Replicate({maskdef}, N_Elements(*self.usermasks)) 
-       FOR i = 0, N_Elements(*self.usermasks) - 1 DO BEGIN
-         usedMask = Where(knownMasks EQ ((*self.userMasks).maskname)[i])
-         IF usedMask GE 0 THEN type = Long(maskType[i]) ELSE type = 0l
-         tempParams = StrSplit(((*self.userMasks).usermask)[i],'[]',/EXTRACT)
+       FOREACH knownmask, knownMasks, index DO BEGIN
+        
+         userMaskNum = Where(((*self.userMasks).maskname) EQ knownMask)
+         type = Long(maskType[index])
+         tempParams = StrSplit(((*self.userMasks).usermask)[userMaskNum],'[]',/EXTRACT)
          tempParams1 = StrSplit(tempParams[0],',',/EXTRACT)
+
          IF N_Elements(tempParams) EQ 2 THEN BEGIN
            tempParams2 = StrSplit(tempParams[1],',',/EXTRACT)
            params = Transpose([[tempParams1],[tempParams2]])
          ENDIF ELSE params = tempParams1
-         IF ((*self.userMasks).colour)[i] EQ '' THEN colour = '[0,0,0]' ELSE colour = ((*self.userMasks).colour)[i]
+         
+         IF ((*self.userMasks).colour)[userMaskNum] EQ '' THEN colour = '[0,0,0]' ELSE colour = ((*self.userMasks).colour)[userMaskNum]
          colour = Fix([strsplit(colour,'[,]',/EXTRACT)])
-         maskdef[i] = { name: ((*self.userMasks).maskname)[i], type: type, shape: ((*self.userMasks).shape)[i], auto: ((*self.userMasks).auto)[i] EQ 'true', lock: ((*self.userMasks).lock)[i] EQ 'true', colour: colour, params : Ptr_New(Float(params)) }
-       ENDFOR
+         maskdef[userMaskNum] = { name: ((*self.userMasks).maskname)[userMaskNum], type: type, shape: ((*self.userMasks).shape)[userMaskNum], auto: ((*self.userMasks).auto)[userMaskNum] EQ 'true', lock: ((*self.userMasks).lock)[userMaskNum] EQ 'true', colour: colour, params : Ptr_New(Float(params)) }
+
+       ENDFOREACH
+
+
+;       FOR i = 0, N_Elements(*self.usermasks) - 1 DO BEGIN
+;         usedMask = Where(knownMasks EQ ((*self.userMasks).maskname)[i])
+;         IF usedMask GE 0 THEN type = Long(maskType[i]) ELSE type = 0
+;         tempParams = StrSplit(((*self.userMasks).usermask)[i],'[]',/EXTRACT)
+;         tempParams1 = StrSplit(tempParams[0],',',/EXTRACT)
+;         IF N_Elements(tempParams) EQ 2 THEN BEGIN
+;           tempParams2 = StrSplit(tempParams[1],',',/EXTRACT)
+;           params = Transpose([[tempParams1],[tempParams2]])
+;         ENDIF ELSE params = tempParams1
+;         IF ((*self.userMasks).colour)[i] EQ '' THEN colour = '[0,0,0]' ELSE colour = ((*self.userMasks).colour)[i]
+;         colour = Fix([strsplit(colour,'[,]',/EXTRACT)])
+;         maskdef[i] = { name: ((*self.userMasks).maskname)[i], type: type, shape: ((*self.userMasks).shape)[i], auto: ((*self.userMasks).auto)[i] EQ 'true', lock: ((*self.userMasks).lock)[i] EQ 'true', colour: colour, params : Ptr_New(Float(params)) }
+;       ENDFOR
        
        mask = maskdef
      ENDIF

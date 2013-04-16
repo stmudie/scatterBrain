@@ -1351,7 +1351,8 @@ PRO AS_ProfileContainerObj::AddQMarker, q
   
   ENDIF
   
-  qMarker = Obj_New('IDLgrPolyLine', [x,x], yrange, LINESTYLE = 2, COLOR = [127,127,127])
+  qLabel = Obj_New('IDLgrText', String(q, format = '(F5.2)'), COLOR = [127,127,127], CHAR_DIMENSIONS = [0.025,0.025])
+  qMarker = Obj_New('IDLgrPolyLine', [x,x], yrange, LINESTYLE = 2, COLOR = [127,127,127], LABEL_OBJECTS=qLabel)
   self->Add, qMarker
   
   IF ~Ptr_Valid(self.qMarkersObj) THEN self.qMarkersObj = Ptr_New(qMarker) ELSE *self.qMarkersObj = [*self.qMarkersObj,qMarker]
@@ -1382,7 +1383,8 @@ PRO AS_ProfileContainerObj::DeleteQMarker, q
     FOR i = 0, N_Elements(*self.qMarkersQ) - 1 DO BEGIN
       tempQ = (*self.qMarkersQ)
       IF Abs(tempQ[i] - q) LT 0.001*q THEN BEGIN
-        Obj_Destroy, (*self.qMarkersObj)[i]
+        (*self.qMarkersObj)[i].GetProperty, LABEL_OBJECT = labelObject
+        Obj_Destroy, (*self.qMarkersObj)[i], labelObject
         temp = IndGen(N_Elements(*self.qMarkersQ))
         temp = Where(temp NE i)
         IF temp[0] EQ -1 THEN BEGIN

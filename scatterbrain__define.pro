@@ -741,6 +741,9 @@ PRO scatterbrain::event, event
             
         END
         'RIMAGE' : BEGIN
+                    
+                    Widget_Control, event.id, TIMER = 1
+                   
                     detID = 0
                     control = -1
                     fileName = !Null
@@ -753,11 +756,7 @@ PRO scatterbrain::event, event
                       IF control EQ -1 THEN BREAK
                     ENDWHILE
                     
-                    IF detectorState EQ !Null THEN BEGIN
-                      ;print, systime()
-                      Widget_Control, event.id, TIMER = 1
-                      RETURN
-                    ENDIF
+                    IF detectorState EQ !Null THEN RETURN
                     
                     IF triggerMode EQ 'Gap Less' THEN self.frame_obj.SetProperty, SATURATION = 3*2.^20 ELSE self.frame_obj.SetProperty, SATURATION = 2.^20
                     
@@ -816,7 +815,7 @@ PRO scatterbrain::event, event
                           self.scanMode = 1
                           messageBoxSize = (Widget_Info(Widget_Info(self.wScatterBase, FIND_BY_UNAME='MESBOX'),/GEOM)).XSize
                           message = 'Scan completed.'
-                          SPAWN, 'sndrec32 /embedding /play /close "c:\windows\media\tada.wav"', /NOSHELL
+                          ;SPAWN, 'sndrec32 /embedding /play /close "c:\windows\media\tada.wav"', /NOSHELL
                           WIDGET_CONTROL, Widget_Info(self.wScatterBase, FIND_BY_UNAME='START'), GET_VALUE = buttonObj
                           buttonObj.setToggle,0
                           buttonObj.setToggle,1
@@ -825,7 +824,7 @@ PRO scatterbrain::event, event
                         ENDIF
                       ENDELSE
                     ENDIF
-                    Widget_Control, event.id, TIMER = 1
+                    
         END
         'INDEX'  : BEGIN
                     self.areaDetectorObj.SetProperty, FILENUMBER = *event.value
