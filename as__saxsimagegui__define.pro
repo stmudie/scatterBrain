@@ -243,14 +243,7 @@ CASE widgetName OF
                               configName = Widget_Info(Widget_Info(self.imageGUIBase,  FIND_BY_UNAME='CONFIG COMBO'), /COMBOBOX_GETTEXT)
                               IF configName EQ 'New...' OR configName EQ '' THEN RETURN
                               index = Where((self.configNames).toArray() EQ configName)
-                              IF index[0] EQ -1 THEN RETURN
-                              self.currentConfig = index[0]
-                              self.profiles_obj.NewParams, self.frame.logObj, index
-                              self.AS_Maskobj::NewParams, self.frame.logObj, CONFIG = index
-                              Widget_Control, Widget_Info(event.top, FIND_BY_UNAME='X BEAM CENTRE'), SET_VALUE = self.frame.xc
-                              Widget_Control, Widget_Info(event.top, FIND_BY_UNAME='Y BEAM CENTRE'), SET_VALUE = self.frame.yc
-                              self.LoadCakeLUT, index
-                              Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME='PARAM LABEL'), SET_VALUE = configName
+                              self.loadconfig, index
                             END
             'SAVE SLOT': BEGIN
                              
@@ -456,19 +449,35 @@ END
 ;
 ;END
 
-PRO as__saxsimagegui::NewParams, paramObj
+PRO as__saxsimagegui::LoadConfig, configNo
+
+  IF configNo[0] EQ -1 THEN RETURN
+  self.currentConfig = configNo[0]
+  self.profiles_obj.NewParams, self.frame.logObj, configNo
+  self.AS_Maskobj::NewParams, self.frame.logObj, CONFIG = configNo
+  Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME='X BEAM CENTRE'), SET_VALUE = self.frame.xc
+  Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME='Y BEAM CENTRE'), SET_VALUE = self.frame.yc
+  self.LoadCakeLUT, configNo
+  Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME='PARAM LABEL'), SET_VALUE = self.configNames[configNo]
+  Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME='CONFIG COMBO'), SET_COMBOBOX_SELECT = configNo + 1
+
+END
+
+
+PRO as__saxsimagegui::NewParams, paramObj, CONFIGNO = configNo
   
   @as_scatterheader.macro
   
-  self->as_saxsimagetools::NewParams, paramObj
+  self->as_saxsimagetools::NewParams, paramObj, CONFIGNO = configNo
   
   ;Todo At the moment this is only called when an XML is opened. What would happen if called at other time? I think combobox would get screwed up.
+  IF N_Elements(configNo) EQ 0 THEN configNo = 0
   paramObj->GetParameters, FRAME=frame
   nullName = Where(frame.confname EQ '')
   IF nullName[0] GE 0 THEN (frame[nullname].confname) = ' ' 
   Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME = 'CONFIG COMBO'), SET_VALUE= ['New...', frame.confName] 
-  Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME = 'CONFIG COMBO'), SET_COMBOBOX_SELECT = 1
-  Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME = 'PARAM LABEL'), SET_VALUE = (frame.confName)[0]
+  Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME = 'CONFIG COMBO'), SET_COMBOBOX_SELECT = configNo + 1
+  Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME = 'PARAM LABEL'), SET_VALUE = (frame.confName)[configNo]
   
   self.configNames.add, frame.confName, /EXTRACT
 

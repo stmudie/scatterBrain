@@ -20,9 +20,9 @@ FUNCTION as_scatterBrainSettings::init
   self.recentFile = Ptr_New(replicate({RECENTFILE},8))
   self.attRecentFile = Ptr_New({ATTRIBUTESRECENTFILE, recentFile :['']})
   
-  void = {GENERAL, generalSettings : '', zingerThresh : '', binSize : '', startingDirectory : '', autoCheckUpdates : '', errorBars : ''}
+  void = {GENERAL, generalSettings : '', zingerThresh : '', binSize : '', startingdirectory1 : '', startingDirectory2 : '', autoCheckUpdates : '', errorBars : ''}
   self.general = Ptr_New({GENERAL})
-  self.attGeneral = Ptr_New({ATTRIBUTESGENERAL, generalSettings : ['zingerThresh', 'binSize', 'startingDirectory', 'autoCheckUpdates', 'errorBars']})
+  self.attGeneral = Ptr_New({ATTRIBUTESGENERAL, generalSettings : ['zingerThresh', 'binSize', 'startingdirectory1', 'startingDirectory2', 'autoCheckUpdates', 'errorBars']})
     
   RETURN, self.as_xmlparamfile::init()
 
@@ -92,9 +92,13 @@ PRO as_scatterBrainSettings::ParseFile
   general = *self.general
   IF general.zingerThresh EQ '' THEN self.SetProperty, zingerThresh = 3.0 
   IF general.binSize EQ '' THEN self.SetProperty, binSize = 2
-  IF general.startingDirectory EQ '' THEN BEGIN
+  IF general.startingdirectory1 EQ '' THEN BEGIN
     CD, CURRENT = current
-    self.SetProperty, startingDirectory = current
+    self.SetProperty, startingdirectory1 = current
+  ENDIF
+  IF general.startingDirectory2 EQ '' THEN BEGIN
+    CD, CURRENT = current
+    self.SetProperty, startingDirectory2 = current
   ENDIF
   IF general.autoCheckUpdates EQ '' THEN self.SetProperty, autoCheckUpdates = 1
   
@@ -146,7 +150,8 @@ PRO as_scatterBrainSettings::GetProperty, $
   BINSIZE = binSize, $
   RECENTFILE = recentFile, $
   SETTINGSPATH = settingsPath, $
-  STARTINGDIRECTORY = startingDirectory, $
+  startingdirectory1 = startingdirectory1, $
+  STARTINGDIRECTORY2 = startingDirectory2, $
   AUTOCHECKUPDATES = autoCheckUpdates, $
   ERRORBARS = errorBars
 
@@ -173,7 +178,8 @@ PRO as_scatterBrainSettings::GetProperty, $
   IF Arg_Present(binSize) AND Ptr_Valid(self.general) THEN binSize = (*self.general).binSize
   IF Arg_Present(recentFile) THEN recentFile = (*self.recentFile).recentFile
   IF Arg_Present(settingsPath) THEN settingsPath = self.settingsPath
-  IF Arg_Present(startingDirectory) THEN startingDirectory = (*self.general).startingDirectory
+  IF Arg_Present(startingdirectory1) THEN startingdirectory1 = (*self.general).startingdirectory1
+  IF Arg_Present(startingDirectory2) THEN startingDirectory2 = (*self.general).startingDirectory2
   IF Arg_Present(autoCheckUpdates) THEN autoCheckUpdates = Fix((*self.general).autoCheckUpdates)
   IF Arg_Present(errorBars) THEN errorBars = Fix((*self.general).errorBars)
 
@@ -201,7 +207,8 @@ PRO as_scatterBrainSettings::SetProperty, $
   ZINGERTHRESH = zingerThresh, $
   BINSIZE = binSize, $
   RECENTFILE = recentFile, $
-  STARTINGDIRECTORY = startingDirectory, $
+  startingdirectory1 = startingdirectory1, $
+  STARTINGDIRECTORY2 = startingDirectory2, $
   AUTOCHECKUPDATES = autoCheckUpdates, $
   NOSAVE = noSave, $
   ERRORBARS = errorBars
@@ -266,7 +273,8 @@ PRO as_scatterBrainSettings::SetProperty, $
     newRecentFileList[0:numRecentFiles-1] = recentFileList[0:numRecentFiles-1]
     (*self.recentFile)[*].recentFile = newRecentFileList
   ENDIF
-  IF ISA(startingDirectory, 'STRING') AND Ptr_Valid(self.general) THEN (*self.general).startingDirectory = startingDirectory
+  IF ISA(startingdirectory1, 'STRING') AND Ptr_Valid(self.general) THEN (*self.general).startingdirectory1 = startingdirectory1
+  IF ISA(startingDirectory2, 'STRING') AND Ptr_Valid(self.general) THEN (*self.general).startingDirectory2 = startingDirectory2
   IF Ptr_Valid(self.general) THEN (*self.general).autoCheckUpdates = KeyWord_Set(autoCheckUpdates)
   IF N_Elements(errorBars) AND Ptr_Valid(self.general) THEN (*self.general).errorBars = String(errorBars)
   

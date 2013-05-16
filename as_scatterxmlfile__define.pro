@@ -10,14 +10,14 @@ FUNCTION as_scatterXMLFile::init, NOTIFYOBJECT = notifyObject
 
   self.currentConfig = 0
 
-  void = {CONFIGURATION, CONFIGURATION: '', NAME: '', CAMERADEFS: '', USERMASKS: '', COUNTERDEFS: '', NORMALISATION: '', $
+  void = {CONFIGURATION, CONFIGURATION: '', NAME: '', LOADCONFIG: '', CAMERADEFS: '', USERMASKS: '', COUNTERDEFS: '', NORMALISATION: '', $
                          DETECTOR: '', LENGTH: '', BEAMX: '', BEAMY: '', WAVELENGTH: '', STOPACTIVE: '', STOPRADIUS: '', STOPOFFSETX: '', STOPOFFSETY : '', STOPANGLE: '', STOPWIDTH: '', WAXSANGLE: '', $
                          INCIDENT: '', TRANSMISSION: '',BEAMSTOP: '', $
                          ABSCAL: '', USEABSCAL: '', I0NORM: '', IBSNORM: '', NORMTYPE: ''}
   
   self.configurations    = Ptr_New({CONFIGURATION})
   self.attConfigurations = Ptr_New({ATTCONFIGURATION, $
-                                          CONFIGURATION : ['NAME'],$
+                                          CONFIGURATION : ['NAME', 'LOADCONFIG'],$
                                           CAMERADEFS    : ['DETECTOR','LENGTH','BEAMX','BEAMY','WAVELENGTH','STOPACTIVE','STOPRADIUS','STOPOFFSETX','STOPOFFSETY','STOPANGLE','STOPWIDTH','WAXSANGLE'], $
                                           USERMASKS     : [''], $
                                           COUNTERDEFS   : ['INCIDENT','TRANSMISSION','BEAMSTOP'], $
@@ -66,6 +66,7 @@ FUNCTION as_scatterXMLFile::init, NOTIFYOBJECT = notifyObject
               '' + String([10B]) + $
               '<!ATTLIST scatterBrain FileVersion CDATA #IMPLIED>' + String([10B]) + $
               '<!ATTLIST CONFIGURATION NAME CDATA #IMPLIED>' + String([10B]) + $
+              '<!ATTLIST CONFIGURATION LOADCONFIG CDATA #IMPLIED>' + String([10B]) + $
               '<!ATTLIST PV ACQUIRE (true|false) #IMPLIED>' + String([10B]) + $
               '<!ATTLIST PV ACQUIREHIGH CDATA #IMPLIED>' + String([10B]) + $
               '<!ATTLIST PV ACQUIRELOW CDATA #IMPLIED>' + String([10B]) + $
@@ -856,7 +857,7 @@ PRO as_scatterXMLFile::SetValue, param, setValue, POSITION=position
         ENDELSE
       ENDIF
     ENDIF
-    paramNo = Where(STRUPCASE(param[index]) EQ Tag_Names(*self.loglines))
+    IF ISA(*self.loglines,'STRUCT') THEN paramNo = Where(STRUPCASE(param[index]) EQ Tag_Names(*self.loglines)) ELSE paramNo = -1
     IF paramNo GE 0 THEN BEGIN  
       IF N_Elements(position) EQ 0 THEN (*self.loglines)[*].(paramNo) = value
       IF N_Elements(position) GE 1 THEN BEGIN
@@ -907,9 +908,28 @@ FUNCTION as_scatterXMLFile::FileLoaded
 
 END
 
-PRO as_scatterXMLFile::GetProperty, XMLFILENAME = xmlFileName
+PRO as_scatterXMLFile::GetProperty, XMLFILENAME = xmlFileName, LOADCONFIG = loadConfig, NUMLOADCONFIG = numLoadConfig 
 
   @as_scatterheader.macro
+
+  IF Arg_Present(loadConfig) THEN BEGIN
+  
+    name = self.GetValue('name')
+    loadConfigDet = self.GetValue('loadconfig')
+    
+    loadConfig = { Detector1 : name[Where(loadConfigDet EQ 'DETECTOR1')], Detector2 : name[Where(loadConfigDet EQ 'DETECTOR2',/NULL)]}
+    
+  ENDIF
+
+  IF Arg_Present(numLoadConfig) THEN BEGIN
+  
+    name = self.GetValue('name')
+    loadConfigDet = self.GetValue('loadconfig')
+    
+    numLoadConfig = { Detector1 : (Where(loadConfigDet EQ 'DETECTOR1'))[0], Detector2 : (Where(loadConfigDet EQ 'DETECTOR2',/NULL))[0]}
+    
+  ENDIF
+
 
   IF Arg_Present(xmlFileName) THEN xmlFileName = self.xmlFileName
 

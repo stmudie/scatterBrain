@@ -229,11 +229,11 @@ PRO AS_SaxsImageTools::GetProperty, _REF_Extra = extra
 
 END
 
-PRO AS_SaxsImageTools::NewParams, paramObj
+PRO AS_SaxsImageTools::NewParams, paramObj, CONFIGNO = configNo
   
   @as_scatterheader.macro
 
-  self->AS_CakeObj::NewParams, paramObj
+  self->AS_CakeObj::NewParams, paramObj, CONFIGNO = configNo
 
 END
 

@@ -721,11 +721,11 @@ PRO AS_CakeObj::Event, event
   self->AS_MaskObj::event, event
 END
 
-PRO AS_CakeObj::NewParams, paramObj 
+PRO AS_CakeObj::NewParams, paramObj, CONFIGNO = configNo 
 
   @as_scatterheader.macro
 
-  self->AS_MaskObj::NewParams, paramObj
+  self->AS_MaskObj::NewParams, paramObj, CONFIG =configNo
 
   cake = 1
 

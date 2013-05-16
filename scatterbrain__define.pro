@@ -243,7 +243,17 @@ PRO scatterbrain::event, event
                                      ENDFOREACH
                                    ENDIF
                                    
-                                   newTemplate = as_newexperimentfromtemplate(templateList.toArray(), NOTIFYOBJ = notify('NewExperimentCallback',self), PATH = self.GetUserDir())
+                                   IF Obj_Valid(self.frame_obj2) THEN path2 = self.frame_obj2.frame.path ELSE path2 = ''
+                                   
+                                   path = [self.frame_obj.frame.path,path2]
+                                   
+                                   
+                                   IF path[0] EQ '' OR path[0] EQ 'No Name Yet' THEN path[0] = self.settingsobj.startingDirectory1
+                                   IF path[1] EQ '' OR path[1] EQ 'No Name Yet' THEN path[1] = self.settingsobj.startingDirectory2
+                                   
+                                   path = self.GetUserDir(path)
+                                   
+                                   newTemplate = as_newexperimentfromtemplate(templateList.toArray(), NOTIFYOBJ = notify('NewExperimentCallback',self), PATH = path)
                                    ;self.settingsObj.GetProperty, DETECTOR=detectors
                                    ;newExpDialog = as_newexperiment(DETECTORLIST = detectors, NOTIFY = notify('NewExperimentCallback', self))
                                  END
@@ -387,13 +397,7 @@ PRO scatterbrain::event, event
         '2ND DETECTOR' : BEGIN
                            set = Widget_Info(event.id, /BUTTON_SET)
                            IF ~set THEN BEGIN
-                             Widget_Control, event.id, SET_BUTTON = 1
-                             Widget_Control, Widget_Info(event.top, FIND_BY_UNAME = 'DATA PATH 2'), /SENSITIVE
-                             secondFrameBase = Widget_Base(GROUP_LEADER = self.wScatterBase, TITLE = '2nd Detector/Frame')
-                             self.qData_obj2 = Obj_New('AS__SaxsQData')
-                             self.frame_obj2 = Obj_New('as__saxsimagegui', secondFrameBase, self.qData_obj2, self.profiles_obj, RESOURCE=self, NOTIFY = notify('FrameCallback',self))
-                             self.frame_obj2->SetProperty, LOGOBJ=self.scatterXMLGUI_obj
-                             IF self.scatterXMLGUI_Obj.FileLoaded() THEN self.frame_obj2->NewParams, self.scatterXMLGUI_Obj
+                             self.Use2ndDetector
                            ENDIF ELSE BEGIN
                              Widget_Control, event.id, SET_BUTTON = 0
                              Widget_Control, Widget_Info(event.top, FIND_BY_UNAME = 'DATA PATH 2'), SENSITIVE = 0
@@ -486,7 +490,7 @@ PRO scatterbrain::event, event
                        END
         'STARTING DIRECTORY' : BEGIN
                                  startingDirectory = Dialog_Pickfile(/DIRECTORY)
-                                 IF File_Test(startingDirectory, /DIRECTORY) THEN self.settingsObj.startingDirectory = startingDirectory
+                                 IF File_Test(startingDirectory, /DIRECTORY) THEN self.settingsObj.startingDirectory1 = startingDirectory
                                END
         'AUTO CHECK UPDATE' : BEGIN
                                 self.settingsObj.autoCheckUpdates = event.select
@@ -1043,7 +1047,16 @@ PRO scatterbrain::saveXML
 
   @as_scatterheader.macro
 
-  IF self.pollEpics GT 0 THEN self.areaDetectorObj.StoreParams, self.scatterXMLGUI_obj 
+  IF self.pollEpics GT 0 THEN self.areaDetectorObj.StoreParams, self.scatterXMLGUI_obj
+  name = self.scatterXMLGUI_obj.GetValue('name')
+  load = StrArr(N_Elements(name))
+  self.frame_obj.GetProperty, CONFIGNAME = configName1
+  IF Obj_Valid(self.frame_obj2) THEN BEGIN
+    self.frame_obj2.GetProperty, CONFIGNAME = configName2
+    load[[Where(name EQ configName1),Where(name EQ configName2)]] = ['DETECTOR1', 'DETECTOR2']  
+  ENDIF ELSE load[Where(name EQ configName1)] = 'DETECTOR1'
+  
+  self.scatterXMLGUI_obj.SetValue, 'loadconfig', load
   self.scatterXMLGUI_obj->SaveFile
   widgetIDS = [Widget_Info(self.wScatterBase, FIND_BY_UNAME = 'NEW EXPERIMENT EMPTY'),Widget_Info(self.wScatterBase, FIND_BY_UNAME = 'NEW EXPERIMENT FILES')]
   FOREACH widgetID, widgetIDS DO IF widgetID GT 0 THEN Widget_Control, widgetID, SENSITIVE = 1
@@ -1082,8 +1095,13 @@ PRO scatterbrain::loadXML, xmlFile
   widgetIDS = [Widget_Info(self.wScatterBase, FIND_BY_UNAME = 'NEW EXPERIMENT EMPTY'),Widget_Info(self.wScatterBase, FIND_BY_UNAME = 'NEW EXPERIMENT FILES')]
   FOREACH widgetID, widgetIDS DO IF widgetID GT 0 THEN Widget_Control, widgetID, SENSITIVE = 1
   self.liveLog = ''
-  self.frame_obj->NewParams, self.scatterXMLGUI_obj
-  IF Obj_Valid(self.frame_obj2) THEN self.frame_obj2->NewParams, self.scatterXMLGUI_obj
+  
+  self.scatterXMLGUI_obj.GetProperty, NUMLOADCONFIG=numLoadConfig
+  
+  IF numLoadConfig.detector2 NE !NULL THEN self.Use2ndDetector
+  
+  self.frame_obj->NewParams, self.scatterXMLGUI_obj, CONFIGNO = numLoadConfig.detector1
+  IF Obj_Valid(self.frame_obj2) THEN self.frame_obj2->LOADCONFIG, numLoadConfig.detector2
   IF self.pollEpics GT 0 THEN self.areaDetectorObj->NewParams, self.scatterXMLGUI_obj
   self.profiles_obj.NewParams, self.scatterXMLGUI_obj
   result = self.qCalibGUI()
@@ -1095,6 +1113,9 @@ PRO scatterbrain::loadXML, xmlFile
   geom = Widget_Info(self.wScatterBase, /GEOM)
   self.scatterXMLGUI_obj->SetProperty, HEIGHT = geom.scr_ysize*.9 
 
+  
+  
+
 END
 
 PRO scatterBrain::newXML, event, DATA = data
@@ -1103,11 +1124,19 @@ PRO scatterBrain::newXML, event, DATA = data
 
   files = 0
   IF TypeName(data) EQ 'HASH' THEN IF data.haskey('files') THEN files = data['files']
+  xmlfile = event.path[0] + event.experimentName + Path_Sep() + event.experimentName + '.xml'
 
-  xmlfile = event.path + event.experimentName + Path_Sep() + event.experimentName + '.xml'
+  IF event.saxswaxs EQ 1 THEN BEGIN
+    self.settingsObj.startingdirectory2 = event.path[1]
+    File_MkDir, event.path[1] + event.experimentName
+    CD, event.path[1] + event.experimentName
+    File_MkDir, ['avg','analysis','sub','raw_sub','raw_dat','manual','images']
+  ENDIF
 
-  File_MkDir, event.path + event.experimentName
-  CD, event.path + event.experimentName
+  
+  self.settingsObj.startingdirectory1 = event.path[0]
+  File_MkDir, event.path[0] + event.experimentName
+  CD, event.path[0] + event.experimentName
   File_MkDir, ['avg','analysis','sub','raw_sub','raw_dat','manual','images']
   CD, 'images'
   OpenW, fileLUN, 'livelogfile.log', /GET_LUN
@@ -1142,8 +1171,8 @@ PRO scatterBrain::newXML, event, DATA = data
   FOREACH detNo, detID DO BEGIN
     confDetID = Where((ADMap.Detectordef)[detno] EQ detectors)
     localPathPattern = StrJoin(StrSplit(localpath[confDetID],Path_Sep(),/EXTRACT),Path_Sep()+Path_Sep())
-    newPathSuffix = StrSplit(current,localPathPattern,/REGEX,/EXTRACT,/FOLD_CASE)
-    newPathSuffix = StrJoin(StrSplit(newPathSuffix,Path_Sep(),/EXTRACT),'/')
+    newPathSuffix = StrSplit(event.path[detNo],localPathPattern,/REGEX,/EXTRACT,/FOLD_CASE)
+    newPathSuffix = StrJoin([StrSplit(newPathSuffix,Path_Sep(),/EXTRACT),event.experimentName,'images'],'/')
     sep = StrMid(remotePath[confDetID],0,1,/REVERSE_OFFSET) EQ '/' ? '' : '/'
     newRemotePath = remotePath[confDetID] + sep + newPathSuffix
     self.areaDetectorObj.SetProperty, detNo, filePath=newRemotePath
@@ -1172,6 +1201,18 @@ PRO scatterBrain::newXML, event, DATA = data
     self.frame_obj->ReSize, BUFFER = self.aux_base_size + [50,50]
     self.frame_obj.SetProperty, PATH=current + Path_Sep()
   ENDIF
+
+END
+
+PRO scatterBrain::Use2ndDetector
+
+  Widget_Control, Widget_Info(self.wScatterBase, FIND_BY_UNAME = '2ND DETECTOR'), SET_BUTTON = 1
+  Widget_Control, Widget_Info(self.wScatterBase, FIND_BY_UNAME = 'DATA PATH 2'), /SENSITIVE
+  secondFrameBase = Widget_Base(GROUP_LEADER = self.wScatterBase, TITLE = '2nd Detector/Frame')
+  self.qData_obj2 = Obj_New('AS__SaxsQData')
+  self.frame_obj2 = Obj_New('as__saxsimagegui', secondFrameBase, self.qData_obj2, self.profiles_obj, RESOURCE=self, NOTIFY = notify('FrameCallback',self))
+  self.frame_obj2->SetProperty, LOGOBJ=self.scatterXMLGUI_obj
+  IF self.scatterXMLGUI_Obj.FileLoaded() THEN self.frame_obj2->NewParams, self.scatterXMLGUI_Obj
 
 END
 
@@ -1595,17 +1636,20 @@ PRO scatterbrain::Acquire
 
 END
 
-FUNCTION scatterbrain::GetUserDir
+FUNCTION scatterbrain::GetUserDir, dir
 
   @as_scatterheader.macro
 
-  path = ''
-  IF self.experimentDir NE '' THEN path = File_DirName(self.experimentDir, /MARK_DIRECTORY)
-  IF ~file_test(path) THEN BEGIN
-   CD, CURRENT = path
-   IF StrUpCase(File_Basename(path)) EQ 'IMAGES' THEN path = File_Dirname(File_Dirname(path),/MARK_DIRECTORY)
-  ENDIF
-  RETURN, path
+  IF ~Arg_Present(dir) THEN dir = self.experimentDir
+
+  pathList = list()
+  FOREACH d, dir DO BEGIN
+    IF d NE '' THEN path = d ELSE path = ''
+    IF ~file_test(path) THEN CD, CURRENT = path
+    IF StrUpCase(File_Basename(path)) EQ 'IMAGES' THEN path = File_Dirname(File_Dirname(path),/MARK_DIRECTORY)
+    pathList.add, path
+  ENDFOREACH
+  RETURN, pathList.toArray()
 END
 
 PRO scatterBrain::NewExperimentCallback, event, data
@@ -1986,7 +2030,7 @@ FUNCTION scatterbrain::init     $
    self.settingsObj.ParseFile
    
    validPath = 0b
-   startingDirectory = self.settingsObj.startingDirectory
+   startingDirectory = self.settingsObj.startingDirectory1
     WHILE validPath EQ 0 DO BEGIN
       validPath = File_Test(startingDirectory, /DIRECTORY)
       IF ~validPath THEN BEGIN
