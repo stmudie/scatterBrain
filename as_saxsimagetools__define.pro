@@ -6,7 +6,7 @@ FUNCTION AS_SaxsImageTools::Init, qData, profileObj, _REF_Extra=extra
 
 END
 
-PRO AS_SaxsImageTools::qCalibChange, qcalib
+PRO AS_SaxsImageTools::qCalibChange, qcalib, CONFIGNO = configNo
 
   @as_scatterheader.macro
 
@@ -16,7 +16,7 @@ PRO AS_SaxsImageTools::qCalibChange, qcalib
   self.cake.ok = 0
   self.cake.newmask = 1
 
-  self.StoreParams, self.frame.logObj
+  self.as_maskobj::StoreParams, self.frame.logObj, CONFIG = configNo
 
 END
 

@@ -290,6 +290,8 @@ PRO as_abscal::Calibrate
     YRange = [0, Max(*self.DetCounts)]
   ENDELSE
   
+  IF XRange[1]-XRange[0] EQ 0 OR YRange[1]-YRange[0] EQ 0 THEN RETURN
+  
   ; Use the function lingradient so that it automatically compiles for build, as it is only used as an input to the curvefit routine, and passed as a string.
   lingradient, 1, [1,2], void
   

@@ -47,11 +47,21 @@ PRO AS_ProfileContainerObj::baseEvent, event
                       self.absGUI.SetCurrentCalibration, self.cscalib, USE = self.useCalib
                     END
    'Q Calibration': BEGIN
-                      IF ~Obj_Valid(self.qCalibGUI) THEN BEGIN
-                        Widget_Control, self.groupleader, GET_UVALUE = scatterBrain
-                        self.qCalibGUI = scatterBrain.qCalibGUI(GROUPLEADER=self.wBase);, NOTIFY_OBJ = [{OBJECT:self, METHOD:'SetQCalibParams'},{OBJECT:self, METHOD:'UpdatePlot'}])
-                      ENDIF
-                      self.qCalibGUI->showGUI
+;                      IF ~Obj_Valid(self.qCalibGUI) THEN BEGIN
+;                        Widget_Control, self.groupleader, GET_UVALUE = scatterBrain
+;                        self.qCalibGUI = scatterBrain.qCalibGUI(GROUPLEADER=self.wBase);, NOTIFY_OBJ = [{OBJECT:self, METHOD:'SetQCalibParams'},{OBJECT:self, METHOD:'UpdatePlot'}])
+;                      ENDIF
+;                      self.qCalibGUI->showGUI
+                      
+                      Widget_Control, event.id, GET_UVALUE = detectorNo
+                      Widget_Control, self.groupleader, GET_UVALUE = scatterBrain
+                      
+                      CASE detectorNo OF
+                        0: scatterBrain.qCalibGUI.showGui
+                        1: scatterBrain.qCalibGUI2.showGui
+                      ENDCASE 
+
+                      
                       ;self.qCalibGUI.SetProperty, WAVELENGTH = ,CAMERALENGTH = 
                     END
    'Help'         : BEGIN
@@ -389,7 +399,8 @@ FUNCTION AS_ProfileContainerObj::Init, GROUPLEADER=groupLeader, PLOTPALETTE = pl
   wAbsMenu = Widget_Button(wMenuBase, /MENU, VALUE = 'Intensity Normalisation and Calibration')
   wAbsButton = Widget_Button(wAbsMenu, VALUE = 'Intensity Normalisation and Calibration', UNAME='Abs Cal')
   wQCalibMenu = Widget_Button(wMenuBase, /MENU, VALUE = 'Q Calibration')
-  wQCalibButton = Widget_Button(wQCalibMenu, VALUE = 'Q Calibration', UNAME='Q Calibration')
+  wQCalibButton = Widget_Button(wQCalibMenu, VALUE = 'Q Calibration Detector 1', UVALUE = 0, UNAME='Q Calibration')
+  wQCalibButton = Widget_Button(wQCalibMenu, VALUE = 'Q Calibration Detector 2', UVALUE = 1, UNAME='Q Calibration')
   wHelpButton = Widget_Button(wMenuBase, /MENU, VALUE = 'Help');, UNAME = 'Help', EVENT_PRO='as_profilecontainerobj_baseEvent')
   wContextHelp= Widget_Button(wHelpButton, VALUE = 'Context Help', UNAME = 'Help')
     
@@ -1122,7 +1133,7 @@ PRO AS_ProfileContainerObj::DeleteProfile, index, ALL=all, NONOTIFY = noNotify
           
 END
 
-PRO AS_ProfileContainerObj::AddProfile, q_arr, data, error, fname, NOPLOT = noplot, SETBLANK = setBlank, LIVE = live, PROFILEINDEX = profileIndex, _REF_Extra=extra
+PRO AS_ProfileContainerObj::AddProfile, q_arr, data, error, fname, NOPLOT = noplot, SETBLANK = setBlank, LIVE = live, PROFILEINDEX = profileIndex, DETECTORNO = detectorNo, _REF_Extra=extra
 
   @as_scatterheader.macro
 
@@ -1147,7 +1158,7 @@ PRO AS_ProfileContainerObj::AddProfile, q_arr, data, error, fname, NOPLOT = nopl
 
   IF ~KeyWord_Set(error) THEN error = FltArr(N_Elements(data))
     
-  profile = Obj_New('AS__saxsprofileaddons', data, error, fname, QVECTOR = q_arr, I0Norm = self.ionrm, IBSNorm = self.ibsnrm, _EXTRA=extra) 
+  profile = Obj_New('AS__saxsprofileaddons', data, error, fname, QVECTOR = q_arr, DETECTORNO = detectorNo, I0Norm = self.ionrm, IBSNorm = self.ibsnrm, _EXTRA=extra) 
   profile.SetNorm, self.nrmType
   IF self.usecalib EQ 1 THEN profile.SetCalib, self.cscalib
   
@@ -1520,7 +1531,7 @@ FUNCTION AS_ProfileContainerObj::FindByFName, fName
   
 END
 
-PRO AS_ProfileContainerObj::GetProperty, BASE=base, MEDMEAN=medmean, COLOUR=colour, MULT=mult, OFFSET=offset, FNAME=fName, XRANGEZOOM=xRangeZoom, IBSNRM=ibsnrm, CSCALIB=CSCalib, SHOWERRORBARS = showErrorBars, _REF_Extra=extra
+PRO AS_ProfileContainerObj::GetProperty, BASE=base, MEDMEAN=medmean, COLOUR=colour, MULT=mult, OFFSET=offset, FNAME=fName, XRANGEZOOM=xRangeZoom, IBSNRM=ibsnrm, CSCALIB=CSCalib, SHOWERRORBARS = showErrorBars, DETECTORNO = detectorNo, _REF_Extra=extra
 
 @as_scatterheader.macro
 
@@ -1546,6 +1557,10 @@ PRO AS_ProfileContainerObj::GetProperty, BASE=base, MEDMEAN=medmean, COLOUR=colo
     index = Where((*self.profileRefs).refNum EQ fName[0])
     (*self.profileRefs)[index].profiles->GetProperty, FNAME=fName
   ENDIF
+  IF Arg_Present(DETECTORNO) THEN BEGIN
+    index = Where((*self.profileRefs).refNum EQ fName[0])
+    (*self.profileRefs)[index].profiles->GetProperty, DETECTORNO=detectorNo
+  ENDIF
   IF Arg_Present(xRangeZoom) THEN BEGIN
     xRangeZoom = self.xRangeZoom
   ENDIF
@@ -1555,7 +1570,7 @@ PRO AS_ProfileContainerObj::GetProperty, BASE=base, MEDMEAN=medmean, COLOUR=colo
   IF Arg_Present(CSCalib) THEN BEGIN
     CSCalib = self.CSCalib
   ENDIF
-  
+
   IF Arg_Present(showErrorBars) THEN showErrorBars = self.showErrorBars
   
   self->IDLgrModel::GetProperty, _Extra=extra

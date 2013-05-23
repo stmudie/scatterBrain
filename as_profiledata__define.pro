@@ -1,4 +1,4 @@
-FUNCTION AS_Profiledata::Init, profile, error, fname, PRENORM = preNorm, CONFIGNAME = configName, QVECTOR = qVector, DSPACE = dSpace, TWOTHETA = twoTheta, PIXEL = pixel, BACK = back, TIME = time, I0COUNT = I0count, IBSCOUNT = IBSCount, I0NORM = I0Norm, IBSNorm = IBSNorm
+FUNCTION AS_Profiledata::Init, profile, error, fname, PRENORM = preNorm, CONFIGNAME = configName, DETECTORNO = detectorNo, QVECTOR = qVector, DSPACE = dSpace, TWOTHETA = twoTheta, PIXEL = pixel, BACK = back, TIME = time, I0COUNT = I0count, IBSCOUNT = IBSCount, I0NORM = I0Norm, IBSNorm = IBSNorm
 
   @as_scatterheader.macro
 
@@ -10,6 +10,7 @@ FUNCTION AS_Profiledata::Init, profile, error, fname, PRENORM = preNorm, CONFIGN
   IF N_Elements(error) GE 1 THEN self.error = Ptr_New(error) ELSE self.error = Ptr_New(/ALLOCATE_HEAP)
   IF N_Elements(fname) GE 1 THEN self.fname = fname ELSE self.fname = ''
   IF KeyWord_Set(configName) THEN self.configName = configName
+  IF N_Elements(detectorNo) GT 0 THEN self.detectorNo = detectorNo ELSE self.detectorNo = 0
   IF KeyWord_Set(qVector)  THEN self.qVector  = Ptr_New(qVector)  ELSE IF N_Elements(profile) GE 1 THEN self.qVector  = Ptr_New(IndGen(N_Elements(profile))) ELSE self.qVector  = Ptr_New(/ALLOCATE_HEAP) 
   IF KeyWord_Set(dSpace)   THEN self.dSpace   = Ptr_New(dSpace)   ELSE IF N_Elements(profile) GE 1 THEN self.dSpace   = Ptr_New(IndGen(N_Elements(profile))) ELSE self.dSpace   = Ptr_New(/ALLOCATE_HEAP)
   IF KeyWord_Set(twoTheta) THEN self.twoTheta = Ptr_New(twoTheta) ELSE IF N_Elements(profile) GE 1 THEN self.twoTheta = Ptr_New(IndGen(N_Elements(profile))) ELSE self.twoTheta = Ptr_New(/ALLOCATE_HEAP)
@@ -148,7 +149,7 @@ PRO AS_Profiledata::SetProperty, PROFILE=profile, QVECTOR=qVector, ERROR=error, 
     
 END
 
-PRO AS_Profiledata::GetProperty, QVECTOR=qVector, ERROR=error, MULT=mult, OFFSET=offset, FNAME=fname, NOTIFYPROFILE = notifyProfile, I0 = I0, BS = BS, TIME = TIME, BACKGROUND = background, BACKOBJ=backObj, CONFIGNAME = configName
+PRO AS_Profiledata::GetProperty, QVECTOR=qVector, ERROR=error, MULT=mult, OFFSET=offset, FNAME=fname, NOTIFYPROFILE = notifyProfile, I0 = I0, BS = BS, TIME = TIME, BACKGROUND = background, BACKOBJ=backObj, CONFIGNAME = configName, DETECTORNO = detectorNo
   
   @as_scatterheader.macro
   
@@ -164,6 +165,7 @@ PRO AS_Profiledata::GetProperty, QVECTOR=qVector, ERROR=error, MULT=mult, OFFSET
   IF Arg_Present(background) THEN background = self.back.GetData(/BACK)
   IF Arg_Present(backObj) THEN backObj = self.back
   IF Arg_Present(configName) THEN configName = self.configName
+  IF Arg_Present(detectorNo) THEN detectorNo = self.detectorNo
 END
 
 FUNCTION AS_Profiledata::GetData, PLOT_DSPACE = plotDSpace, PLOT_TWOTHETA = plotTwoTheta, PLOT_PIXEL = plotPixel, XLOG = xLog, YLOG = yLog, BACK = back, NOMULTOFFSET = nomultOffset, NONORM = noNorm
@@ -297,6 +299,7 @@ PRO as_profiledata__define
           back          : Obj_New(), $
           logfileobj    : Obj_New(), $
           configName    : ''       , $
+          detectorNo    : 0        , $
           npts          : 0,         $ ; number of points in profile
           mult          : 0.0,       $ ; muliplier to allow tweaking of plotted profiles
           os            : 0.0,       $ ; offset of plotted profiles

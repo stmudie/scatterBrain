@@ -1098,10 +1098,14 @@ PRO scatterbrain::loadXML, xmlFile
   
   self.scatterXMLGUI_obj.GetProperty, NUMLOADCONFIG=numLoadConfig
   
-  IF numLoadConfig.detector2 NE !NULL THEN self.Use2ndDetector
+  IF numLoadConfig.detector2 NE -1 THEN self.Use2ndDetector
+  IF numLoadConfig.detector1 EQ -1 THEN numLoadConfig.detector1 = 0
   
   self.frame_obj->NewParams, self.scatterXMLGUI_obj, CONFIGNO = numLoadConfig.detector1
-  IF Obj_Valid(self.frame_obj2) THEN self.frame_obj2->LOADCONFIG, numLoadConfig.detector2
+  IF Obj_Valid(self.frame_obj2) THEN BEGIN
+    self.frame_obj2->LOADCONFIG, numLoadConfig.detector2
+    result = self.qCalibGUI(frameNo = 1)
+  ENDIF
   IF self.pollEpics GT 0 THEN self.areaDetectorObj->NewParams, self.scatterXMLGUI_obj
   self.profiles_obj.NewParams, self.scatterXMLGUI_obj
   result = self.qCalibGUI()
@@ -1195,7 +1199,11 @@ PRO scatterBrain::newXML, event, DATA = data
     IF files EQ 0 THEN self.scatterXMLGUI_obj->SaveFile, xmlfile, /EMPTY
     self.scatterXMLGUI_obj->ParseFile, FILENAME = xmlFile
     self.frame_obj->NewParams, self.scatterXMLGUI_obj
-    IF Obj_Valid(self.frame_obj2) THEN self.frame_obj2->NewParams, self.scatterXMLGUI_obj
+    IF Obj_Valid(self.frame_obj2) THEN BEGIN
+      self.frame_obj2->NewParams, self.scatterXMLGUI_obj
+      result = self.qCalibGUI(frameNo = 1)
+    ENDIF
+    
     self.profiles_obj.NewParams, self.scatterXMLGUI_obj
     result = self.qCalibGUI()
     self.frame_obj->ReSize, BUFFER = self.aux_base_size + [50,50]
@@ -1213,6 +1221,7 @@ PRO scatterBrain::Use2ndDetector
   self.frame_obj2 = Obj_New('as__saxsimagegui', secondFrameBase, self.qData_obj2, self.profiles_obj, RESOURCE=self, NOTIFY = notify('FrameCallback',self))
   self.frame_obj2->SetProperty, LOGOBJ=self.scatterXMLGUI_obj
   IF self.scatterXMLGUI_Obj.FileLoaded() THEN self.frame_obj2->NewParams, self.scatterXMLGUI_Obj
+  self.qCalibGUI2.SetProperty, NOTIFYOBJ = notify('qCalibChange',self.frame_obj2)
 
 END
 
@@ -1452,9 +1461,11 @@ PRO scatterbrain::LogFileSelected, Selected
   ENDCASE
 END
 
-FUNCTION scatterbrain::ProcessImage, name, SAVESUMMED = saveSummed, LIVEFRAME = liveFrame, NOPLOT = noPlot, NOSETUP = noSetup
+FUNCTION scatterbrain::ProcessImage, name, SAVESUMMED = saveSummed, LIVEFRAME = liveFrame, NOPLOT = noPlot, NOSETUP = noSetup, DETECTORNO = detectorNo
 
   @as_scatterheader.macro
+
+  IF N_Elements(detectorNo) EQ 0 THEN detectorNo = -1
 
   live = KeyWord_Set(liveFrame)  
   profileData=self.frame_obj->GetAndCake(name, SAVESUMMED = saveSummed, SUMMEDNAME = summedName, FRAME = liveFrame, NOSETUP = noSetup)
@@ -1464,11 +1475,15 @@ FUNCTION scatterbrain::ProcessImage, name, SAVESUMMED = saveSummed, LIVEFRAME = 
   ENDIF
   
   IF KeyWord_Set(saveSummed) THEN name = summedName
-  self.frame_obj.GetProperty, CONFIGNAME = configName, TIME = time, I0SF = i0sf, IBSSF = ibssf
-  self.profiles_obj.AddProfile, profileData.q_arr, profileData.profile, profileData.error, name, CONFIGNAME = configName, TIME = time, I0COUNT = i0sf, IBSCOUNT = ibssf, LIVE = live, NOPLOT = noPlot, PROFILEINDEX = profileIndex
+  IF detectorNo LT 1 THEN BEGIN
+    self.frame_obj.GetProperty, CONFIGNAME = configName, TIME = time, I0SF = i0sf, IBSSF = ibssf
+    self.profiles_obj.AddProfile, profileData.q_arr, profileData.profile, profileData.error, name, CONFIGNAME = configName, DETECTORNO = 0, TIME = time, I0COUNT = i0sf, IBSCOUNT = ibssf, LIVE = live, NOPLOT = noPlot, PROFILEINDEX = profileIndex
+  ENDIF
   IF Obj_Valid(self.frame_obj2) THEN BEGIN
-    self.frame_obj2.GetProperty, CONFIGNAME = configName, TIME = time, I0SF = i0sf, IBSSF = ibssf
-    self.profiles_obj.AddProfile, profileData2.q_arr, profileData2.profile, profileData2.error, name, CONFIGNAME = configName, TIME = time, I0COUNT = i0sf, IBSCOUNT = ibssf, LIVE = live, NOPLOT = noPlot, PROFILEINDEX = profileIndex
+    IF detectorNo NE 0 THEN BEGIN
+      self.frame_obj2.GetProperty, CONFIGNAME = configName, TIME = time, I0SF = i0sf, IBSSF = ibssf
+      self.profiles_obj.AddProfile, profileData2.q_arr, profileData2.profile, profileData2.error, name, CONFIGNAME = configName, DETECTORNO = 1, TIME = time, I0COUNT = i0sf, IBSCOUNT = ibssf, LIVE = live, NOPLOT = noPlot, PROFILEINDEX = profileIndex
+    ENDIF
   ENDIF
   
   WIDGET_CONTROL, Widget_Info(self.wScatterBase, FIND_BY_UNAME='SIMAGE'), SET_VALUE=name
@@ -1599,24 +1614,36 @@ PRO scatterbrain::exportLUT
   ;result = caput(NORMPV,1/self.profiles_obj.CSCalib)
 END
 
-FUNCTION scatterbrain::qCalibGUI, GROUPLEADER = groupLeader, NOTIFY_OBJ = notifyObj, SHOWGUI = showGUI
+FUNCTION scatterbrain::qCalibGUI, GROUPLEADER = groupLeader, NOTIFY_OBJ = notifyObj, SHOWGUI = showGUI, FRAMENO = frameNo
 
   @as_scatterheader.macro
 
-  IF Obj_Valid(self.qCalibGUI) THEN BEGIN
-    IF KeyWord_Set(groupLeader) THEN self.qCalibGUI.SetProperty, GROUPLEADER = groupLeader
+  IF N_Elements(frameNo) EQ 0 THEN frameNo = 0
+
+  CASE frameNo OF
+    0 : qCalibGUI = self.qCalibGUI
+    1 : qCalibGUI = self.qCalibGUI2
+  ENDCASE 
+  
+  IF Obj_Valid(qCalibGUI) THEN BEGIN
+    IF KeyWord_Set(groupLeader) THEN qCalibGUI.SetProperty, GROUPLEADER = groupLeader
     self.scatterXMLGUI_obj.GetParameters, FRAME = frame
-    self.qCalibGUI.SetProperty, WAVELENGTH = frame[0].wlen, CAMERALENGTH = frame[0].len, DETECTORANGLE = frame[0].detAngle
-    RETURN, self.qCalibGUI
+    IF N_Elements(frame) - 1 GE frameNo THEN qCalibGUI.SetProperty, WAVELENGTH = frame[frameNo].wlen, CAMERALENGTH = frame[frameNo].len, DETECTORANGLE = frame[frameNo].detAngle
+    RETURN, qCalibGUI
   ENDIF
-
-  IF KeyWord_Set(notifyObj) THEN notifyObj = [notify('qCalibChange',self.frame_obj), notifyObj] $
-                            ELSE notifyObj = notify('qCalibChange',self.frame_obj)
-
-  self.qCalibGUI = as_qcalibration(GROUPLEADER=groupLeader, NOTIFY_OBJ = notifyObj, SHOWGUI = KeyWord_Set(showGUI))
+    
+  CASE frameNo OF
+    0 : frame_obj = self.frame_obj
+    1 : frame_obj = self.frame_obj2
+  ENDCASE  
+    
+  IF KeyWord_Set(notifyObj) THEN notifyObj = [notify('qCalibChange',frame_obj), notifyObj] $
+                              ELSE notifyObj = notify('qCalibChange',frame_obj)
+  
+  qCalibGUI = as_qcalibration(GROUPLEADER=groupLeader, NOTIFY_OBJ = notifyObj, SHOWGUI = KeyWord_Set(showGUI))
   self.scatterXMLGUI_obj.GetParameters, FRAME = frame
-  self.qCalibGUI.SetProperty, WAVELENGTH = frame[0].wlen, CAMERALENGTH = frame[0].len
-  RETURN, self.qCalibGUI 
+  IF N_Elements(frame)-1 GE frameNo THEN qCalibGUI.SetProperty, WAVELENGTH = frame[frameNo].wlen, CAMERALENGTH = frame[frameNo].len
+  RETURN, qCalibGUI
 
 END
 
@@ -1848,7 +1875,7 @@ PRO scatterbrain::PlotControlCallback, event
                      self.PlotDat, event.filename
                    END
     'PLOTREPLOT' : BEGIN
-                     result = self.ProcessImage(event.filename)
+                     result = self.ProcessImage(event.filename, DETECTORNO = event.detectorNo)
                    END
   ENDCASE
 
@@ -2508,7 +2535,7 @@ FUNCTION scatterbrain::init     $
     profiles_obj->SetProperty, NOTIFY_OBJ = notify('Callback',plotControl_obj)
     
     frame_obj->SetProperty, LOGOBJ=scatterXMLGUI_obj
-        
+            
     ; Rest of objects    
 ;    frameModel_obj = Obj_New('IDLgrModel')
 ;    frameView_obj = Obj_New('IDLgrView')
@@ -2562,13 +2589,14 @@ FUNCTION scatterbrain::init     $
     self.pollEpics          = pollEpics
     self.version            = version
 
-    ; Create Q Calibration Object
-    self.qCalibGUI = self.qCalibGUI(GROUPLEADER=self.wScatterBase, ShowGUI = 0)
-    
+    ; Create Q Calibration Objects
+    self.qCalibGUI = self.qCalibGUI(GROUPLEADER=self.wScatterBase, ShowGUI = 0, frameNo = 0)
+    self.qCalibGUI2 = self.qCalibGUI(GROUPLEADER=self.wScatterBase, ShowGUI = 0, frameNo = 1)
+        
     
        
     XMANAGER, 'scatterbrain', wScatterBase, /NO_BLOCK, CLEANUP = 'scatterBrain_CleanUp'
-
+      
     RETURN, 1
      
 END
@@ -2647,6 +2675,7 @@ void = {scatterbrain, $
        checkScanFiles     : 0b,              $
        excelObj           : Obj_New(),       $
        qCalibGUI          : Obj_New(),       $
+       qCalibGUI2         : Obj_New(),       $
        fileSelectList     : List(),          $
        version            : 0.0,             $
        programDir         : '',              $

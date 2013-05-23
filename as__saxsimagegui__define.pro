@@ -221,23 +221,9 @@ CASE widgetName OF
                                 configName = TextBox(Title = 'Enter Config Name', GROUP_LEADER = self.imageGUIBase, LABEL = 'Config Name:')
                                 IF configName EQ '' THEN RETURN
                               ENDIF
-                              index = Where((self.configNames).toArray() EQ configName, nElements)
-                              IF nElements GT 1 THEN BEGIN
-                                numConfigsMessage = Dialog_Message('Multiple configs appear to have the same name. Probably a bug, using first.')
-                                index = index[0]
-                              ENDIF
-                              IF index[0] EQ -1 THEN BEGIN
-                                index = N_Elements(self.configNames)
-                                (self.configNames).Add, configName
-                                Widget_Control, Widget_Info(self.imageGUIBase,  FIND_BY_UNAME='CONFIG COMBO'), COMBOBOX_ADDITEM = configName
-                              ENDIF
-                              self.currentConfig = index[0]
-                              self.profiles_obj.StoreParams, self.frame.logObj, CONFIGNO = index
-                              self.frame.logObj.SetParameters, CONFIGNO = index, CONFIGNAME = configName
-                              self.StoreParams, self.frame.logObj, CONFIG = index
-                              self.SaveCakeLUT, index
-                              Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME='PARAM LABEL'), SET_VALUE = configName
-                              self.notify, {CONFIG, event: 'save'}
+                                                                                          
+                              self.saveconfig, configname
+                              
                             END
             'LOAD CONFIG' : BEGIN
                               configName = Widget_Info(Widget_Info(self.imageGUIBase,  FIND_BY_UNAME='CONFIG COMBO'), /COMBOBOX_GETTEXT)
@@ -449,6 +435,34 @@ END
 ;
 ;END
 
+PRO as__saxsimagegui::SaveConfig, configName
+
+  IF N_Elements(configName) GT 0 THEN BEGIN
+
+    index = Where((self.configNames).toArray() EQ configName, nElements)
+    IF nElements GT 1 THEN BEGIN
+      numConfigsMessage = Dialog_Message('Multiple configs appear to have the same name. Probably a bug, using first.')
+      index = index[0]
+    ENDIF
+  
+    IF index[0] EQ -1 THEN BEGIN
+      index = N_Elements(self.configNames)
+      (self.configNames).Add, configName
+      Widget_Control, Widget_Info(self.imageGUIBase,  FIND_BY_UNAME='CONFIG COMBO'), COMBOBOX_ADDITEM = configName
+    ENDIF
+
+    self.currentConfig = index[0]
+  ENDIF ELSE index = self.currentConfig
+  
+  self.profiles_obj.StoreParams, self.frame.logObj, CONFIGNO = index
+  self.frame.logObj.SetParameters, CONFIGNO = index, CONFIGNAME = configName
+  self.StoreParams, self.frame.logObj, CONFIG = index
+  self.SaveCakeLUT, index
+  Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME='PARAM LABEL'), SET_VALUE = configName
+  self.notify, {CONFIG, event: 'save'}
+
+END
+
 PRO as__saxsimagegui::LoadConfig, configNo
 
   IF configNo[0] EQ -1 THEN RETURN
@@ -502,6 +516,14 @@ PRO as__saxsimagegui::NewParams, paramObj, CONFIGNO = configNo
   Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME='Y BEAM CENTRE'), SET_VALUE = self.frame.yc
   
   self.frame.frameViewObj->SetProperty, VIEWPLANE_RECT = [0,0,self.frame.nxpix,self.frame.nypix]
+
+END
+
+PRO as__saxsimagegui::qCalibChange, qcalib
+
+  self.as_saxsimagetools::qCalibChange, qcalib, CONFIGNO = self.currentConfig
+  result = Dialog_Message('Store change to current configuration?', /QUESTION)
+  IF result EQ 'Yes' THEN self.SaveConfig
 
 END
 

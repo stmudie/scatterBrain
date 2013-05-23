@@ -962,7 +962,7 @@ PRO AS_XSTRETCH::HISTOPLOT, $
   ; Draw the boxes of the histogram.
   FOR j=0L,N_Elements(bins)-2 DO BEGIN
     PlotS, [bins[j], bins[j]], $
-      [0, histdata[j] < !Y.CRange[1]], Color=FSC_Color(self.colors[5])
+      [0, histdata[j] < !Y.CRange[1]], FSC_Color(self.colors[5])
   ENDFOR
   
   ; Store the plotting system variables for later recall.
@@ -2412,7 +2412,7 @@ FUNCTION AS_XSTRETCH::Init, theImage, $
   ;testWindowWidget = Widget_Window(histo_tlb)
         
   histo_draw = Widget_Draw(histo_tlb, XSize=histXsize, YSize=histYsize, $
-    Button_Events=1, Event_Pro='AS_XStretch_Process_Events')
+    Button_Events=1, Event_Pro='AS_XStretch_Process_Events', RETAIN=2)
   controlID = Widget_Button(menubaseID, Value='Controls', Event_Pro='AS_XStretch_MaxValue')
   ;openit = Widget_Button(controlID, Value='Open', /MENU)
   ;dummy = Widget_Button(openit, Value='Formatted Image File...', Event_Pro='AS_XStretch_OpenImage')

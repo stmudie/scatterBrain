@@ -660,6 +660,27 @@ FUNCTION AS_CakeObj::GetAndCake, f_name, FRAME = liveFrame, NOPROFILE = noProfil
     live = KeyWord_Set(liveFrame)
     sf=self->GetImage(f_name, FRAME=liveFrame)
     IF sf LT 0 THEN RETURN, -1
+    useLogEnergy = 1
+    useLogAngle = 1
+    IF useLogEnergy + useLogAngle GT 0 THEN index = self.frame.logobj.GetIndex(f_name) 
+    IF useLogEnergy THEN BEGIN
+       wavelength = 1e7*(!const.h*!const.c/!const.e)/(self.frame.logobj.GetValue('ENERGY'))[index]
+       delta = self.frame.wlen*0.005 
+       IF wavelength GT self.frame.wlen + delta OR wavelength LT self.frame.wlen - delta THEN BEGIN
+         self.frame.wlen = wavelength
+         self.cake.ok = 0
+       ENDIF
+       
+    ENDIF
+;    IF useLogAngle THEN BEGIN
+;       detAngle = (self.frame.logobj.GetValue('WAXS_ANGLE'))[index]
+;       delta = self.frame.detAngle*0.005
+;       IF detAngle GT self.frame.detAngle + delta OR detAngle LT self.frame.detAngle - delta THEN BEGIN
+;         self.frame.detAngle = detAngle
+;         self.cake.ok = 0
+;       ENDIF
+;    ENDIF
+    
     IF ~KeyWord_Set(noSetup) OR self.cake.ok EQ 0 OR self.cake.newmask EQ 1 THEN setup_pts = self->CakeSetup()
     
     IF KeyWord_Set(saveSummed) AND N_Elements(f_name) GT 1 THEN BEGIN

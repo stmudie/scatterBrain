@@ -926,7 +926,7 @@ PRO as_scatterXMLFile::GetProperty, XMLFILENAME = xmlFileName, LOADCONFIG = load
     name = self.GetValue('name')
     loadConfigDet = self.GetValue('loadconfig')
     
-    numLoadConfig = { Detector1 : (Where(loadConfigDet EQ 'DETECTOR1'))[0], Detector2 : (Where(loadConfigDet EQ 'DETECTOR2',/NULL))[0]}
+    numLoadConfig = { Detector1 : (Where(loadConfigDet EQ 'DETECTOR1'))[0], Detector2 : (Where(loadConfigDet EQ 'DETECTOR2'))[0]}
     
   ENDIF
 

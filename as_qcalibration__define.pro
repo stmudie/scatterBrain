@@ -21,7 +21,9 @@ PRO as_QCalibration::event, event
 ;                        ENDIF
                         IF Tag_Names(event, /STRUCTURE_NAME) EQ 'WIDGET_KILL_REQUEST' THEN Widget_Control, self.wQCalibBase, MAP = 0
                       END
-    'CONFIG COMBO'  :
+    'CONFIG COMBO'  :  BEGIN
+                         
+                       END
     'ENERGY'        :  BEGIN
                          Widget_Control, event.id, GET_VALUE = energy
                          wavelength = 12398.4172 / energy
@@ -149,9 +151,13 @@ PRO as_QCalibration::notify, event
 
 END
 
-PRO as_QCalibration::SetProperty, PEAK = peak, GROUPLEADER = groupLeader, CAMERALENGTH = cameraLength, WAVELENGTH = waveLength, DETECTORANGLE = detectorAngle
+PRO as_QCalibration::SetProperty, PEAK = peak, GROUPLEADER = groupLeader, CAMERALENGTH = cameraLength, WAVELENGTH = waveLength, DETECTORANGLE = detectorAngle, NOTIFYOBJ = notifyObj
 
   @as_scatterheader.macro
+
+  IF KeyWord_Set(notifyObj) THEN $
+    IF TypeName(notifyObj[0]) EQ 'NOTIFY' $
+    THEN self.notifyObj = List(notifyObj, /EXTRACT)
 
   IF KeyWord_Set(peak) THEN BEGIN
     Widget_Control, Widget_Info(self.wQCalibBase, FIND_BY_UNAME = 'FITTED POS'), GET_UVALUE = peakPosObj

@@ -598,8 +598,8 @@ PRO AS_PlotControl::RePlot, index
 
   FOR i = 0, N_Elements(index) -1 DO BEGIN
     fname = index[i]
-    self.oProfiles->GetProperty, FNAME=fname
-    self.notify, {PLOTREPLOT, filename : fname}
+    self.oProfiles->GetProperty, FNAME=fname, DETECTORNO = detectorNo
+    self.notify, {PLOTREPLOT, filename : fname, detectorNo : detectorNo}
     self.oProfiles->ReplaceWithLast, index[i]
 ;    allLeaves = Widget_Info(self.wProfileTree, /ALL_CHILDREN)
 ;    Widget_Control, allLeaves(N_Elements(allLeaves)-1),/DESTROY
