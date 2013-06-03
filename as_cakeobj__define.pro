@@ -661,16 +661,18 @@ FUNCTION AS_CakeObj::GetAndCake, f_name, FRAME = liveFrame, NOPROFILE = noProfil
     sf=self->GetImage(f_name, FRAME=liveFrame)
     IF sf LT 0 THEN RETURN, -1
     useLogEnergy = 1
-    useLogAngle = 1
+    useLogAngle = 0
     IF useLogEnergy + useLogAngle GT 0 THEN index = self.frame.logobj.GetIndex(f_name) 
     IF useLogEnergy THEN BEGIN
-       wavelength = 1e7*(!const.h*!const.c/!const.e)/(self.frame.logobj.GetValue('ENERGY'))[index]
-       delta = self.frame.wlen*0.005 
-       IF wavelength GT self.frame.wlen + delta OR wavelength LT self.frame.wlen - delta THEN BEGIN
-         self.frame.wlen = wavelength
-         self.cake.ok = 0
-       ENDIF
-       
+       energy = (self.frame.logobj.GetValue('ENERGY'))[index]
+       IF energy GT 1.0 THEN BEGIN 
+         wavelength = 1e7*(!const.h*!const.c/!const.e)/energy
+         delta = self.frame.wlen*0.005 
+         IF wavelength GT self.frame.wlen + delta OR wavelength LT self.frame.wlen - delta THEN BEGIN
+           self.frame.wlen = wavelength
+           self.cake.ok = 0
+         ENDIF
+       ENDIF      
     ENDIF
 ;    IF useLogAngle THEN BEGIN
 ;       detAngle = (self.frame.logobj.GetValue('WAXS_ANGLE'))[index]
