@@ -476,6 +476,8 @@ PRO as__saxsimagegui::LoadConfig, configNo
   Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME='CONFIG COMBO'), SET_COMBOBOX_SELECT = configNo + 1
   Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME='FRAME_DRAW'), XSIZE = self.frame.NXPIX, YSIZE = self.frame.NYPIX
 
+  self.frame.frameViewObj->SetProperty, VIEWPLANE_RECT = [0,0,self.frame.nxpix,self.frame.nypix]
+
 END
 
 
