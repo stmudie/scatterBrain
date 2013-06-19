@@ -1,3 +1,6 @@
+Version 2.0
+Simultaneous SAXS/WAXS
+
 Version 1.74
 Minor fixes
 
@@ -14,6 +17,3 @@ fix to imagemosaic intensity scaling, removal of annoying coincidental range err
 
 Version 1.65
 Fixed insidious bug with profile export (due to some IDL weirdness). Also big change to Mask Definition screen, but this is not finished yet - hopefully will finish properly in a couple of days.
-
-Version 1.61
-Bug fixes.
