@@ -660,7 +660,7 @@ FUNCTION AS_CakeObj::GetAndCake, f_name, FRAME = liveFrame, NOPROFILE = noProfil
     live = KeyWord_Set(liveFrame)
     sf=self->GetImage(f_name, FRAME=liveFrame)
     IF sf LT 0 THEN RETURN, -1
-    useLogEnergy = 1
+    useLogEnergy = 0
     useLogAngle = 0
     IF useLogEnergy + useLogAngle GT 0 THEN index = self.frame.logobj.GetIndex(f_name) 
     IF useLogEnergy THEN BEGIN

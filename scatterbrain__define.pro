@@ -1482,7 +1482,7 @@ FUNCTION scatterbrain::ProcessImage, name, SAVESUMMED = saveSummed, LIVEFRAME = 
   IF Obj_Valid(self.frame_obj2) THEN BEGIN
     IF detectorNo NE 0 THEN BEGIN
       self.frame_obj2.GetProperty, CONFIGNAME = configName, TIME = time, I0SF = i0sf, IBSSF = ibssf
-      self.profiles_obj.AddProfile, profileData2.q_arr, profileData2.profile, profileData2.error, name, CONFIGNAME = configName, DETECTORNO = 1, TIME = time, I0COUNT = i0sf, IBSCOUNT = ibssf, LIVE = live, NOPLOT = noPlot, PROFILEINDEX = profileIndex
+      IF ISA(profileData2, 'STRUCT') THEN self.profiles_obj.AddProfile, profileData2.q_arr, profileData2.profile, profileData2.error, name, CONFIGNAME = configName, DETECTORNO = 1, TIME = time, I0COUNT = i0sf, IBSCOUNT = ibssf, LIVE = live, NOPLOT = noPlot, PROFILEINDEX = profileIndex
     ENDIF
   ENDIF
   
