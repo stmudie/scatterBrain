@@ -453,13 +453,14 @@ CASE TAG_NAMES( event, /STRUCTURE ) OF
                                      OpenW, tempProfileFile, tempFileName, /GET_LUN 
                                       PrintF, tempProfileFile, data.toarray(), FORMAT = '(' + StrCompress(3,/REMOVE) + 'A' + StrCompress(1+Max(StrLen(reform(data.toArray()))),/REMOVE) + ')'
                                      FREE_LUN, tempProfileFile
-                                     SPAWN, 'Autoporod ' + tempFileName, APreturn
+                                     SPAWN, 'Autoporod ' + tempFileName, APreturn, APerror
 ;                                     APreturn = StrSplit(APReturn, /EXTRACT)
 ;                                     APReturn.remove,0
 ;                                     APReturnString = ''
 ;                                     FOREACH element, APReturn DO APReturnString = APReturnString + String(element) 
 ;                                     XDisplayFile, TEXT = APReturnString, TITLE = 'Autoporod Info'
-                                      XDisplayFile, TEXT = APReturn, TITLE = 'Autoporod Info'
+                                      IF APerror[0] NE '' THEN XDisplayFile, '', TEXT = APerror, TITLE = 'Autoporod Info' $
+                                                          ELSE XDisplayFile, '', TEXT = APReturn, TITLE = 'Autoporod Info'
                                      
                                    END
                   'Hide'         : BEGIN
