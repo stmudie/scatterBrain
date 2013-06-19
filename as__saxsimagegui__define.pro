@@ -472,8 +472,9 @@ PRO as__saxsimagegui::LoadConfig, configNo
   Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME='X BEAM CENTRE'), SET_VALUE = self.frame.xc
   Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME='Y BEAM CENTRE'), SET_VALUE = self.frame.yc
   self.LoadCakeLUT, configNo
-  Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME='PARAM LABEL'), SET_VALUE = self.configNames[configNo]
+  Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME='PARAM LABEL'), SET_VALUE = (self.configNames[configNo])[0]
   Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME='CONFIG COMBO'), SET_COMBOBOX_SELECT = configNo + 1
+  Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME='FRAME_DRAW'), XSIZE = self.frame.NXPIX, YSIZE = self.frame.NYPIX
 
 END
 

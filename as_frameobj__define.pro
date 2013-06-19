@@ -380,7 +380,7 @@ FUNCTION AS_FrameObj::GetRawImage, f_name, frame = frame, quiet=quiet, info_only
     ;*******************************************************
     IF self.frame.format EQ 'PIL200K' THEN BEGIN
         ; read in a TIFF 32bit format (.TIF) file
-        if AS_ReadTiff(f_name, header, frame) LT 0 then begin
+        if AS_ReadTiff(f_name, header, frame, /rotate) LT 0 then begin
              if NOT(keyword_set(quiet)) then $
                 mesret = dialog_message('Problem opening CCD image file '+ f_name)
              return, -1
@@ -1219,7 +1219,13 @@ PRO AS_FrameObj::NewParams, paramObj, CONFIGNO = configNo
     ENDIF
    
   ENDFOR
-    
+  
+  CASE frame.detector OF
+    'Pilatus 1M'   : self.frame.format = 'TIF'
+    'Pilatus 200K' : self.frame.format = 'PIL200K'
+    ELSE : self.frame.format = 'TIF'
+  ENDCASE
+   
       
 END
 

@@ -713,6 +713,7 @@ PRO as_scatterXMLFile::GetParameters, MASK=mask, BEAMSTOP = beamstop, CAKE=cake,
    detNum = Where(((*self.configurations).detector)[0] EQ (*self.detectorDefs).DETECTORDEF) 
    
    frame = { confName: ((*self.configurations).name)[0], $
+             detector: ((*self.detectorDefs).detectorDef)[detNum], $
              nxchip  : ((*self.detectorDefs).xsize)[detNum], $
              nychip  : ((*self.detectorDefs).ysize)[detNum], $
              nxpix   : ((*self.detectorDefs).xsize)[detNum], $
@@ -729,6 +730,7 @@ PRO as_scatterXMLFile::GetParameters, MASK=mask, BEAMSTOP = beamstop, CAKE=cake,
      
      frame = [frame, $
              { confName: ((*self.configurations).name)[i], $
+               detector: ((*self.detectorDefs).detectorDef)[detNum], $
                nxchip  : ((*self.detectorDefs).xsize)[detNum], $
                nychip  : ((*self.detectorDefs).ysize)[detNum], $
                nxpix   : ((*self.detectorDefs).xsize)[detNum], $

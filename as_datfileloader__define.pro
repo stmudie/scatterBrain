@@ -169,7 +169,7 @@ PRO as_datfileloader::addTab, names, folders, EXTENSION = extension
   FOREACH name, self.names, key DO BEGIN
     wTabBase = Widget_Base(wTab, TITLE = name, UVALUE = name, /COLUMN)
     wTree = Widget_Tree(wTabBase, /MULTIPLE, /CONTEXT_EVENTS, /DRAGGABLE, UNAME = name)
-    files = File_Search((self.folders)[key] + Path_Sep() + '*.' + self.extension, /NOSORT)
+    files = File_Search((self.folders)[key] + Path_Sep() + '*.' + self.extension)
     
     FOREACH file, files DO leaf = Widget_Tree(wTree, VALUE = File_Basename(file), UVALUE = {DAT, filename : file}, EVENT_PRO = 'as_datfileloader_selectfile')
   
@@ -199,7 +199,8 @@ END
 PRO as_datfileloader::refresh
 
   FOREACH name, self.names, key DO BEGIN
-    files = File_Search((self.folders)[key] + Path_Sep() + '*.' + self.extension, /NOSORT)
+    files = File_Search((self.folders)[key] + Path_Sep() + '*.' + self.extension)
+    ;fileInfo = File_Info(files)
     treeID = Widget_Info(self.wBase, FIND_BY_UNAME = name)
     children = Widget_Info(treeID, /ALL_CHILDREN)
     leaf = List()
