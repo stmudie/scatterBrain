@@ -126,7 +126,7 @@ FUNCTION AS_FrameObj::Init, RAWDATA = rawData, HISTMAX=histMax, HISTMIN=histMin,
   self.frame.rawData = Ptr_New(BytArr(self.frame.nxpix,self.frame.nypix))
   self.frame.histImage = Ptr_New(*self.frame.rawData)
   
-  result = self->IDLgrImage::Init(_EXTRA=extra)
+  result = self->IDLgrImage::Init(TRANSFORM_MODE = 1, _EXTRA=extra)
   
   palette = Obj_New('IDLgrPalette')
   palette->LoadCT, 0
@@ -895,9 +895,9 @@ PRO AS_FrameObj::OverLay_QCirc, qRadius
       *self.frame.circObjects = [circle,label,temp]
 
       self.PARENT->Add,circle
-
-      self.frame.frameWinObj->Draw
-
+      ;self.GetProperty, UPDATEIMAGE = update
+      ;IF KeyWord_Set(update) THEN self.frame.frameWinObj->Draw
+self.frame.frameWinObj->Draw
     ENDIF
 
 END

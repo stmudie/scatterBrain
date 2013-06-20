@@ -15,7 +15,11 @@ widgetName = Widget_Info(event.id, /UNAME)
 
 CASE widgetName OF
       'FRAME_DRAW' :  BEGIN
-              
+                              geom = Widget_Info(event.id, /GEOMETRY)
+                              print, event.x, event.y, geom
+                              event.x = (1-event.x/geom.xsize)*geom.xsize
+                              event.y = (1-event.y/geom.ysize)*geom.ysize
+                              print, event.x, event.y
                               IF self.profileLineActive EQ 1 THEN BEGIN
                                 self->Overlay_Line, DATA = data
                                 data[1,*] = [event.x,event.y]
@@ -29,8 +33,16 @@ CASE widgetName OF
                                 geom = Widget_Info(event.id, /GEOMETRY)
                                 self.frame.frameviewobj->GetProperty,VIEWPLANE_RECT=view
                                 ;self.frame_obj->qClick, event.x*imgDims[0]/winDims[0], event.y*imgDims[1]/winDims[1], self.frameModel_Obj, self.frameView_Obj, self.frame.frameWinObj
+                                
+                                updateImageTemp = self.frame.updateImage
+                                self.frame.updateImage = 0
+                                
                                 self->qClick, view[2]*(event.x/geom.xsize) + view[0], view[3]*(event.y/geom.ysize) + view[1]
+                                (*self.frame.circObjects)[1].SetProperty, UPDIR=[0,-1,0], BASELINE = [-1,0,0]
+                                
                                 self.frame.frameWinObj->Draw
+                                self.frame.updateImage = updateImageTemp
+                                
                               ENDIF
                       
                               IF self.findingCentre GT 0 THEN BEGIN
@@ -88,6 +100,9 @@ CASE widgetName OF
                                 geom = Widget_Info(event.id, /GEOMETRY)
                                 self.box_obj->GetProperty,DATA=data
                                 self->GetProperty,DIMENSIONS=dims
+                                
+                                data[0,*] = (1-data[0,*]/geom.xsize)*geom.xsize
+                                data[1,*] = (1-data[1,*]/geom.ysize)*geom.ysize
                                 
                                 xSize = Max(data[0,*])-Min(data[0,*])
                                 ySize = Max(data[1,*])-Min(data[1,*])
@@ -172,46 +187,47 @@ CASE widgetName OF
 
             'X BEAM LEFT' : BEGIN
                       
-                              self.frame.xc--
-                              Widget_Control, Widget_Info(event.top, FIND_BY_UNAME='X BEAM CENTRE'), SET_VALUE = self.frame.xc
-                              self.UpdateBeamCursor
-                              self.cake.ok = 0
-                              self.cake.newmask = 1
-                              temp = self->CakeSetup()
-                              IF Widget_Info(Widget_Info(event.top, FIND_BY_UNAME = 'AUTO FIND 4 SECTORS'), /BUTTON_SET) THEN self.Find4Sectors
+                              CASE self.rotation OF 
+                                0 : self.frame.xc--
+                                1 : self.frame.yc++
+                                2 : self.frame.xc++
+                                3 : self.frame.yc--
+                              ENDCASE
+                              self.UpdateBeamCursors
+                             
             END
             'X BEAM RIGHT' : BEGIN
                       
-                              self.frame.xc++
-                              Widget_Control, Widget_Info(event.top, FIND_BY_UNAME='X BEAM CENTRE'), SET_VALUE = self.frame.xc
-                              self.UpdateBeamCursor
-                              self.cake.ok = 0
-                              self.cake.newmask = 1
-                              temp = self->CakeSetup()
-                              IF Widget_Info(Widget_Info(event.top, FIND_BY_UNAME = 'AUTO FIND 4 SECTORS'), /BUTTON_SET) THEN self.Find4Sectors
+                              CASE self.rotation OF 
+                                0 : self.frame.xc++
+                                1 : self.frame.yc--
+                                2 : self.frame.xc--
+                                3 : self.frame.yc++
+                              ENDCASE
+                              self.UpdateBeamCursors
                       
             END
             'Y BEAM DOWN' : BEGIN
                       
-                              self.frame.yc--
-                              Widget_Control, Widget_Info(event.top, FIND_BY_UNAME='Y BEAM CENTRE'), SET_VALUE = self.frame.yc
-                              self.UpdateBeamCursor
-                              self.cake.ok = 0
-                              self.cake.newmask = 1
-                              temp = self->CakeSetup()
-                              IF Widget_Info(Widget_Info(event.top, FIND_BY_UNAME = 'AUTO FIND 4 SECTORS'), /BUTTON_SET) THEN self.Find4Sectors
-                      
+                              CASE self.rotation OF 
+                                0 : self.frame.yc--
+                                1 : self.frame.xc--
+                                2 : self.frame.yc++
+                                3 : self.frame.xc++
+                              ENDCASE
+                              self.UpdateBeamCursors
+                              
             END
             'Y BEAM UP' : BEGIN
                       
-                              self.frame.yc++ 
-                              Widget_Control, Widget_Info(event.top, FIND_BY_UNAME='Y BEAM CENTRE'), SET_VALUE = self.frame.yc
-                              self.UpdateBeamCursor
-                              self.cake.ok = 0
-                              self.cake.newmask = 1
-                              temp = self->CakeSetup()
-                              IF Widget_Info(Widget_Info(event.top, FIND_BY_UNAME = 'AUTO FIND 4 SECTORS'), /BUTTON_SET) THEN self.Find4Sectors
-                      
+                              CASE self.rotation OF 
+                                0 : self.frame.yc++
+                                1 : self.frame.xc++
+                                2 : self.frame.yc--
+                                3 : self.frame.xc--
+                              ENDCASE
+                              self.UpdateBeamCursors
+                                                            
             END
             'HIDE BEAM CURSOR' : self.UpdateBeamCursor, HIDE=event.select
             'SAVE CONFIG' : BEGIN
@@ -411,6 +427,26 @@ FUNCTION as__saxsimagegui::GetImage, fname, _REF_EXTRA = extra
 
 END
 
+PRO as__saxsimagegui::UpdateBeamCursors
+
+  IF self.rotation MOD 2 EQ 1 THEN BEGIN
+    xc = self.frame.yc
+    yc = self.frame.xc
+  ENDIF ELSE BEGIN
+    xc = self.frame.xc
+    yc = self.frame.yc
+  ENDELSE
+
+  Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME='X BEAM CENTRE'), SET_VALUE = xc
+  Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME='Y BEAM CENTRE'), SET_VALUE = yc
+  self.UpdateBeamCursor
+  self.cake.ok = 0
+  self.cake.newmask = 1
+  temp = self->CakeSetup()
+  IF Widget_Info(Widget_Info(self.imageGUIBase, FIND_BY_UNAME = 'AUTO FIND 4 SECTORS'), /BUTTON_SET) THEN self.Find4Sectors
+
+END
+
 PRO as__saxsimagegui::Find4Sectors
   
   @as_scatterheader.macro
@@ -467,16 +503,52 @@ PRO as__saxsimagegui::LoadConfig, configNo
 
   IF configNo[0] EQ -1 THEN RETURN
   self.currentConfig = configNo[0]
+  
+  self.frame.logobj.GetParameters,FRAME=frame, ADMAP=ADMap
+  
+  detectorDef = ADMap[where(admap.detectordef eq frame[configno].detector)]
+  self.rotation = Fix(detectorDef.rotation)
+  
   self.profiles_obj.NewParams, self.frame.logObj, configNo
   self.AS_Maskobj::NewParams, self.frame.logObj, CONFIG = configNo
-  Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME='X BEAM CENTRE'), SET_VALUE = self.frame.xc
-  Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME='Y BEAM CENTRE'), SET_VALUE = self.frame.yc
+  Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME='X BEAM CENTRE'), SET_VALUE = self.frame.yc
+  Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME='Y BEAM CENTRE'), SET_VALUE = self.frame.xc
   self.LoadCakeLUT, configNo
   Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME='PARAM LABEL'), SET_VALUE = (self.configNames[configNo])[0]
   Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME='CONFIG COMBO'), SET_COMBOBOX_SELECT = configNo + 1
-  Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME='FRAME_DRAW'), XSIZE = self.frame.NXPIX, YSIZE = self.frame.NYPIX
+  
+  xsize = self.frame.nxpix
+  ysize = self.frame.nypix
+  
+  self.frameModel_obj.reset
+  ;self.rotation = 0
+  CASE self.rotation OF
+    0 : BEGIN
+          
+        END
+    1 : BEGIN
+          xsize = self.frame.nypix
+          ysize = self.frame.nxpix
+        
+          self.frameModel_obj.rotate, [0,0,1], 90
+          self.frameModel_obj.translate, xsize, 0, 0
+        END
+    2 : BEGIN
+          self.frameModel_obj.rotate, [0,0,1], 180
+          self.frameModel_obj.translate, xsize, ysize, 0
+        END
+    3 : BEGIN
+          xsize = self.frame.nypix
+          ysize = self.frame.nxpix
+    
+          self.frameModel_obj.rotate, [0,0,1], 270
+          self.frameModel_obj.translate, 0, ysize, 0
+        END
+  ENDCASE
+  
+  Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME='FRAME_DRAW'), XSIZE = xsize, YSIZE = ysize
 
-  self.frame.frameViewObj->SetProperty, VIEWPLANE_RECT = [0,0,self.frame.nxpix,self.frame.nypix]
+  self.frame.frameViewObj->SetProperty, VIEWPLANE_RECT = [0,0,xsize,ysize]
 
 END
 
@@ -757,8 +829,9 @@ PRO as__saxsimagegui__define
            wHistBut           : 0L       , $
            ; Parameters
            centreing          : FltArr(6), $
-           configNames        : List(),  $
-           currentConfig      : 0 $
+           configNames        : List(),    $
+           currentConfig      : 0,         $
+           rotation           : 0          $
          }
 
 END

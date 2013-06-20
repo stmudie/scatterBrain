@@ -23,9 +23,9 @@ FUNCTION as_scatterXMLFile::init, NOTIFYOBJECT = notifyObject
                                           COUNTERDEFS   : ['INCIDENT','TRANSMISSION','BEAMSTOP'], $
                                           NORMALISATION : ['ABSCAL','USEABSCAL','I0NORM','IBSNORM','NORMTYPE']})
   
-  void = {DETECTORDEF, DETECTORDEF: '', XSIZE: '', YSIZE: '', PIXELSIZE: '', BASEPV: '', CAMPV: '', IMAGEPV: '', LOGFILEPV: '', FILEPV: '', CONTROL: '',SOFTWARETRIGGER: '', AUTOLOAD: ''}
+  void = {DETECTORDEF, DETECTORDEF: '', XSIZE: '', YSIZE: '', PIXELSIZE: '', BASEPV: '', CAMPV: '', IMAGEPV: '', LOGFILEPV: '', FILEPV: '', CONTROL: '',SOFTWARETRIGGER: '', AUTOLOAD: '', ROTATION: ''}
   self.detectorDefs = Ptr_New({DETECTORDEF})
-  self.attDetectorDefs = Ptr_New({ATTDETECTORDEF, DETECTORDEF : ['XSIZE','YSIZE','PIXELSIZE','BASEPV', 'CAMPV', 'IMAGEPV', 'LOGFILEPV', 'FILEPV', 'CONTROL', 'SOFTWARETRIGGER', 'AUTOLOAD']})
+  self.attDetectorDefs = Ptr_New({ATTDETECTORDEF, DETECTORDEF : ['XSIZE','YSIZE','PIXELSIZE','BASEPV', 'CAMPV', 'IMAGEPV', 'LOGFILEPV', 'FILEPV', 'CONTROL', 'SOFTWARETRIGGER', 'AUTOLOAD', 'ROTATION']})
   
   void = {USERMASK, USERMASK: '', MASKNAME: '', SHAPE: '', AUTO: '', COLOUR: '', LOCK: ''}
   self.userMasks    = Ptr_New({USERMASK})
@@ -92,6 +92,7 @@ FUNCTION as_scatterXMLFile::init, NOTIFYOBJECT = notifyObject
               '<!ATTLIST DETECTORDEF CONTROL CDATA #IMPLIED>' + String([10B]) + $
               '<!ATTLIST DETECTORDEF SOFTWARETRIGGER CDATA #IMPLIED>' + String([10B]) + $
               '<!ATTLIST DETECTORDEF AUTOLOAD CDATA #IMPLIED>' + String([10B]) + $
+              '<!ATTLIST DETECTORDEF ROTATION CDATA #IMPLIED>' + String([10B]) + $
               '<!ATTLIST DETECTORDEF ACTIVE CDATA #IMPLIED>' + String([10B]) + $
               '<!ATTLIST CAMERADEFS DETECTOR CDATA #IMPLIED>' + String([10B]) + $
               '<!ATTLIST CAMERADEFS BEAMX CDATA #IMPLIED>' + String([10B]) + $
@@ -121,7 +122,7 @@ FUNCTION as_scatterXMLFile::init, NOTIFYOBJECT = notifyObject
               '<PV ACQUIRE="true" ACQUIREHIGH="" ACQUIRELOW="" LOG="true" READ="" SET="" TRANS="true" TRANSHIGH="" TRANSLOW=""></PV>' + $
               '</PVMap>' + $
               '<DetectorMap>' + $
-              '<DETECTORDEF BASEPV="" CAMPV="" IMAGEPV="" FILEPV="" XSIZE="" YSIZE="" PIXELSIZE="" CONTROL="" SOFTWARETRIGGER="" AUTOLOAD="" ACTIVE=""></DETECTORDEF>' + $
+              '<DETECTORDEF BASEPV="" CAMPV="" IMAGEPV="" FILEPV="" XSIZE="" YSIZE="" PIXELSIZE="" CONTROL="" SOFTWARETRIGGER="" AUTOLOAD="" ROTATION="" ACTIVE=""></DETECTORDEF>' + $
               '</DetectorMap>' + $
               '<MaskMap>' + $
               '<USERMASK SHAPE="Polygon"></USERMASK>' + $
@@ -636,7 +637,8 @@ PRO as_scatterXMLFile::SetParameters, MASK=mask, CHANGEDMASKNAMES = changedMaskN
     (*self.detectorDefs).FilePV      = String(ADMap.FilePV)          
     (*self.detectorDefs).Control     = String(ADMap.Control)         
     (*self.detectorDefs).SoftwareTrigger = String(ADMap.SoftwareTrigger) 
-    (*self.detectorDefs).AutoLoad    = String(ADMap.AutoLoad)        
+    (*self.detectorDefs).AutoLoad    = String(ADMap.AutoLoad)
+    (*self.detectorDefs).Rotation    = String(ADMap.Rotation)        
         
   ENDIF
 
@@ -710,7 +712,7 @@ PRO as_scatterXMLFile::GetParameters, MASK=mask, BEAMSTOP = beamstop, CAKE=cake,
   
    numConfigs = N_Elements(*self.configurations)
 
-   detNum = Where(((*self.configurations).detector)[0] EQ (*self.detectorDefs).DETECTORDEF) 
+   detNum = (Where(((*self.configurations).detector)[0] EQ (*self.detectorDefs).DETECTORDEF))[0]
    
    frame = { confName: ((*self.configurations).name)[0], $
              detector: ((*self.detectorDefs).detectorDef)[detNum], $
