@@ -738,10 +738,10 @@ FUNCTION AS_CakeObj::GetLUT
   
 END
 
-PRO AS_CakeObj::Event, event
+PRO AS_CakeObj::Event, event, scatterEvent
 
   @as_scatterheader.macro
-  self->AS_MaskObj::event, event
+  self->AS_MaskObj::event, event, scatterEvent
 END
 
 PRO AS_CakeObj::NewParams, paramObj, CONFIGNO = configNo 
@@ -779,7 +779,7 @@ PRO AS_CakeObj::NewParams, paramObj, CONFIGNO = configNo
 
 END
 
-PRO AS_CakeObj::qClick, x, y
+PRO AS_CakeObj::qClick, x, y, UPDIR = upDir, BASELINE = baseline
      
   @as_scatterheader.macro
      
@@ -802,7 +802,7 @@ PRO AS_CakeObj::qClick, x, y
   expo = 10.0d^(3 -1 - floor(alog10(abs(q))))
   q = long(q*expo)/expo
 
-  self->OverLay_QCirc, q
+  self->OverLay_QCirc, q, UPDIR = upDir, BASELINE = baseline
   self.cake.profileObj->AddQMarker, q
   
 

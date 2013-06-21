@@ -519,7 +519,7 @@ PRO AS_MaskObj::MaskNotify, event
 
 END
 
-PRO AS_MaskObj::Event, event
+PRO AS_MaskObj::Event, event, scatterEvent
   
   @as_scatterheader.macro
   
@@ -681,6 +681,16 @@ PRO AS_MaskObj::Event, event
   
   IF self.mask.DefiningMask EQ 1 THEN BEGIN
     IF Widget_Info(event.id, /UNAME) EQ 'FRAME_DRAW' THEN BEGIN
+      geom = Widget_Info(event.id, /GEOMETRY)
+      self.frame.frameviewobj->GetProperty,VIEWPLANE_RECT=view
+      x = Round(view[2]*(event.x/geom.xsize) + view[0])
+      y = Round(view[3]*(event.y/geom.ysize) + view[1])
+    
+      IF ISA(scatterEvent,'STRUCT') THEN BEGIN
+        IF N_Elements(scatterEvent.x) NE 0 THEN x = Round(scatterEvent.x)
+        IF N_Elements(scatterEvent.y) NE 0 THEN y = Round(scatterEvent.y)
+      ENDIF
+
       IF self.mask.movingMask.flag GE 1 THEN BEGIN
         IF event.type EQ 1 THEN BEGIN
             Widget_Control, Widget_Info(self.mask.defineMaskBase, FIND_BY_UNAME='defineMaskPropSheet'), /REFRESH_PROPERTY
@@ -690,10 +700,6 @@ PRO AS_MaskObj::Event, event
             self.refreshpropertysheet
         ENDIF
         IF event.type EQ 2 THEN BEGIN
-          geom = Widget_Info(event.id, /GEOMETRY)
-          self.frame.frameviewobj->GetProperty,VIEWPLANE_RECT=view
-          x = Round(view[2]*(event.x/geom.xsize) + view[0]) 
-          y = Round(view[3]*(event.y/geom.ysize) + view[1])
           self.mask.selectedMask.GetProperty, MASKSHAPE=maskShape
           IF maskShape EQ 0 THEN BEGIN
             self.mask.selectedMask.GetProperty, DATA=data
@@ -728,10 +734,6 @@ PRO AS_MaskObj::Event, event
         ENDIF
       ENDIF
       IF event.press GT 0 AND (event.modifiers EQ 0 OR event.modifiers EQ 8) THEN BEGIN
-        geom = Widget_Info(event.id, /GEOMETRY)
-        self.frame.frameviewobj->GetProperty,VIEWPLANE_RECT=view
-        x = Round(view[2]*(event.x/geom.xsize) + view[0]) 
-        y = Round(view[3]*(event.y/geom.ysize) + view[1])
         IF event.modifiers EQ 0 THEN BEGIN
           maskObjects = self.mask.maskObjects.Get(/ALL, ISA = 'as_maskobject', COUNT = numMasks)
           IF numMasks EQ 0 THEN RETURN ELSE table = Widget_Info(self.mask.defineMaskBase, FIND_BY_UNAME='Mask Table ' + StrCompress(Where(self.mask.selectedMask EQ maskObjects),/REMOVE_ALL))

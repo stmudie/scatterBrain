@@ -214,11 +214,11 @@ FUNCTION AS_SaxsImageTools::fitAnnulus, x0, y0, iradius, polar_arc, halfwidth=ha
     RETURN, 0
 END
 
-PRO AS_SaxsImageTools::Event, event
+PRO AS_SaxsImageTools::Event, event, scatterEvent
 
   @as_scatterheader.macro
 
-  self->as_CakeObj::event, event
+  self->as_CakeObj::event, event, scatterEvent
 END
 
 PRO AS_SaxsImageTools::GetProperty, _REF_Extra = extra

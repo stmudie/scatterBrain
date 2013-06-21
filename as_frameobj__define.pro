@@ -830,9 +830,12 @@ PRO AS_FrameObj::Delete_QCirc, qRadius
 
 END
 
-PRO AS_FrameObj::OverLay_QCirc, qRadius
+PRO AS_FrameObj::OverLay_QCirc, qRadius, UPDIR = upDir, BASELINE = baseline
    
     @as_scatterheader.macro
+   
+    IF N_Elements(upDir) NE 3 THEN upDir = [0,1,0]
+    IF N_Elements(baseline) NE 3 THEN baseline = [1,0,0]
    
     IF Obj_Valid(self.PARENT) THEN BEGIN
       self.PARENT->GetProperty, PARENT = view
@@ -897,7 +900,10 @@ PRO AS_FrameObj::OverLay_QCirc, qRadius
       self.PARENT->Add,circle
       ;self.GetProperty, UPDATEIMAGE = update
       ;IF KeyWord_Set(update) THEN self.frame.frameWinObj->Draw
-self.frame.frameWinObj->Draw
+      self.frame.frameWinObj->Draw
+      
+      label.SetProperty, UPDIR = upDir, BASELINE = baseline
+
     ENDIF
 
 END

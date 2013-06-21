@@ -15,42 +15,48 @@ widgetName = Widget_Info(event.id, /UNAME)
 
 CASE widgetName OF
       'FRAME_DRAW' :  BEGIN
+                              
                               geom = Widget_Info(event.id, /GEOMETRY)
-                              print, event.x, event.y, geom
-                              event.x = (1-event.x/geom.xsize)*geom.xsize
-                              event.y = (1-event.y/geom.ysize)*geom.ysize
-                              print, event.x, event.y
-                              IF self.profileLineActive EQ 1 THEN BEGIN
-                                self->Overlay_Line, DATA = data
-                                data[1,*] = [event.x,event.y]
-                                self->Overlay_Line, DATA = data
-                              ENDIF
+                              self.frame.frameviewobj->GetProperty,VIEWPLANE_RECT=view
+                              CASE self.rotation OF
+                                0 : BEGIN
+                                      x = view[2]*(event.x/geom.xsize) + view[0]
+                                      y = view[3]*(event.y/geom.ysize) + view[1]
+                                      upDir = [0,1,0]
+                                      baseline = [1,0,0]
+                                      
+                                    END
+                                1 : BEGIN
+                                      event.x = (1-event.x/geom.xsize)*geom.xsize
+                                      event.y = (1-event.y/geom.ysize)*geom.ysize
+                                    END
+                                2 : BEGIN
+                                      x = self.frame.nxpix - (view[0] + view[2]) + view[2]*(1-event.x/geom.xsize)
+                                      y = self.frame.nypix - (view[1] + view[3]) + view[3]*(1-event.y/geom.ysize)
+                                      upDir = [0,-1,0]
+                                      baseline = [-1,0,0]
+                                    END
+                                3 : BEGIN
+                                      event.x = (1-event.x/geom.xsize)*geom.xsize
+                                      event.y = (1-event.y/geom.ysize)*geom.ysize
+                                    END
+                              ENDCASE
+                              
+                              scatterEvent = {x:x, y:y}
+                              
+;                              IF self.profileLineActive EQ 1 THEN BEGIN
+;                                self->Overlay_Line, DATA = data
+;                                data[1,*] = [event.x,event.y]
+;                                self->Overlay_Line, DATA = data
+;                              ENDIF
                               IF event.type EQ 4 THEN self->DrawImage, /PRESERVE
                       
                               IF event.press EQ 1 AND event.modifiers EQ 1 THEN BEGIN
-                                ;self.frame.frameWinObj->GetProperty, DIMENSIONS = winDims
-                                ;self.frame_obj->GetProperty, DIMENSIONS = imgDims
-                                geom = Widget_Info(event.id, /GEOMETRY)
-                                self.frame.frameviewobj->GetProperty,VIEWPLANE_RECT=view
-                                ;self.frame_obj->qClick, event.x*imgDims[0]/winDims[0], event.y*imgDims[1]/winDims[1], self.frameModel_Obj, self.frameView_Obj, self.frame.frameWinObj
-                                
-                                updateImageTemp = self.frame.updateImage
-                                self.frame.updateImage = 0
-                                
-                                self->qClick, view[2]*(event.x/geom.xsize) + view[0], view[3]*(event.y/geom.ysize) + view[1]
-                                (*self.frame.circObjects)[1].SetProperty, UPDIR=[0,-1,0], BASELINE = [-1,0,0]
-                                
-                                self.frame.frameWinObj->Draw
-                                self.frame.updateImage = updateImageTemp
-                                
+                                self->qClick, x, y, UPDIR = upDir, BASELINE = baseline
                               ENDIF
                       
                               IF self.findingCentre GT 0 THEN BEGIN
                                 IF event.press EQ 1 THEN BEGIN
-                                  geom = Widget_Info(event.id, /GEOMETRY)
-                                  self.frame.frameviewobj->GetProperty,VIEWPLANE_RECT=view
-                                  x = view[2]*(event.x/geom.xsize) + view[0] 
-                                  y = view[3]*(event.y/geom.ysize) + view[1]
                                   self.centreing[self.findingCentre - 1:self.findingCentre] = [x, y]
                                   self.findingCentre = self.findingCentre+2
                                   IF self.findingCentre Gt 5 THEN self.findingCentre = 1
@@ -75,10 +81,6 @@ CASE widgetName OF
                               ENDIF
                       
                               IF self.boxActive EQ 1 THEN BEGIN
-                                geom = Widget_Info(event.id, /GEOMETRY)
-                                self.frame.frameviewobj->GetProperty,VIEWPLANE_RECT=view
-                                x = view[2]*(event.x/geom.xsize) + view[0] 
-                                y = view[3]*(event.y/geom.ysize) + view[1]
                                 self.box_obj->GetProperty, DATA = DATA
                                 DATA[0,2:3] = x
                                 DATA[1,0] = y
@@ -87,22 +89,25 @@ CASE widgetName OF
                                 self.frame.frameWinObj->Draw
                               ENDIF
                               IF event.press EQ 1 AND event.modifiers EQ 2 THEN BEGIN
-                                geom = Widget_Info(event.id, /GEOMETRY)
-                                self.frame.frameviewobj->GetProperty,VIEWPLANE_RECT=view
-                                x = view[2]*(event.x/geom.xsize) + view[0]
-                                y = view[3]*(event.y/geom.ysize) + view[1]
                                 Widget_Control, event.id, /DRAW_MOTION_EVENTS
                                 DATA = Transpose([[x,x,x,x,x],[y,y,y,y,y]])
                                 self.box_obj->SetProperty, DATA = DATA
                                 self.boxActive = 1
                               ENDIF
                               IF event.release EQ 1 AND self.boxActive EQ 1 THEN BEGIN
-                                geom = Widget_Info(event.id, /GEOMETRY)
                                 self.box_obj->GetProperty,DATA=data
                                 self->GetProperty,DIMENSIONS=dims
-                                
-                                data[0,*] = (1-data[0,*]/geom.xsize)*geom.xsize
-                                data[1,*] = (1-data[1,*]/geom.ysize)*geom.ysize
+                               
+                               
+                                CASE self.rotation OF 
+                                  0 : 
+                                  1 :
+                                  2 : BEGIN
+                                        data[0,*] = view[0]+view[2]*(1 - ((data[0,*] - self.frame.nxpix + view[0] + view[2])/view[2])) 
+                                        data[1,*] = view[1]+view[3]*(1 - ((data[1,*] - self.frame.nypix + view[1] + view[3])/view[3]))
+                                      END
+                                  3 :  
+                                ENDCASE
                                 
                                 xSize = Max(data[0,*])-Min(data[0,*])
                                 ySize = Max(data[1,*])-Min(data[1,*])
@@ -393,7 +398,7 @@ CASE widgetName OF
             ELSE        : Print, 'Nothing happening here ...'
       
       ENDCASE
-      self->as_saxsimagetools::event, event
+      self->as_saxsimagetools::event, event, scatterEvent
 END
 
 PRO as__saxsimagegui::hist, xstruct
@@ -507,7 +512,7 @@ PRO as__saxsimagegui::LoadConfig, configNo
   self.frame.logobj.GetParameters,FRAME=frame, ADMAP=ADMap
   
   detectorDef = ADMap[where(admap.detectordef eq frame[configno].detector)]
-  self.rotation = Fix(detectorDef.rotation)
+  self.rotation = 2;Fix(detectorDef.rotation)
   
   self.profiles_obj.NewParams, self.frame.logObj, configNo
   self.AS_Maskobj::NewParams, self.frame.logObj, CONFIG = configNo
