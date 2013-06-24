@@ -1553,13 +1553,13 @@ PRO AS_ProfileContainerObj::GetProperty, BASE=base, MEDMEAN=medmean, COLOUR=colo
     index = Where((*self.profileRefs).refNum EQ offset[0])
     (*self.profileRefs)[index].profiles->GetData, OFFSET = offset 
   ENDIF
-  IF Arg_Present(FNAME) THEN BEGIN
-    index = Where((*self.profileRefs).refNum EQ fName[0])
-    (*self.profileRefs)[index].profiles->GetProperty, FNAME=fName
-  ENDIF
   IF Arg_Present(DETECTORNO) THEN BEGIN
     index = Where((*self.profileRefs).refNum EQ fName[0])
     (*self.profileRefs)[index].profiles->GetProperty, DETECTORNO=detectorNo
+  ENDIF
+  IF Arg_Present(FNAME) THEN BEGIN
+    index = Where((*self.profileRefs).refNum EQ fName[0])
+    (*self.profileRefs)[index].profiles->GetProperty, FNAME=fName
   ENDIF
   IF Arg_Present(xRangeZoom) THEN BEGIN
     xRangeZoom = self.xRangeZoom
