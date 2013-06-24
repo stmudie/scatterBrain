@@ -507,7 +507,7 @@ PRO as__saxsimagegui::LoadConfig, configNo
   self.frame.logobj.GetParameters,FRAME=frame, ADMAP=ADMap
   
   detectorDef = ADMap[where(admap.detectordef eq frame[configno].detector)]
-  self.rotation = Fix(detectorDef.rotation)
+  self.rotation = 2;Fix(detectorDef.rotation)
   
   self.profiles_obj.NewParams, self.frame.logObj, configNo
   self.AS_Maskobj::NewParams, self.frame.logObj, CONFIG = configNo

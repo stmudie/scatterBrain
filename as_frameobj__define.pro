@@ -897,7 +897,7 @@ PRO AS_FrameObj::OverLay_QCirc, qRadius
       self.PARENT->Add,circle
       ;self.GetProperty, UPDATEIMAGE = update
       ;IF KeyWord_Set(update) THEN self.frame.frameWinObj->Draw
-self.frame.frameWinObj->Draw
+      self.frame.frameWinObj->Draw
     ENDIF
 
 END
