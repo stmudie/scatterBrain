@@ -27,8 +27,10 @@ CASE widgetName OF
                                       
                                     END
                                 1 : BEGIN
-                                      event.x = (1-event.x/geom.xsize)*geom.xsize
-                                      event.y = (1-event.y/geom.ysize)*geom.ysize
+                                      x = view[3]*(event.y/geom.ysize) + view[1]
+                                      y = view[2]*(1-event.x/geom.xsize) + self.frame.nypix - (view[0] + view[2])
+                                      upDir = [1,0,0]
+                                      baseline = [0,-1,0]
                                     END
                                 2 : BEGIN
                                       x = self.frame.nxpix - (view[0] + view[2]) + view[2]*(1-event.x/geom.xsize)
@@ -101,7 +103,10 @@ CASE widgetName OF
                                
                                 CASE self.rotation OF 
                                   0 : 
-                                  1 :
+                                  1 : BEGIN
+                                        ;data[0,*] = view[0]+view[2]*(1 - ((data[0,*] - self.frame.nxpix + view[0] + view[2])/view[2]))
+                                        data[1,*] = view[1]+view[3]*(1 - ((data[1,*] - self.frame.nypix + view[1] + view[3])/view[3]))
+                                      END
                                   2 : BEGIN
                                         data[0,*] = view[0]+view[2]*(1 - ((data[0,*] - self.frame.nxpix + view[0] + view[2])/view[2])) 
                                         data[1,*] = view[1]+view[3]*(1 - ((data[1,*] - self.frame.nypix + view[1] + view[3])/view[3]))
@@ -512,7 +517,7 @@ PRO as__saxsimagegui::LoadConfig, configNo
   self.frame.logobj.GetParameters,FRAME=frame, ADMAP=ADMap
   
   detectorDef = ADMap[where(admap.detectordef eq frame[configno].detector)]
-  self.rotation = 2;Fix(detectorDef.rotation)
+  self.rotation = 1;Fix(detectorDef.rotation)
   
   self.profiles_obj.NewParams, self.frame.logObj, configNo
   self.AS_Maskobj::NewParams, self.frame.logObj, CONFIG = configNo
