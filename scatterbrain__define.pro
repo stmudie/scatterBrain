@@ -356,7 +356,7 @@ PRO scatterbrain::event, event
           IF file EQ '' THEN BREAK
           ;IF file NE '' THEN self.filenames.dir = file
           self.frame_obj2.SetProperty, PATH=file
-        
+
         END
 
         ; ** ACQUIRE -> areaDetector

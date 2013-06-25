@@ -178,7 +178,7 @@ FUNCTION AS_SaxsImageTools::fitAnnulus, x0, y0, iradius, polar_arc, halfwidth=ha
             yfit = gaussfit(iradius-h+findgen(2*h),aprofile[i,*],fitp, nterms=5, sigma=sigerr)
             ;estim_err = total(abs(yfit-aprofile[i,*]))/total(aprofile[i,*]-min(aprofile[i,*]))
             estim_err = sigerr[1]/2/h
-;print,[polar_arc[0,i]*180/!pi, fitp[1], fitp[2], sigerr[1]/2/h, 0.75/sigerr[1]^2] ;sigma[2], chisq]
+            ;print,[polar_arc[0,i]*180/!pi, fitp[1], fitp[2], sigerr[1]/2/h, 0.75/sigerr[1]^2] ;sigma[2], chisq]
 
 
             IF estim_err GT 0.01 then BEGIN

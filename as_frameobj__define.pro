@@ -901,6 +901,9 @@ PRO AS_FrameObj::OverLay_QCirc, qRadius, UPDIR = upDir, BASELINE = baseline
       ;self.GetProperty, UPDATEIMAGE = update
       ;IF KeyWord_Set(update) THEN self.frame.frameWinObj->Draw
       self.frame.frameWinObj->Draw
+      
+      label.SetProperty, UPDIR = upDir, BASELINE = baseline
+    
     ENDIF
 
 END
@@ -1093,9 +1096,9 @@ PRO AS_FrameObj::SetProperty, RAWDATA=rawData, HISTMIN = histMin, HISTMAX = hist
     ENDIF 
   ENDIF  
   IF KeyWord_Set(frameViewObj) THEN self.frame.frameViewObj=frameViewObj
-  IF KeyWord_Set(path) THEN self.frame.path = path
   IF KeyWord_Set(normType) THEN self.frame.nrmtype = normType
   IF KeyWord_Set(logObj) THEN self.frame.logObj = logObj
+  IF KeyWord_Set(path) THEN self.frame.path = path
   IF N_Elements(updateImage) GT 0 THEN self.frame.updateImage = KeyWord_Set(updateImage)
   
   IF KeyWord_Set(saturation) THEN self.frame.saturation = saturation
@@ -1194,8 +1197,10 @@ PRO AS_FrameObj::NewParams, paramObj, CONFIGNO = configNo
 
   frame = 1
   IF N_Elements(configNo) EQ 0 THEN configNo = 0
-
-
+ 
+  paramObj->GetParameters, CONFIGDATAPATH=configDataPath, CONFIGNO = configNo
+  IF configDataPath NE '' THEN IF File_Test(configDataPath) THEN self.frame.path = configDataPath
+    
   paramObj->GetParameters, FRAME=frame
   
   frame = (frame)[configNo]
@@ -1224,6 +1229,8 @@ PRO AS_FrameObj::NewParams, paramObj, CONFIGNO = configNo
     ENDIF
    
   ENDFOR
+  
+  
   
   CASE frame.detector OF
     'Pilatus 1M'   : self.frame.format = 'TIF'

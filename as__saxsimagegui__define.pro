@@ -25,22 +25,41 @@ CASE widgetName OF
                                       upDir = [0,1,0]
                                       baseline = [1,0,0]
                                       
+                                      xsize = self.frame.nxpix
+                                      ysize = self.frame.nypix
+                                      
                                     END
                                 1 : BEGIN
                                       x = view[3]*(event.y/geom.ysize) + view[1]
-                                      y = view[2]*(1-event.x/geom.xsize) + self.frame.nypix - (view[0] + view[2])
+                                      y = self.frame.nypix - (view[0] + view[2]) + view[2]*(1-event.x/geom.xsize)
                                       upDir = [1,0,0]
                                       baseline = [0,-1,0]
+                                      
+                                      xsize = self.frame.nypix
+                                      ysize = self.frame.nxpix
+                                      
                                     END
                                 2 : BEGIN
                                       x = self.frame.nxpix - (view[0] + view[2]) + view[2]*(1-event.x/geom.xsize)
                                       y = self.frame.nypix - (view[1] + view[3]) + view[3]*(1-event.y/geom.ysize)
                                       upDir = [0,-1,0]
                                       baseline = [-1,0,0]
+                                      
+                                      xsize = self.frame.nxpix
+                                      ysize = self.frame.nypix
+                                      
                                     END
                                 3 : BEGIN
-                                      event.x = (1-event.x/geom.xsize)*geom.xsize
-                                      event.y = (1-event.y/geom.ysize)*geom.ysize
+                                      
+                                      x = self.frame.nxpix - (view[1] + view[3]) + view[3]*(1-event.y/geom.ysize)
+                                      y = view[2]*(event.x/geom.xsize) + view[0]
+                                      
+                                      upDir = [-1,0,0]
+                                      baseline = [0,1,0]
+                                      
+                                      xsize = self.frame.nypix
+                                      ysize = self.frame.nxpix
+                                      
                                     END
                               ENDCASE
                               
@@ -98,20 +117,27 @@ CASE widgetName OF
                               ENDIF
                               IF event.release EQ 1 AND self.boxActive EQ 1 THEN BEGIN
                                 self.box_obj->GetProperty,DATA=data
-                                self->GetProperty,DIMENSIONS=dims
+                                dims = float([xsize,ysize])
                                
                                
                                 CASE self.rotation OF 
                                   0 : 
                                   1 : BEGIN
-                                        ;data[0,*] = view[0]+view[2]*(1 - ((data[0,*] - self.frame.nxpix + view[0] + view[2])/view[2]))
-                                        data[1,*] = view[1]+view[3]*(1 - ((data[1,*] - self.frame.nypix + view[1] + view[3])/view[3]))
+                                        tempData = data
+                                        data[0,*] = view[1]+view[3]*(1 - ((data[1,*] - self.frame.nypix + view[1] + view[3])/view[3]))
+                                        data[1,*] = tempData[0,*]
+                                      
                                       END
                                   2 : BEGIN
                                         data[0,*] = view[0]+view[2]*(1 - ((data[0,*] - self.frame.nxpix + view[0] + view[2])/view[2])) 
                                         data[1,*] = view[1]+view[3]*(1 - ((data[1,*] - self.frame.nypix + view[1] + view[3])/view[3]))
                                       END
-                                  3 :  
+                                  3 : BEGIN
+                                        tempData = data
+                                        data[0,*] = data[1,*]
+                                        data[1,*] = view[0]+view[2]*(1 - ((tempData[0,*] - self.frame.nxpix + view[0] + view[2])/view[2]))
+                                         
+                                      END
                                 ENDCASE
                                 
                                 xSize = Max(data[0,*])-Min(data[0,*])
@@ -128,8 +154,7 @@ CASE widgetName OF
                                 self.frame.frameWinObj->Draw
                               ENDIF
                               IF event.press EQ 4 AND event.modifiers EQ 2 THEN BEGIN
-                                self->GetProperty,DIMENSIONS=dims
-                                self.frame.frameviewobj->SetProperty,VIEWPLANE_RECT=[0,0,dims[0],dims[1]]
+                                self.frame.frameviewobj->SetProperty,VIEWPLANE_RECT=[0,0,xsize,ysize]
                                 self.frame.frameWinObj->Draw
                               ENDIF
       
@@ -514,14 +539,24 @@ PRO as__saxsimagegui::LoadConfig, configNo
   IF configNo[0] EQ -1 THEN RETURN
   self.currentConfig = configNo[0]
   
-  self.frame.logobj.GetParameters,FRAME=frame, ADMAP=ADMap
-  
-  detectorDef = ADMap[where(admap.detectordef eq frame[configno].detector)]
+  self.frame.logobj.GetParameters, FRAME=frame, ADMAP=ADMap
+  self.frame.logobj.GetParameters, CONFIGDATAPATH = configDataPath, CONFIGNO = self.currentConfig
 
-  self.rotation = 1;Fix(detectorDef.rotation)
+  configName = (frame[self.currentConfig]).confname
 
-  
+  IF ConfigDataPath NE '' THEN BEGIN
+    IF ~File_Test(ConfigDataPath) THEN BEGIN 
+      result = Dialog_Message('Path set for configuration ' + configname + ' is invalid. Choose new path?', /QUESTION)
+      IF result EQ 'Yes' THEN BEGIN
+        configDataPath = Dialog_Pickfile(/MUST_EXIST, /DIRECTORY)
+        IF configDataPath NE '' THEN self.frame.logobj.SetParameters, CONFIGDATAPATH = configDataPath, CONFIGNO = self.currentConfig
+      ENDIF
+    ENDIF
+  ENDIF
+ 
   self.profiles_obj.NewParams, self.frame.logObj, configNo
+  
+  
   self.AS_Maskobj::NewParams, self.frame.logObj, CONFIG = configNo
   Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME='X BEAM CENTRE'), SET_VALUE = self.frame.yc
   Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME='Y BEAM CENTRE'), SET_VALUE = self.frame.xc
@@ -532,8 +567,11 @@ PRO as__saxsimagegui::LoadConfig, configNo
   xsize = self.frame.nxpix
   ysize = self.frame.nypix
   
+  detectorDef = ADMap[where(admap.detectordef eq frame[configno].detector)]
+  self.rotation = Fix(detectorDef.rotation)
+  
   self.frameModel_obj.reset
-  ;self.rotation = 0
+  
   CASE self.rotation OF
     0 : BEGIN
           
@@ -544,6 +582,7 @@ PRO as__saxsimagegui::LoadConfig, configNo
         
           self.frameModel_obj.rotate, [0,0,1], 90
           self.frameModel_obj.translate, xsize, 0, 0
+          
         END
     2 : BEGIN
           self.frameModel_obj.rotate, [0,0,1], 180
@@ -557,7 +596,7 @@ PRO as__saxsimagegui::LoadConfig, configNo
           self.frameModel_obj.translate, 0, ysize, 0
         END
   ENDCASE
-  
+
   Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME='FRAME_DRAW'), XSIZE = xsize, YSIZE = ysize
 
   self.frame.frameViewObj->SetProperty, VIEWPLANE_RECT = [0,0,xsize,ysize]
@@ -570,10 +609,25 @@ PRO as__saxsimagegui::NewParams, paramObj, CONFIGNO = configNo
   @as_scatterheader.macro
   
   self->as_saxsimagetools::NewParams, paramObj, CONFIGNO = configNo
+  paramObj->GetParameters, FRAME=frame, ADMAP=ADMap
+  self.frame.logobj.GetParameters, CONFIGDATAPATH = configDataPath, CONFIGNO = configNo
+  
+  configName = frame[configno].confname
+  
+  IF ConfigDataPath NE '' THEN BEGIN
+    IF ~File_Test(ConfigDataPath) THEN BEGIN
+      result = Dialog_Message('Path set for configuration ' + configName + ' is invalid. Choose new path?', /QUESTION)
+      IF result EQ 'Yes' THEN BEGIN
+        configDataPath = Dialog_Pickfile(/MUST_EXIST, /DIRECTORY)
+        IF configDataPath NE '' THEN self.frame.logobj.SetParameters, CONFIGDATAPATH = configDataPath, CONFIGNO = configNo
+      ENDIF
+    ENDIF
+  ENDIF
+ 
   
   ;Todo At the moment this is only called when an XML is opened. What would happen if called at other time? I think combobox would get screwed up.
   IF N_Elements(configNo) EQ 0 THEN configNo = 0
-  paramObj->GetParameters, FRAME=frame
+  
   nullName = Where(frame.confname EQ '')
   IF nullName[0] GE 0 THEN (frame[nullname].confname) = ' ' 
   Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME = 'CONFIG COMBO'), SET_VALUE= ['New...', frame.confName] 
@@ -602,7 +656,43 @@ PRO as__saxsimagegui::NewParams, paramObj, CONFIGNO = configNo
   Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME='X BEAM CENTRE'), SET_VALUE = self.frame.xc
   Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME='Y BEAM CENTRE'), SET_VALUE = self.frame.yc
   
-  self.frame.frameViewObj->SetProperty, VIEWPLANE_RECT = [0,0,self.frame.nxpix,self.frame.nypix]
+  xsize = self.frame.nxpix
+  ysize = self.frame.nypix
+  
+  detectorDef = ADMap[where(admap.detectordef eq frame[configno].detector)]
+  self.rotation = Fix(detectorDef.rotation)
+  
+  self.frameModel_obj.reset
+  
+  CASE self.rotation OF
+    0 : BEGIN
+          
+        END
+    1 : BEGIN
+          xsize = self.frame.nypix
+          ysize = self.frame.nxpix
+        
+          self.frameModel_obj.rotate, [0,0,1], 90
+          self.frameModel_obj.translate, xsize, 0, 0
+          
+        END
+    2 : BEGIN
+          self.frameModel_obj.rotate, [0,0,1], 180
+          self.frameModel_obj.translate, xsize, ysize, 0
+        END
+    3 : BEGIN
+          xsize = self.frame.nypix
+          ysize = self.frame.nxpix
+    
+          self.frameModel_obj.rotate, [0,0,1], 270
+          self.frameModel_obj.translate, 0, ysize, 0
+        END
+  ENDCASE
+
+  Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME='FRAME_DRAW'), XSIZE = xsize, YSIZE = ysize
+
+  self.frame.frameViewObj->SetProperty, VIEWPLANE_RECT = [0,0,xsize,ysize]
+
 
 END
 
@@ -633,7 +723,7 @@ PRO as__saxsimagegui::SetProperty, AUTOSCALE = autoScale, DEFINEMASKS = defineMa
   IF N_Elements(defineMasks) EQ 1 THEN BEGIN
     Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME = 'DEFINE MASKS'), SET_VALUE = defineMasks
   ENDIF
-  
+  IF (Where(extra EQ 'PATH'))[0] NE -1 THEN self.frame.logObj.SetParameters,CONFIGDATAPATH = self.frame.path, CONFIGNO = self.currentConfig
   
 END
 

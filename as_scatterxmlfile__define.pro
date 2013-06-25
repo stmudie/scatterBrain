@@ -10,14 +10,14 @@ FUNCTION as_scatterXMLFile::init, NOTIFYOBJECT = notifyObject
 
   self.currentConfig = 0
 
-  void = {CONFIGURATION, CONFIGURATION: '', NAME: '', LOADCONFIG: '', CAMERADEFS: '', USERMASKS: '', COUNTERDEFS: '', NORMALISATION: '', $
+  void = {CONFIGURATION, CONFIGURATION: '', NAME: '', LOADCONFIG: '', DATAPATH: '', CAMERADEFS: '', USERMASKS: '', COUNTERDEFS: '', NORMALISATION: '', $
                          DETECTOR: '', LENGTH: '', BEAMX: '', BEAMY: '', WAVELENGTH: '', STOPACTIVE: '', STOPRADIUS: '', STOPOFFSETX: '', STOPOFFSETY : '', STOPANGLE: '', STOPWIDTH: '', WAXSANGLE: '', $
                          INCIDENT: '', TRANSMISSION: '',BEAMSTOP: '', $
                          ABSCAL: '', USEABSCAL: '', I0NORM: '', IBSNORM: '', NORMTYPE: ''}
   
   self.configurations    = Ptr_New({CONFIGURATION})
   self.attConfigurations = Ptr_New({ATTCONFIGURATION, $
-                                          CONFIGURATION : ['NAME', 'LOADCONFIG'],$
+                                          CONFIGURATION : ['NAME', 'LOADCONFIG', 'DATAPATH'],$
                                           CAMERADEFS    : ['DETECTOR','LENGTH','BEAMX','BEAMY','WAVELENGTH','STOPACTIVE','STOPRADIUS','STOPOFFSETX','STOPOFFSETY','STOPANGLE','STOPWIDTH','WAXSANGLE'], $
                                           USERMASKS     : [''], $
                                           COUNTERDEFS   : ['INCIDENT','TRANSMISSION','BEAMSTOP'], $
@@ -67,6 +67,7 @@ FUNCTION as_scatterXMLFile::init, NOTIFYOBJECT = notifyObject
               '<!ATTLIST scatterBrain FileVersion CDATA #IMPLIED>' + String([10B]) + $
               '<!ATTLIST CONFIGURATION NAME CDATA #IMPLIED>' + String([10B]) + $
               '<!ATTLIST CONFIGURATION LOADCONFIG CDATA #IMPLIED>' + String([10B]) + $
+              '<!ATTLIST CONFIGURATION DATAPATH CDATA #IMPLIED>' + String([10B]) + $
               '<!ATTLIST PV ACQUIRE (true|false) #IMPLIED>' + String([10B]) + $
               '<!ATTLIST PV ACQUIREHIGH CDATA #IMPLIED>' + String([10B]) + $
               '<!ATTLIST PV ACQUIRELOW CDATA #IMPLIED>' + String([10B]) + $
@@ -517,7 +518,21 @@ PRO as_scatterXMLFile::SaveFile, fileName, EMPTY = empty, FILELIST = fileList, T
 
 END
 
-PRO as_scatterXMLFile::SetParameters, MASK=mask, CHANGEDMASKNAMES = changedMaskNames, BEAMSTOP = beamStop, CAKE=cake, FRAME=frame, ADMAP=ADMap, PVMAP=PVMap, ABSCAL=absCal, USEABSCAL = useAbsCal, NORMTYPE=normType, I0NORM=I0Norm, IBSNORM=IBSNorm, COUNTERDEFS = counterDefs, CONFIGNO=config, CONFIGNAME = configName
+PRO as_scatterXMLFile::SetParameters, $
+MASK=mask, $
+CHANGEDMASKNAMES = changedMaskNames, $ 
+BEAMSTOP = beamStop, $
+CAKE=cake, FRAME=frame, $
+ADMAP=ADMap, PVMAP=PVMap, $
+ABSCAL=absCal, $
+USEABSCAL = useAbsCal, $ 
+NORMTYPE=normType, $
+I0NORM=I0Norm, $
+IBSNORM=IBSNorm, $
+COUNTERDEFS = counterDefs, $ 
+CONFIGNO=config, $
+CONFIGNAME = configName, $
+CONFIGDATAPATH = configDataPath
 
   @as_scatterheader.macro
   
@@ -529,6 +544,7 @@ PRO as_scatterXMLFile::SetParameters, MASK=mask, CHANGEDMASKNAMES = changedMaskN
   IF config GE N_Elements(*self.configurations) THEN *self.configurations = [*self.configurations,{CONFIGURATION}]
 
   IF KeyWord_Set(configName) THEN (*self.configurations)[config].name = configName
+  IF KeyWord_Set(configDataPath) THEN (*self.configurations)[config].dataPath = configDataPath
 
   IF KeyWord_Set(mask) THEN BEGIN
   
@@ -644,9 +660,23 @@ PRO as_scatterXMLFile::SetParameters, MASK=mask, CHANGEDMASKNAMES = changedMaskN
 
 END
 
-PRO as_scatterXMLFile::GetParameters, MASK=mask, BEAMSTOP = beamstop, CAKE=cake, FRAME=frame, ADMAP=ADMap, PVMAP=PVMap, NORMPARAMS = normParams, LOGPARAMS = logParams, RAWLOG = rawLog
+PRO as_scatterXMLFile::GetParameters, $
+MASK=mask, $
+BEAMSTOP = beamstop, $
+CAKE=cake, FRAME=frame, $
+ADMAP=ADMap, $
+PVMAP=PVMap, $
+NORMPARAMS = normParams, $
+LOGPARAMS = logParams, $
+RAWLOG = rawLog, $
+CONFIGDATAPATH = configDataPath, $
+CONFIGNO = config
+
 
   @as_scatterheader.macro
+
+  IF ~KeyWord_Set(config) THEN config = 0  
+  IF Arg_Present(configDataPath) THEN configDataPath = (*self.configurations)[config].dataPath
 
  IF Arg_Present(mask) THEN BEGIN
    
