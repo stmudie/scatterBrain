@@ -278,11 +278,11 @@ PRO AS_SAXSExcelScans::InitialiseScan, NONAMES=noNames
       result += CAPut(scanPV+'R'+StrCompress(4,/REMOVE_ALL)+'PV', self.basePV + 'fileIndex' + StrCompress(i,/REMOVE_ALL))
       result += CAPut(scanPV+'P'+StrCompress(4,/REMOVE_ALL)+'PV', self.basePV + 'fileIndex' + StrCompress(i,/REMOVE_ALL))
     ENDIF ELSE BEGIN
-      result += CAPut(scanPV+'P'+StrCompress(4,/REMOVE_ALL)+'SM', 0)
-      result += CAPut(scanPV+'P'+StrCompress(4,/REMOVE_ALL)+'SP', 1)
-      result += CAPut(scanPV+'P'+StrCompress(4,/REMOVE_ALL)+'EP', 0)
-      result += CAPut(scanPV+'R'+StrCompress(4,/REMOVE_ALL)+'PV', '')
-      result += CAPut(scanPV+'P'+StrCompress(4,/REMOVE_ALL)+'PV', '')
+    ;  result += CAPut(scanPV+'P'+StrCompress(4,/REMOVE_ALL)+'SM', 0)
+    ;  result += CAPut(scanPV+'P'+StrCompress(4,/REMOVE_ALL)+'SP', 1)
+    ;  result += CAPut(scanPV+'P'+StrCompress(4,/REMOVE_ALL)+'EP', 0)
+    ;  result += CAPut(scanPV+'R'+StrCompress(4,/REMOVE_ALL)+'PV', '')
+    ;  result += CAPut(scanPV+'P'+StrCompress(4,/REMOVE_ALL)+'PV', '')
     ENDELSE
     result += CAPut(scanPV+'NPTS', number)
   ENDFOR

@@ -1467,8 +1467,16 @@ FUNCTION scatterbrain::ProcessImage, name, SAVESUMMED = saveSummed, LIVEFRAME = 
 
   IF N_Elements(detectorNo) EQ 0 THEN detectorNo = -1
 
-  live = KeyWord_Set(liveFrame)  
-  profileData=self.frame_obj->GetAndCake(name, SAVESUMMED = saveSummed, SUMMEDNAME = summedName, FRAME = liveFrame, NOSETUP = noSetup)
+  live = KeyWord_Set(liveFrame)
+  IF live THEN BEGIN
+    CASE liveFrame.count() OF
+      1 : liveFrame1 = liveFrame[0]
+      2 : liveFrame2 = liveFrame[1]
+      ELSE :
+    ENDCASE
+  ENDIF
+  
+  profileData=self.frame_obj->GetAndCake(name, SAVESUMMED = saveSummed, SUMMEDNAME = summedName, FRAME = liveFrame1, NOSETUP = noSetup)
   IF Obj_Valid(self.frame_obj2) THEN profileData2=self.frame_obj2->GetAndCake(name, SAVESUMMED = saveSummed, SUMMEDNAME = summedName, FRAME = liveFrame2, NOSETUP = noSetup)
   IF Size(profileData, /TNAME) EQ 'INT' THEN BEGIN
     IF profileData[0] EQ -1 THEN RETURN, -1
@@ -1889,23 +1897,25 @@ PRO scatterbrain::NewFrame, detID
   ;print, logData
 
   IF self.liveLog NE '' THEN self.scatterXMLGUI_obj->ParseFile, FILENAME = self.liveLog, /LOGONLY, /UPDATE
+  liveFrameArray = list()
   FOR i = 0, N_Elements(detID) - 1 DO BEGIN
     IF detID[i] EQ 1 THEN BEGIN 
       liveFrame = self.areaDetectorObj->GetFrame(i)
       IF liveFrame EQ !NULL THEN RETURN
+      liveFrameArray.add, liveFrame
       self.frame_obj.GetProperty, DIMENSIONS=oldDims
       IF Total(fix(oldDims)-(size(liveFrame))[1:2],/PRESERVE_TYPE) NE 0 THEN BEGIN
         result = Dialog_Message('Frame size changed, internal mask array cleared.', /INFORMATION)
         self.frame_obj->ClearMaskArray
       ENDIF
-      self.areaDetectorObj->GetProperty, i, FULLFILENAME = fullFileName, FILEPATH = filePath
-      IF (fullFileName EQ !NULL) + (fullFileName EQ !NULL) EQ 0 THEN BEGIN
-        fileName = (StrSplit(fullfilename, filepath, /REGEX, /EXTRACT))[0]
-        result = self.ProcessImage(fileName, LIVEFRAME = liveFrame)
-        Widget_Control, Widget_Info(self.wScatterBase, FIND_BY_UNAME = 'SIMAGE'), SET_VALUE = fileName
-      ENDIF 
     ENDIF
   ENDFOR
+  self.areaDetectorObj->GetProperty, 0, FULLFILENAME = fullFileName, FILEPATH = filePath
+  IF (fullFileName EQ !NULL) + (filePath EQ !NULL) EQ 0 THEN BEGIN
+    fileName = (StrSplit(fullfilename, filepath, /REGEX, /EXTRACT))[0]
+    result = self.ProcessImage(fileName, LIVEFRAME = liveFrameArray)
+    Widget_Control, Widget_Info(self.wScatterBase, FIND_BY_UNAME = 'SIMAGE'), SET_VALUE = fileName
+  ENDIF
 
 END
 

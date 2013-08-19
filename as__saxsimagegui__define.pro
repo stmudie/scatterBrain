@@ -723,7 +723,7 @@ PRO as__saxsimagegui::SetProperty, AUTOSCALE = autoScale, DEFINEMASKS = defineMa
   IF N_Elements(defineMasks) EQ 1 THEN BEGIN
     Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME = 'DEFINE MASKS'), SET_VALUE = defineMasks
   ENDIF
-  IF (Where(extra EQ 'PATH'))[0] NE -1 THEN self.frame.logObj.SetParameters,CONFIGDATAPATH = self.frame.path, CONFIGNO = self.currentConfig
+  IF N_Elements(extra) GT 0 THEN IF (Where(extra EQ 'PATH'))[0] NE -1 THEN self.frame.logObj.SetParameters,CONFIGDATAPATH = self.frame.path, CONFIGNO = self.currentConfig
   
 END
 

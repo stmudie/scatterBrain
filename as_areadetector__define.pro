@@ -205,7 +205,7 @@ PRO as_areadetector::SetADProperty, $
 
   camValid = Obj_Valid(self.ADCamObj)
   imageValid = Obj_Valid(self.ADStdObj)
-  fileValid = Obj_Valid(self.ADFileObj)
+  fileValid = 0;Obj_Valid(self.ADFileObj)
   camFileValid = Obj_Valid(self.ADCamFileObj)
   logfilevalid = Obj_Valid(self.ADLogFileObj)
 
@@ -328,7 +328,8 @@ PRO as_areadetector::GetADProperty, $
   camValid = Obj_Valid(self.ADCamObj)
   imageValid = Obj_Valid(self.ADStdObj)
   camFileValid = Obj_Valid(self.ADCamFileObj)
-  fileValid = Obj_Valid(self.ADFileObj) AND ~KeyWord_Set(GETCAMERAFILE)
+  fileValid = 0;Obj_Valid(self.ADFileObj) AND ~KeyWord_Set(GETCAMERAFILE)
+  fileValidTemp=Obj_Valid(self.ADFileObj) AND ~KeyWord_Set(GETCAMERAFILE)
   logfilevalid = Obj_Valid(self.ADLogfileObj)
 
   IF Arg_Present(logfilepath) THEN BEGIN
@@ -346,7 +347,7 @@ PRO as_areadetector::GetADProperty, $
     IF camFileValid THEN filePath = String(self.ADCamFileObj->GetProperty('FilePath_RBV')) ELSE filePath = ''
   ENDIF
   IF Arg_Present(fullFileName) THEN BEGIN
-    IF fileValid THEN fullFileName = String(self.ADFileObj->GetProperty('FullFileName_RBV')) ELSE $
+    IF fileValidTemp THEN fullFileName = String(self.ADFileObj->GetProperty('FullFileName_RBV')) ELSE $
     IF camFileValid THEN fullFileName = String(self.ADCamFileObj->GetProperty('FullFileName_RBV')) ELSE fullFileName = ''
   ENDIF
   IF Arg_Present(fileNumber) THEN BEGIN

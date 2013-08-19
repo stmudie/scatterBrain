@@ -654,7 +654,7 @@ CONFIGDATAPATH = configDataPath
     (*self.detectorDefs).Control     = String(ADMap.Control)         
     (*self.detectorDefs).SoftwareTrigger = String(ADMap.SoftwareTrigger) 
     (*self.detectorDefs).AutoLoad    = String(ADMap.AutoLoad)
-    (*self.detectorDefs).Rotation    = String(ADMap.Rotation)        
+    (*self.detectorDefs).Rotation    = tempDetectorDefs.rotation;String(ADMap.Rotation)        
         
   ENDIF
 
