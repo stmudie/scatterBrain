@@ -423,10 +423,20 @@ PRO scatterbrain::event, event
                                  zingerThreshold = CW_FSlider(zingerBase, TITLE = '', VALUE = 10000, MINIMUM = 0, MAXIMUM = 2^20., XSIZE = 200, /EDIT, UNAME = 'ZINGER THRESHOLD')
                                  zingerLabel = Widget_Text(zingerBase, FRAME = 0, VALUE = 'Zinger Threshold. This sets the value used by the zinger mask routine. You must run that routine after changing this value.', YSIZE = 3, /WRAP)
                                  row1 = widget_base(self.settingsbase, /ROW, /FRAME)
-                                 sectors = Widget_Slider(row1, TITLE = 'Number of Sectors          ', VALUE = 180, MINIMUM = 1, MAXIMUM = 360, YSIZE = 30, /VERTICAL, UNAME = 'NO. SECTORS')
                                  self.frame_obj.GetProperty, STEP = step
                                  row2 = widget_base(self.settingsbase, /ROW, /FRAME)
-                                 binSize = Widget_Slider(row2, TITLE = 'q-vector bin size          ', VALUE = step > 1, /VERTICAL, MINIMUM = 1, MAXIMUM = 10, YSIZE = 15, UNAME = 'Q BIN SIZE')
+                                                                  
+                                 CASE !version.os_family OF
+                                  'Windows' : BEGIN
+                                                sectors = Widget_Slider(row1, TITLE = 'Number of Sectors          ', VALUE = 180, MINIMUM = 1, MAXIMUM = 360, /VERTICAL, YSIZE = 30, UNAME = 'NO. SECTORS')
+                                                binSize = Widget_Slider(row2, TITLE = 'q-vector bin size          ', VALUE = step > 1, /VERTICAL, MINIMUM = 1, MAXIMUM = 10, YSIZE = 15, UNAME = 'Q BIN SIZE')
+                                              END
+                                   ELSE:      BEGIN
+                                                sectors = Widget_Slider(row1, TITLE = 'Number of Sectors          ', VALUE = 180, MINIMUM = 1, MAXIMUM = 360, XSIZE = 150, YSIZE = 50, UNAME = 'NO. SECTORS')
+                                                binSize = Widget_Slider(row2, TITLE = 'q-vector bin size          ', VALUE = step > 1, MINIMUM = 1, MAXIMUM = 10, XSIZE = 150, YSIZE = 50, UNAME = 'Q BIN SIZE')
+                                              END
+                                 ENDCASE
+                                 
                                  row3 = Widget_Base(row2, /NONEXCLUSIVE)
                                  pseudoLog = Widget_Button(row3, VALUE = 'Pseudo Log', UNAME = 'PSEUDO LOG')
                                  Widget_Control, pseudoLog, SET_BUTTON = ~step
@@ -580,6 +590,9 @@ PRO scatterbrain::event, event
                          END 
         
         ; ** HELP MENU **
+        ; ** HELP -> Wiki        
+        'WIKI' : mg_open_url, 'http://aswebsaxs.synchrotron.org.au/saxswiki/index.php/SR13ID01_scatterBrain_Manual'
+        
         ; ** HELP -> Help
         'HELP' : Call_Method, 'Overview', self.helpFile 
         
@@ -2352,6 +2365,8 @@ FUNCTION scatterbrain::init     $
      
 ;    DOPTIONS = Widget_Button(MENU_OPTIONS, UNAME='DOPTIONS',VALUE='Main Display')
 ;
+     SCATTER_WIKI = Widget_Button(wHelpMenu, UNAME='WIKI',VALUE='WIKI Manual.')
+
      SCATTER_HELP = Widget_Button(wHelpMenu, UNAME='HELP',VALUE='Help')
      
      CONTEXT_HELP = Widget_Button(wHelpMenu, UNAME='FRAME_HELP',VALUE='Context Help') 

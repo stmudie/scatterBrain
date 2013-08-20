@@ -281,7 +281,7 @@ PRO AS_MaskObj::ShowMaskTable, show
     primaryMonitor = monitorObj.GetPrimaryMonitorIndex()
     monitorSize = monitorObj.GetRectangles(/EXCLUDE_TASKBAR)
     
-    defineMaskBase = Widget_Base(GROUP_LEADER=self.frame.group_leader, TITLE = 'scatterBrain Mask Definitions', /FLOATING, /TLB_SIZE_EVENT, /TLB_KILL_REQUEST_EVENTS, UVALUE=self, /COLUMN, MBAR = menuBar, X_SCROLL_SIZE = 500, UNAME = 'Mask Base')
+    defineMaskBase = Widget_Base(GROUP_LEADER=self.frame.group_leader, TITLE = 'scatterBrain Mask Definitions', /FLOATING, /TLB_SIZE_EVENT, /TLB_KILL_REQUEST_EVENTS, UVALUE=self, /COLUMN, MBAR = menuBar, X_SCROLL_SIZE = 600, Y_SCROLL_SIZE = 800, UNAME = 'Mask Base')
     addButtonMenu = Widget_Button(menuBar, /MENU, VALUE='Add Mask')
     addButton = Widget_Button(addButtonMenu, VALUE='Add Mask', UNAME = 'Add Mask')
     deleteButtonMenu = Widget_Button(menuBar, /MENU, VALUE='Delete Mask')
@@ -538,7 +538,7 @@ PRO AS_MaskObj::Event, event, scatterEvent
                        self.showMaskTable, 0
                        self.mask.definingMask = 0
                        self.masknotify, {MASKWINDOW, event : 'Close' } 
-                     ENDIF ELSE Widget_Control, event.id, SCR_XSIZE = event.x
+                     ENDIF ;ELSE Widget_Control, event.id, SCR_XSIZE = event.x
                    END
     'Mask Table' : BEGIN
                     
