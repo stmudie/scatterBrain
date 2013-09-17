@@ -756,8 +756,10 @@ FUNCTION as__saxscontourplot::Init, x, y, z, FILENAMES=fileNames, NOTIFYOBJ = no
   ;hist = Histogram(y, LOCATIONS = yValues)
   ;self.plotIndex = List(yValues[Where(hist NE 0)], /EXTRACT)
   self.plotIndex = List(IndGen(N_Elements(y)),/EXTRACT)
-  IF N_Elements(groupLeader) GT 0 THEN wContourBase = Widget_Base(GROUP_LEADER = groupLeader, /ROW, TITLE = 'scatterBrain Contour Plot', /TLB_SIZE_EVENTS, /FLOATING, /TLB_KILL_REQUEST_EVENTS) $
-                                  ELSE wContourBase = Widget_Base(/ROW, TITLE = 'scatterBrain Contour Plot', /TLB_SIZE_EVENTS, /TLB_KILL_REQUEST_EVENTS)
+  IF N_Elements(groupLeader) GT 0 THEN BEGIN
+    wContourBase = Widget_Base(GROUP_LEADER = groupLeader, /ROW, TITLE = 'scatterBrain Contour Plot', FLOATING = !version.os_family EQ 'Windows', /TLB_SIZE_EVENTS, /TLB_KILL_REQUEST_EVENTS)
+  ENDIF ELSE wContourBase = Widget_Base(/ROW, TITLE = 'scatterBrain Contour Plot', /TLB_SIZE_EVENTS, /TLB_KILL_REQUEST_EVENTS)
+                                
   self.wContourBase = wContourBase
   WIDGET_CONTROL, wContourBase, SET_UVALUE = self
   wControlBase = Widget_Base(wContourBase, /COLUMN, UNAME = 'Contour Type Base')

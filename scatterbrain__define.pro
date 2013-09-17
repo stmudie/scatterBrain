@@ -291,6 +291,8 @@ PRO scatterbrain::event, event
                           FOREACH widgetID, widgetIDS DO IF widgetID GT 0 THEN Widget_Control, widgetID, SENSITIVE = 1
                      END
          
+        ; ** File -> Export Experiment file with selected
+        'EXPORT EXPERIMENT FILES' : print, 'yes'    
 
         ; ** ACQUIRE MENU - Disabled in non-control mode **
 
