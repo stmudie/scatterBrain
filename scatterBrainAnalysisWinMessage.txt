@@ -1,3 +1,6 @@
+Version 2.10
+Small bug fix for subtract background in Contour plot.
+
 Version 2.05
 Bug fixes including Auto Scale checkbox crash. Link to wiki on help menu.
 
