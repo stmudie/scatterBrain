@@ -1,3 +1,8 @@
+Version 2.20
+Summed files now saved to summedimages directory, and loaded 
+into summed images folder in file list. Two D subtraction now available 
+from tools menu.
+
 Version 2.10
 Small bug fix for subtract background in Contour plot.
 
@@ -16,7 +21,3 @@ Bug fix to contour/sector plots and mask deletion.
 Version 1.71
 A SERVICE PACK FOR IDL HAS BEEN RELEASED. IT IS RECOMMENDED THAT YOU UPGRADE YOUR ENTIRE SCATTERBRAIN INSTALLATION TO TAKE ADVANTAGE OF THIS.
 PLEASE GO TO www.synchrotron.org.au/index.php/aussyncbeamlines/saxswaxs/software-saxswaxs TO DOWNLOAD THE VERSION FOR YOUR OPERATING SYSTEM.
-
-Version 1.70
-Various fixes and improvements to mask GUI, psuedo log scale q bining, option to hide beamcursor, 
-fix to imagemosaic intensity scaling, removal of annoying coincidental range error message, other bug fixes.

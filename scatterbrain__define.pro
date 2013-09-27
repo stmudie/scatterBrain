@@ -1260,6 +1260,7 @@ PRO scatterbrain::TwoDSubtract, twoD
       void = self.scatterXMLGUI_obj.GetScale(index,I0=Samplei0counts, IBS = Sampleibscounts,TIME=Sampletime1)
     ENDIF
     IF twoD.prefix NE '' THEN prefix = twoD.prefix ELSE prefix = 'SUB'
+    IF ~File_Test(File_Dirname(self.frame_obj.frame.path)+'/summedimages/') THEN File_MKDir, File_Dirname(self.frame_obj.frame.path)+'/summedimages/'
     FQfilename = File_Dirname(self.frame_obj.frame.path)+'/summedimages/' + prefix+ sampleName
     
     CASE self.profiles_obj.nrmType OF
