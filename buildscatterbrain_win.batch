@@ -83,6 +83,7 @@ class.add, 'as_exportstructtocsv'
 class.add, 'as_exportstructtoexcel'
 class.add, 'as_datfileloader'
 class.add, 'as_plotobject'
+class.add, 'as_twodsubtract'
 
 ;Other clases to be resolved
 
