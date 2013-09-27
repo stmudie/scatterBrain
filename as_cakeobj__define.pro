@@ -652,13 +652,13 @@ FUNCTION AS_CakeObj::Sectors, f_name, sectors, NODISPLAYMASK=noDisplayMask, CURR
 
 END
 
-FUNCTION AS_CakeObj::GetAndCake, f_name, FRAME = liveFrame, NOPROFILE = noProfile, SAVESUMMED=saveSummed, SUMMEDNAME = summedName, NOSETUP = noSetup
+FUNCTION AS_CakeObj::GetAndCake, f_name, FRAME = liveFrame, NOPROFILE = noProfile, SAVESUMMED=saveSummed, SUMMEDNAME = summedName, NOSETUP = noSetup, TYPEFRAME = typeFrame
 
     @as_scatterheader.macro
 
     self.UpdateBeamCursor
     live = KeyWord_Set(liveFrame)
-    sf=self->GetImage(f_name, FRAME=liveFrame)
+    sf=self->GetImage(f_name, FRAME=liveFrame, TYPEFRAME = typeFrame)
     IF sf LT 0 THEN RETURN, -1
     useLogEnergy = 0
     useLogAngle = 0
@@ -687,10 +687,27 @@ FUNCTION AS_CakeObj::GetAndCake, f_name, FRAME = liveFrame, NOPROFILE = noProfil
     
     IF KeyWord_Set(saveSummed) AND N_Elements(f_name) GT 1 THEN BEGIN
       IF ~KeyWord_Set(summedName) THEN summedName = ''
-      IF summedName EQ '' THEN summedName = Dialog_Pickfile(/WRITE, /OVERWRITE_PROMPT, FILTER = '*.tif', PATH = self.frame.path ,GET_PATH=path, DEFAULT_EXTENSION='tif')
+      path = File_Dirname(self.frame.path)+'/summedimages/'
+      
+      basenames = List()
+      numbers = List()
+      FOREACH name, f_name DO BEGIN
+        name = File_Basename(name,'.tif')
+        basenames.add, StrMid(name,0,(StrSplit(name,'_'))[-1]-1)
+        numbers.add,StrMid(name,(StrSplit(name,'_'))[-1])
+      ENDFOREACH
+
+      IF Where(basenames NE basenames[0],/NULL) EQ !NULL THEN defaultName = basenames[0] + '_sum_' + String(min(numbers.toarray())) + '_to_' + String(max(numbers.toarray())) + '.tif' $
+                                                         ELSE defaultName = File_Basename(f_name[0],'.tif') + '_to_' + File_Basename(f_name[-1],'.tif')  + '_sum.tif'
+      
+      IF summedName EQ '' THEN summedName = Dialog_Pickfile(FILE = defaultName,/WRITE, /OVERWRITE_PROMPT, FILTER = '*.tif', PATH = path, DEFAULT_EXTENSION='tif')
       IF summedName NE 'Cancel' AND summedName NE '' THEN BEGIN
-        self.frame.fname = StrMid(summedName,StrLen(path)) 
-        Write_Tiff, summedName, Reverse(*self.frame.rawData,2), /LONG, /SIGNED, DESCRIPTION='Summed frame created by scatterBrain using the following files: ' + StrJoin(f_name.toarray(),' ',/SINGLE)
+        IF ~File_Test(path) THEN BEGIN
+          File_MKDir, path
+          Wait, 0.2
+        ENDIF
+        self.frame.fname = File_Basename(summedName) 
+        Write_Tiff, path + File_Basename(summedName), Reverse(*self.frame.rawData,2), /LONG, /SIGNED, DESCRIPTION='Summed frame created by scatterBrain using the following files: ' + StrJoin(f_name.toarray(),' ',/SINGLE)
         self.frame.logobj.NewLogLine, summedName, self.frame.time, self.frame.i0counts, 0, self.frame.iBScounts, TYPE = 'SUMMED'
       ENDIF ELSE BEGIN
         result = Dialog_Message('Invalid filename, not saving summed image, you will not be able to use it for background subtractions, etc.')

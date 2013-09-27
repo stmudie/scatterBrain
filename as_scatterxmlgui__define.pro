@@ -28,6 +28,7 @@ FUNCTION as_scatterXMLGUI::INIT, GROUP_LEADER = groupLeader, DOCK=dock, _REF_Ext
   ENDIF
   self.fileTreeParent = Widget_Tree(treeBase, /MULTIPLE, /CONTEXT, /DRAGGABLE, XSIZE = 200, YSIZE = height)
   self.fileTreeSearch = Widget_Tree(self.fileTreeParent, VALUE = 'Search Results', /FOLDER)
+  self.fileTreeSummed = Widget_Tree(self.fileTreeParent, VALUE = 'Summed Results', /FOLDER, /EXPANDED)
 
   self.wContextBase = WIDGET_BASE(treeBase, /CONTEXT_MENU, UNAME = 'TreeContextBase' )
   wDeselect = Widget_Button(self.wContextBase, VALUE = 'Deselect All', UNAME = 'Deselect')
@@ -214,13 +215,14 @@ PRO as_scatterXMLGUI::event, event
 
 END
 
-PRO as_scatterXMLGUI::NewLogLine, fname, exptime, i0, it, ibs, _REF_EXTRA = extra
+PRO as_scatterXMLGUI::NewLogLine, fname, exptime, i0, it, ibs, TYPE = type, _REF_EXTRA = extra
 
   @as_scatterheader.macro
 
-  self.as_scatterXMLFile::NewLogLine, fname, exptime, i0, it, ibs, _extra = extra
+  self.as_scatterXMLFile::NewLogLine, fname, exptime, i0, it, ibs, TYPE = type, _extra = extra
   fname = File_Basename(fname)
-  void = Widget_Tree(self.fileTree, VALUE = fname, INDEX = 0)
+  
+  void = Widget_Tree(type EQ 'SUMMED' OR type EQ 'SUBTRACTED' ? self.fileTreeSummed : self.fileTree, VALUE = fname, INDEX = 0)
 
 END
 
@@ -269,9 +271,10 @@ PRO as_scatterXMLGUI::ParseFile, FILENAME=filename, LOGONLY=logOnly, UPDATE=upda
     count = 0
     IF N_Elements(names) GT 1 THEN BEGIN
       Widget_Control, self.fileTree, MAP = 0
-      FOREACH name, names[1:*] DO BEGIN
+      FOREACH name, names[1:*], key DO BEGIN
         name = File_Basename(name)
-        void = Widget_Tree(self.fileTree, VALUE = name, INDEX = 0)
+        type = ((*self.loglines).type)[key]
+        void = Widget_Tree(type EQ 'SUMMED' OR type EQ 'SUBTRACTED' ? self.fileTreeSummed : self.fileTree, VALUE = name, INDEX = 0)
         count += 1
         IF count mod 100 EQ 0 THEN IF Obj_Valid(progressBarObj) THEN progressBarObj->Update, (Float(count)/(numfiles-startingNum))*100
       ENDFOREACH
@@ -289,6 +292,7 @@ PRO as_scatterXMLGUI__define
           groupLeader        : 0L,    $
           fileTreeParent     : 0L,    $
           fileTreeSearch     : 0L,    $
+          fileTreeSummed     : 0L,    $
           fileTree           : 0L,    $
           wContextBase       : 0L     }
 

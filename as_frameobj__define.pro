@@ -465,7 +465,7 @@ FUNCTION AS_FrameObj::GetRawImage, f_name, frame = frame, quiet=quiet, info_only
 
 end
 
-FUNCTION AS_FrameObj::GetImage, seqfnames, quiet=quiet, FRAME=frame
+FUNCTION AS_FrameObj::GetImage, seqfnames, quiet=quiet, FRAME=frame, TYPEFRAME = typeFrame
 
 @as_scatterheader.macro
 
@@ -562,13 +562,22 @@ FUNCTION AS_FrameObj::GetImage, seqfnames, quiet=quiet, FRAME=frame
         ; read in next image in sequence
         status = 0
         IF iframe GT 0 THEN frame = !Null
-        IF N_Elements(frame) EQ 0 THEN status = self->GetRawImage(self.frame.path + seqfnames[iframe], frame=frame, /quiet)
+        
+        IF N_Elements(frame) EQ 0 THEN BEGIN
+          path = self.frame.path
+          IF typeFrame EQ 'SUMMED' OR typeFrame EQ 'SUBTRACTED' THEN BEGIN
+            path = File_DirName(path) + '/summedimages/'
+            IF ~File_Test(path + seqfnames[iframe]) THEN path = self.frame.path
+          ENDIF
+         status = self->GetRawImage(path + seqfnames[iframe], frame=frame, /quiet)
+        ENDIF
+        
         IF status LT 0 THEN BEGIN
             errfatal = 1
             return, -1
         ENDIF
         strtemp = 'Frame Seq. Read # ' + string(iframe,format='(I3.3)') $
-                    +' '+ self.frame.path + seqfnames[iframe]
+                    +' '+ path + seqfnames[iframe]
 ;        mesresult = AS_AddMessage(strtemp,wBase)
         
         IF iframe EQ 0 THEN BEGIN

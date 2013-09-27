@@ -900,7 +900,7 @@ IF Keyword_Set(notifyObj) THEN $
   self.wXLog = Widget_Button(wLogBase,VALUE='X Axis', UNAME = 'XLog')
   self.wYLog = Widget_Button(wLogBase,VALUE='Y Axis', UNAME = 'YLog')
   allButtonBase = Widget_Base(self.wPCBase, /ROW)
-  deleteAllBut = Widget_Button(allButtonBase, VALUE = 'Delete All', UNAME = 'Delete All')
+  deleteAllBut = Widget_Button(allButtonBase, VALUE = 'Clear All', UNAME = 'Delete All')
   ExpandAllBut = Widget_Button(allButtonBase, VALUE = 'Expand All', UNAME = 'Expand All')
   CollapseAllBut = Widget_Button(allButtonBase, VALUE = 'Collapse All', UNAME = 'Collapse All')
   plotModeBase = Widget_Base(self.wPCBase, /EXCLUSIVE)

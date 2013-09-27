@@ -1414,96 +1414,6 @@ PRO AS_ProfileContainerObj::DeleteQMarker, q
 
 END
 
-PRO AS_ProfileContainerObj::NormCalc, globals=globals, all=all, series=series
-
-@as_scatterheader.macro
-
-;*******************************************************************************
-;   saxs_norm_recalc
-;
-;   Recalculates selected profile (or all profiles simultaneously) when some
-;   normalization parameters are changed or recalculated.
-;
-;   Keywords
-;    /all  :    calculate for all profiles - otherwise only calculate profile
-;               pointed to by the profdata.current index
-;
-;   01-Dec-02 created David J. Cookson
-;   12-Apr-04 (DJC) Modified the absolute calibration formula to take into account
-;                   the read noise of detector
-;   21-Jul-05 (DJC) Absolute calibration adjustment removed and placed in saxs_plot
-;   25-Jan-06 (DJC) Added the ability to recalc normalizations for a whole
-;       series of scans
-;*******************************************************************************
-
-    IF KeyWord_Set(series) THEN BEGIN
-        ; Calculate final scale factors with or without abs calibration
-        IF profdata.usecalib EQ 1 THEN BEGIN
-            sprofdata.blksf = profdata.tnrm / profdata.itsf[0] / profdata.iocnts[0] $
-                                    * profdata.ionrm * profdata.mult[0] * profdata.cscalib
-            sprofdata.sf = profdata.tnrm /sprofdata.itsf / sprofdata.iocnts $
-                                    * profdata.ionrm * sprofdata.mult * profdata.cscalib
-            RETURN
-        ENDIF
-        CASE profdata.nrmtype OF
-            0: BEGIN    ; no normalization
-                sprofdata.sf = 1
-                sprofdata.blksf = 1
-               END
-            1: BEGIN    ; normalize to Io
-                    sprofdata.sf = 1/sprofdata.iosf
-                    sprofdata.blksf = 1/profdata.iosf[0]
-               END
-            2: BEGIN    ; normalize to Io & T
-                    sprofdata.sf = 1 / sprofdata.iosf / sprofdata.itsf $
-                                    * profdata.tnrm * profdata.tblank
-                    sprofdata.blksf = 1 / profdata.iosf[0] / profdata.itsf[0] $
-                                    * profdata.tnrm * profdata.tblank
-               END
-            3: BEGIN    ; normalize to Ibs
-                sprofdata.sf = 1/sprofdata.ibssf
-                sprofdata.blksf = 1/profdata.ibssf[0]
-               END
-        ENDCASE
-        RETURN
-    ENDIF
-
-    IF KeyWord_Set(globals) THEN BEGIN              ; adjust sf for all profiles in memory
-             
-        IF KeyWord_Set(all) THEN BEGIN
-          (*self.profileRefs)[self.current].profiles->GetProperty, MULT=mult, OFFSET=offset
-
-          FOR i = 0, N_Elements(*self.profileRefs) - 1 DO BEGIN
-            (*self.profileRefs)[i].profiles->SetProperty, MULT = mult, OFFSET = offset
-            (*self.profileRefs)[i].profiles->SetNorm, self.nrmtype           
-          ENDFOR
-
-        ENDIF ELSE BEGIN
-       
-          FOR i = 0, N_Elements(*self.profileRefs) - 1 DO BEGIN
-            (*self.profileRefs)[i].profiles->SetNorm, self.nrmtype          
-          ENDFOR
-       
-        ENDELSE  
-        
-        ; Calculate final scale factor with or without abs calibration
-        IF self.usecalib EQ 1 THEN BEGIN
-          FOR i = 0, N_Elements(*self.profileRefs) - 1 DO BEGIN
-            (*self.profileRefs)[i].profiles->SetCalib, self.CSCalib;, self.ionrm
-          ENDFOR
-        ENDIF
-
-    ENDIF ELSE BEGIN                            ; only adjust sf for currently selected profile
-            (*self.profileRefs)[self.current].profiles->SetProperty, MULT = mult, OFFSET = offset
-            (*self.profileRefs)[self.current].profiles->SetNorm, self.nrmtype           
-        
-        ; Calculate final scale factor with or without abs calibration
-        print, 'norm_recalc: cur = ',self.current
-        IF profdata.usecalib EQ 1 THEN (*self.profileRefs)[i].profiles->SetCalib, self.CSCalib, self.ionrm
-    ENDELSE
-
-END
-
 PRO AS_ProfileContainerObj::ReOrgColours
 
   @as_scatterheader.macro
@@ -1531,9 +1441,22 @@ FUNCTION AS_ProfileContainerObj::FindByFName, fName
   
 END
 
-PRO AS_ProfileContainerObj::GetProperty, BASE=base, MEDMEAN=medmean, COLOUR=colour, MULT=mult, OFFSET=offset, FNAME=fName, XRANGEZOOM=xRangeZoom, IBSNRM=ibsnrm, CSCALIB=CSCalib, SHOWERRORBARS = showErrorBars, DETECTORNO = detectorNo, _REF_Extra=extra
+PRO AS_ProfileContainerObj::GetProperty, $
+  BASE=base, $
+  MEDMEAN=medmean, $
+  COLOUR=colour, $
+  MULT=mult, $
+  OFFSET=offset, $
+  FNAME=fName, $
+  XRANGEZOOM=xRangeZoom, $
+  IBSNRM=ibsnrm, $
+  CSCALIB=CSCalib, $
+  SHOWERRORBARS = showErrorBars, $
+  DETECTORNO = detectorNo, $
+  NORMTYPE = normType, $
+  _REF_Extra=extra
 
-@as_scatterheader.macro
+  @as_scatterheader.macro
 
   IF Arg_Present(base) THEN base = self.wBase
   IF Arg_Present(medmean) THEN medmean = self.medmean
@@ -1569,6 +1492,9 @@ PRO AS_ProfileContainerObj::GetProperty, BASE=base, MEDMEAN=medmean, COLOUR=colo
   ENDIF
   IF Arg_Present(CSCalib) THEN BEGIN
     CSCalib = self.CSCalib
+  ENDIF
+  IF Arg_Present(NormType) THEN BEGIN
+    normType = self.nrmType
   ENDIF
 
   IF Arg_Present(showErrorBars) THEN showErrorBars = self.showErrorBars

@@ -1047,6 +1047,12 @@ PRO as_scatterXMLFile::SwitchIBSIT, CONFIGNAME = configName
 
 END
 
+FUNCTION as_scatterXMLFile::GetType, index
+
+  RETURN, ((*self.loglines))[index].type
+
+END
+
 FUNCTION as_scatterXMLFile::GetScale, index, I0 = I0, IBS = IBS, IT = IT, TIME = time, STAMP=timestamp, CONFIGNUM = config
 
   @as_scatterheader.macro

@@ -472,18 +472,6 @@ PRO scatterbrain::event, event
         'CHECK SCAN FILES' : BEGIN
                                self.checkScanFiles = event.select
         END
-
-        ; ** TOOLS MENU **
-        ; ** TOOLS -> Export Current Image
-        'EXPORT IMAGE' : BEGIN
-                           self.ExportCurrentImage, /RAW
-        END
-        'EXPORT IMAGE ALL' : BEGIN
-                               self.ExportCurrentImage
-        END
-        'DAT FILE MODE'    : BEGIN
-                               self.datfileobject = as_datfileloader(['Raw Dat','Average','Subtracted', 'Manual'],[self.experimentDir + Path_Sep() + 'raw_dat', self.experimentDir + Path_Sep() + 'avg', self.experimentDir + Path_Sep() + 'sub', self.experimentDir + Path_Sep() + 'manual'], GROUPLEADER = self.wScatterBase, NOTIFYOBJECT = notify('DatCallback', self))
-        END
         'SET ZINGER MASK'  :BEGIN
                               IF Widget_Info(self.settingsBase, /VALID) THEN Widget_Control, Widget_Info(self.settingsBase, FIND_BY_UNAME = 'ZINGER THRESHOLD'), GET_VALUE = threshold $
                                                                         ELSE threshold = 1000000l
@@ -511,6 +499,19 @@ PRO scatterbrain::event, event
                                self.settingsObj.errorBars = event.value
                                self.profiles_obj.showErrorPlot, event.value
                              END
+        'NO. SECTORS'      :
+         ; ** TOOLS MENU **
+         ; ** TOOLS -> Export Current Image
+         'EXPORT IMAGE' : BEGIN
+           self.ExportCurrentImage, /RAW
+         END
+         'EXPORT IMAGE ALL' : BEGIN
+           self.ExportCurrentImage
+         END
+         'DAT FILE MODE'    : BEGIN
+           self.datfileobject = as_datfileloader(['Raw Dat','Average','Subtracted', 'Manual'],[self.experimentDir + Path_Sep() + 'raw_dat', self.experimentDir + Path_Sep() + 'avg', self.experimentDir + Path_Sep() + 'sub', self.experimentDir + Path_Sep() + 'manual'], GROUPLEADER = self.wScatterBase, NOTIFYOBJECT = notify('DatCallback', self))
+         END                             
+                             
         'CONVERT SAXS15'   : BEGIN
                                convertObj = as__convertsaxs15toscatterbrain()
                                xmlFile = ''
@@ -555,8 +556,10 @@ PRO scatterbrain::event, event
                                    FOREACH name, self.currentlySelected DO indicies.add, self.scatterXMLGUI_obj.GetIndex(name)
                                    exportLogFile = as_exportstruct(rawLog[indicies.toArray()])
         END
+        'TWO DIMENSIONAL SUBTRACTION' : BEGIN
+                                          twoDSubtract = as_twodsubtract(GROUP_LEADER = self.wScatterBase, NOTIFYOBJECT = notify('TwoDSubtract',self))
+         END
         
-        'NO. SECTORS'      :
         ; ** SCAN MENU **
         ; ** SCAN -> Mode
         'SCAN_MODE' : BEGIN
@@ -1240,6 +1243,39 @@ PRO scatterBrain::Use2ndDetector
 
 END
 
+PRO scatterbrain::TwoDSubtract, twoD
+
+  index = self.scatterXMLGUI_obj.GetIndex(twoD.blank)
+  typeFrame = self.scatterXMLGUI_obj.GetType(index)
+  IF self.frame_obj.getimage(twoD.blank, TYPEFRAME = typeFrame) THEN BEGIN
+    blank = *self.frame_obj.frame.rawdata
+    void = self.scatterXMLGUI_obj.GetScale(index,I0=Blanki0counts, IBS = Blankibscounts,TIME=Blanktime1)
+  ENDIF
+
+  FOREACH sampleName, twoD.samples DO BEGIN
+    index = self.scatterXMLGUI_obj.GetIndex(sampleName)
+    typeFrame = self.scatterXMLGUI_obj.GetType(index)
+    IF self.frame_obj.getimage(sampleName, TYPEFRAME = typeFrame) THEN BEGIN
+      sample = *self.frame_obj.frame.rawdata
+      void = self.scatterXMLGUI_obj.GetScale(index,I0=Samplei0counts, IBS = Sampleibscounts,TIME=Sampletime1)
+    ENDIF
+    IF twoD.prefix NE '' THEN prefix = twoD.prefix ELSE prefix = 'SUB'
+    FQfilename = File_Dirname(self.frame_obj.frame.path)+'/summedimages/' + prefix+ sampleName
+    
+    CASE self.profiles_obj.nrmType OF
+      0 : subimage = sample - blank
+      1 : subimage = sample - Float(Samplei0counts)*blank/Float(Blanki0counts)
+      2 : subimage = sample - Float(Sampleibscounts)*blank/Float(Blankibscounts)
+      ELSE : subimage = sample - Float(Sampleibscounts)*blank/Blankibscounts
+    ENDCASE
+    
+    
+    Write_Tiff, FQfilename, Reverse(subimage,2), /LONG, /SIGNED, DESCRIPTION='Subtracted frame created by scatterBrain using the following files: ' + sampleName + ' - ' + twoD.blank
+    self.scatterXMLGUI_obj.NewLogLine, prefix + sampleName, Sampletime1, Samplei0counts, 0, SampleiBScounts, TYPE = 'SUBTRACTED'
+  ENDFOREACH
+
+END
+
 PRO scatterbrain::LogFileSelected, Selected
 
   COMPILE_OPT idl2
@@ -1489,10 +1525,13 @@ FUNCTION scatterbrain::ProcessImage, name, SAVESUMMED = saveSummed, LIVEFRAME = 
       2 : liveFrame2 = liveFrame[1]
       ELSE :
     ENDCASE
-  ENDIF
+    typeFrame = 'Live'
+  ENDIF ELSE BEGIN
+    typeFrame = self.scatterXMLGUI_obj.GetType(self.scatterXMLGUI_obj.GetIndex(name))
+  ENDELSE
   
-  profileData=self.frame_obj->GetAndCake(name, SAVESUMMED = saveSummed, SUMMEDNAME = summedName, FRAME = liveFrame1, NOSETUP = noSetup)
-  IF Obj_Valid(self.frame_obj2) THEN profileData2=self.frame_obj2->GetAndCake(name, SAVESUMMED = saveSummed, SUMMEDNAME = summedName, FRAME = liveFrame2, NOSETUP = noSetup)
+  profileData=self.frame_obj->GetAndCake(name, SAVESUMMED = saveSummed, SUMMEDNAME = summedName, FRAME = liveFrame1, NOSETUP = noSetup, typeFrame = typeFrame)
+  IF Obj_Valid(self.frame_obj2) THEN profileData2=self.frame_obj2->GetAndCake(name, SAVESUMMED = saveSummed, SUMMEDNAME = summedName, FRAME = liveFrame2, NOSETUP = noSetup, TYPEFRAME = typeFrame)
   IF Size(profileData, /TNAME) EQ 'INT' THEN BEGIN
     IF profileData[0] EQ -1 THEN RETURN, -1
   ENDIF
@@ -2267,6 +2306,7 @@ FUNCTION scatterbrain::init     $
     
     EXPORT_LOGFILE_COMPLETE = Widget_Button(EXPORT_LOGFILE, VALUE = 'Selected Files Only', UNAME = 'EXPORT LOGFILE FILES')
     
+    TWO_D_SUBTRACT = Widget_Button(MENU_TOOLS, VALUE = 'Two Dimensional Subtraction', UNAME = 'TWO DIMENSIONAL SUBTRACTION')
     
 
 ;    MENU_TOOLS = Widget_Button(SAXS_BASE_MBAR, UNAME='MENU_TOOLS',VALUE='Tools')
