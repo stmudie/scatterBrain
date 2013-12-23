@@ -521,6 +521,8 @@ FUNCTION AS_FrameObj::GetImage, seqfnames, quiet=quiet, FRAME=frame, TYPEFRAME =
 ;
 ;*******************************************************************************
 
+  IF typeFrame EQ !NULL THEN typeFrame = 'RAW'
+
     if self.frame.nrmtype GT 0 then begin
         if self.frame.log EQ 'no_name_yet' then begin
             strtemp = 'No log data in memory - continue with no normalization?'
@@ -647,6 +649,8 @@ FUNCTION AS_FrameObj::GetImage, seqfnames, quiet=quiet, FRAME=frame, TYPEFRAME =
                 endelse
             endelse
             
+            lasttime = float(time1)
+            
         endif else begin            ; end of processing for first file in read-in sequence
 
         ; This section handles subsequent frames read in sequence.  Note that this
@@ -714,26 +718,27 @@ FUNCTION AS_FrameObj::GetImage, seqfnames, quiet=quiet, FRAME=frame, TYPEFRAME =
             ; Now correlate each subsequent frame with the previous (lastframe)
             ; to remove zingers
 
-            temparr = ((frame-self.frame.offset) $
-                        /((lastframe-self.frame.offset)>self.frame.offset) - self.frame.zing) > 0
+            temparr = ((frame/time1-self.frame.offset) $
+                        /((lastframe/lasttime-self.frame.offset)>self.frame.offset) - self.frame.zing) > 0
             zlookup = where(temparr GT 0 AND lastFrame GT 10, zcnt)
             print, 'no of zinger pixels found = ',zcnt
-            if min(zlookup) GE 0 then frame[zlookup] = lastframe[zlookup]
+            if min(zlookup) GE 0 then frame[zlookup] = lastframe[zlookup]*(time1/lasttime)
 
             ; Only do this next section for the first correlation ie after the second frame has
             ; been read in.  After the first zinger removal is performed 'lastfile' will
             ; always be zinger free - so only the latest frame will need zinger removal
 
             if iframe EQ 1 then begin
-                temparr = ((lastframe-self.frame.offset) $
-                            /((frame-self.frame.offset)>self.frame.offset)-self.frame.zing) > 0
+                temparr = ((lastframe/lasttime-self.frame.offset) $
+                            /((frame/time1-self.frame.offset)>self.frame.offset)-self.frame.zing) > 0
                 zlookup = where(temparr GT 0 AND lastframe GT 10, zcnt)
                 print, 'no of zinger pixels found = ',zcnt
-                if min(zlookup) GE 0 then lastframe[zlookup] = frame[zlookup]
+                if min(zlookup) GE 0 then lastframe[zlookup] = frame[zlookup]*(lasttime/time1)
                 sumframe = frame + lastframe
             endif else begin
                 sumframe = sumframe + frame     ; Add de-zingered frame to the sum
                 lastframe = frame
+                lasttime = float(time1)
             endelse
         endelse         ; end of code for read in of subsequent files in read in sequence
     endfor              ; end of for loop reading in frames from the sequence.
@@ -1194,7 +1199,8 @@ PRO AS_FrameObj::StoreParams, paramObj, CONFIG=config;, FRAME=frame
              len     : self.frame.len,$
              xc      : self.frame.xc, $
              yc      : self.frame.yc, $
-             detangle: self.frame.detangle}
+             detangle: self.frame.detangle,$
+             detector: self.frame.detector}
   
   paramObj.SetParameters, FRAME=frame, CONFIGNO = config
 
@@ -1206,6 +1212,8 @@ PRO AS_FrameObj::NewParams, paramObj, CONFIGNO = configNo
 
   frame = 1
   IF N_Elements(configNo) EQ 0 THEN configNo = 0
+ 
+  self.frame.configNo = configNo
  
   paramObj->GetParameters, CONFIGDATAPATH=configDataPath, CONFIGNO = configNo
   IF configDataPath NE '' THEN IF File_Test(configDataPath) THEN self.frame.path = configDataPath
@@ -1413,7 +1421,9 @@ frame = { AS_FrameObj_Struc, $
                beamcursor: Obj_New(),      $
                updateImage : 1,            $
                zingerPixels : List(),      $
-               zingerThreshold : 0l         $
+               zingerThreshold : 0l,       $
+               detector: '',               $
+               configno: 0                 $
                }
 
 void = { AS_FrameObj , $

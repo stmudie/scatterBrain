@@ -530,7 +530,7 @@ PRO as__saxsimagegui::SaveConfig, configName
   self.StoreParams, self.frame.logObj, CONFIG = index
   self.SaveCakeLUT, index
   Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME='PARAM LABEL'), SET_VALUE = configName
-  self.notify, {CONFIG, event: 'save'}
+  self.notify, {CONFIG, event: 'save', frameObj: self}
 
 END
 
@@ -600,6 +600,8 @@ PRO as__saxsimagegui::LoadConfig, configNo
   Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME='FRAME_DRAW'), XSIZE = xsize, YSIZE = ysize
 
   self.frame.frameViewObj->SetProperty, VIEWPLANE_RECT = [0,0,xsize,ysize]
+  
+  self.notify, {CONFIG, event: 'load', frameobj: self}
 
 END
 

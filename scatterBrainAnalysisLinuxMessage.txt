@@ -1,3 +1,6 @@
+Version 2.30
+Various Bug Fixes.
+
 Version 2.20
 Summed files now saved to summedimages directory, and loaded 
 into summed images folder in file list. Two D subtraction now available 

@@ -1684,28 +1684,31 @@ FUNCTION scatterbrain::qCalibGUI, GROUPLEADER = groupLeader, NOTIFY_OBJ = notify
   IF N_Elements(frameNo) EQ 0 THEN frameNo = 0
 
   CASE frameNo OF
-    0 : qCalibGUI = self.qCalibGUI
-    1 : qCalibGUI = self.qCalibGUI2
+    0 : BEGIN
+          qCalibGUI = self.qCalibGUI
+          frame_obj = self.frame_obj
+        END
+    1 : BEGIN
+          qCalibGUI = self.qCalibGUI2
+          frame_obj = self.frame_obj2
+        END
   ENDCASE 
+
+  IF Obj_Valid(frame_obj) THEN configNo = frame_obj.frame.configNo ELSE configNo = 0
   
   IF Obj_Valid(qCalibGUI) THEN BEGIN
     IF KeyWord_Set(groupLeader) THEN qCalibGUI.SetProperty, GROUPLEADER = groupLeader
     self.scatterXMLGUI_obj.GetParameters, FRAME = frame
-    IF N_Elements(frame) - 1 GE frameNo THEN qCalibGUI.SetProperty, WAVELENGTH = frame[frameNo].wlen, CAMERALENGTH = frame[frameNo].len, DETECTORANGLE = frame[frameNo].detAngle
+    IF N_Elements(frame) - 1 GE configNo THEN qCalibGUI.SetProperty, WAVELENGTH = frame[configNo].wlen, CAMERALENGTH = frame[configNo].len, DETECTORANGLE = frame[configNo].detAngle
     RETURN, qCalibGUI
   ENDIF
-    
-  CASE frameNo OF
-    0 : frame_obj = self.frame_obj
-    1 : frame_obj = self.frame_obj2
-  ENDCASE  
     
   IF KeyWord_Set(notifyObj) THEN notifyObj = [notify('qCalibChange',frame_obj), notifyObj] $
                               ELSE notifyObj = notify('qCalibChange',frame_obj)
   
   qCalibGUI = as_qcalibration(GROUPLEADER=groupLeader, NOTIFY_OBJ = notifyObj, SHOWGUI = KeyWord_Set(showGUI))
   self.scatterXMLGUI_obj.GetParameters, FRAME = frame
-  IF N_Elements(frame)-1 GE frameNo THEN qCalibGUI.SetProperty, WAVELENGTH = frame[frameNo].wlen, CAMERALENGTH = frame[frameNo].len
+  IF N_Elements(frame)-1 GE configNo THEN qCalibGUI.SetProperty, WAVELENGTH = frame[configNo].wlen, CAMERALENGTH = frame[configNo].len
   RETURN, qCalibGUI
 
 END
@@ -1891,6 +1894,10 @@ PRO scatterbrain::FrameCallback, event
                                       result = Dialog_Message('Export LUT?', /QUESTION)
                                       IF result EQ 'Yes' THEN self.ExportLUT
                                     ENDIF
+                                  END
+                         'LOAD' : BEGIN
+                                    frameNo = Where([self.frame_obj,self.frame_obj2] EQ event.frameobj)
+                                    result = self.qCalibGUI(ShowGUI = 0, frameNo = frameNo)
                                   END
                          ELSE :
                        ENDCASE

@@ -205,6 +205,8 @@ PRO as_QCalibration::CalcLength
   cameraLength = currentCameraLength * Tan(2*Asin(peak*self.currWavelength/2/!dpi)) $
                  /Tan(2*Asin(chosenPeak*wavelength/2/!dpi))
   
+  IF cameraLength EQ 0 THEN cameraLength = currentCameraLength
+  
   Widget_Control, wCameraLength , SET_VALUE = String(cameraLength)
 
 END

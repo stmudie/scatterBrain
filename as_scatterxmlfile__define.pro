@@ -541,7 +541,10 @@ CONFIGDATAPATH = configDataPath
 
   IF ~KeyWord_Set(config) THEN config = 0   
 
-  IF config GE N_Elements(*self.configurations) THEN *self.configurations = [*self.configurations,{CONFIGURATION}]
+  IF config GE N_Elements(*self.configurations) THEN BEGIN
+    *self.configurations = [*self.configurations,{CONFIGURATION}]
+    (*self.configurations)[config].dataPath = (*self.configurations)[config-1].dataPath 
+  ENDIF
 
   IF KeyWord_Set(configName) THEN (*self.configurations)[config].name = configName
   IF KeyWord_Set(configDataPath) THEN (*self.configurations)[config].dataPath = configDataPath
@@ -606,7 +609,7 @@ CONFIGDATAPATH = configDataPath
   
   IF KeyWord_Set(frame) THEN BEGIN
      
-    ; ((*self.configurations).detector) = ((*self.detectorDefs).DETECTORDEF)[detNum] 
+     ((*self.configurations).detector) = frame.detector
      
      ((*self.configurations)[config].wavelength) = frame.wlen
      ((*self.configurations)[config].length)     = frame.len
