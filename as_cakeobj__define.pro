@@ -726,6 +726,8 @@ FUNCTION AS_CakeObj::GetLUT
 
   @as_scatterheader.macro
 
+  result = self.CakeSetup()
+
 ;  nxpix = long(self.frame.nxpix)
 ;  nypix = long(self.frame.nypix)
 ;

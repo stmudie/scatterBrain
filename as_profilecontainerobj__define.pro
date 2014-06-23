@@ -796,7 +796,7 @@ PRO AS_ProfileContainerObj::ShowErrorPlot, show
   SWITCH self.showErrorBars OF
     0:  
     2:  BEGIN 
-          FOREACH profile, ((*self.profileRefs).profilePlot) DO profile.showErrorPlot, self.showErrorBars
+          FOREACH profile, ((*self.profileRefs).profilePlot) DO IF profile NE !NULL THEN profile.showErrorPlot, self.showErrorBars
           BREAK
         END
     1:  BEGIN
@@ -1418,10 +1418,16 @@ PRO AS_ProfileContainerObj::ReOrgColours
 
   @as_scatterheader.macro
 
+ skip = 0
+
   IF Ptr_Valid(self.profileRefs) THEN $
   FOR i = 0, N_Elements((*self.profileRefs).plotColour) -1 DO BEGIN
-    (*self.profileRefs)[i].plotColour = Ptr_New(i)
-    (*self.profileRefs)[i].profilePlot->SetProperty, color=i
+    IF (*self.profileRefs)[i].profilePlot EQ !NULL THEN BEGIN
+      skip++
+      continue
+    ENDIF
+    (*self.profileRefs)[i].plotColour = Ptr_New(i-skip)
+    (*self.profileRefs)[i].profilePlot->SetProperty, color=i-skip
   ENDFOR
   
 

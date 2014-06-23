@@ -287,6 +287,8 @@ PRO as__saxscontourplot::event, event
                         event.object.SetProperty, VALUE = self.interpY
                         IF Obj_Valid(self.surfaceObj) THEN self.plotSurface
                       END 
+    'Plot Fit Between'   : self.fitBetween, /CREATE
+    'Save Fit Between'   : self.fitBetween, /SAVE
     'Plot Q'        : self.plotAtQ, /CREATE
     'Export Plot Q' : self.plotAtQ, /SAVE
     'Contour Plot Y': BEGIN
@@ -351,6 +353,100 @@ PRO as__saxscontourplot::addProfiles, z, FILENAMES = fileNames
 
   void = self.UpdateContour()
   self.ZoomOut, /PRESERVEQ, /PRESERVELOWY
+
+END
+
+PRO as__saxscontourplot::fitBetween, CREATE = CREATE, SAVE = SAVE
+
+  self.lowerQBoundObj.GetProperty, DATA = lowerBound
+  self.upperQBoundObj.GetProperty, DATA = upperBound
+  x = self.initX.toArray()
+
+  z = reform(self.initZ.toArray(),self.initX.count(),N_Elements((self.initY)[self.yPlotType]))
+  loc = [where(x GT lowerBound[0] AND x LT upperBound[0])]
+
+  terms = Fix(Widget_Info(Widget_Info(self.wContourBase,FIND_BY_UNAME='Fit Between Terms'),/COMBOBOX_GETTEXT))
+
+  positionList = list()
+  areaList = list()
+  chiList=list()
+  aList=list()
+  sigmaList=list()
+
+  FOR i = 0, N_Elements(z[0,*])-1 DO BEGIN
+    xsub = x[loc]
+    zsub = z[loc,i]
+    fit= gaussfit(xsub, zsub,a, nterms=terms,chisq=chisq,sigma=sigma)
+    positionList.add, a[1]
+    area = a[0]*Abs(a[2])*sqrt(2*!dpi)
+    IF a[1] GT xsub[-1] OR a[1] LT xsub[0] OR area LT 0 THEN areaList.add, 0. ELSE $
+      areaList.add,area
+    chiList.add,chisq
+    aList.add,a
+    sigmaList.add, sigma
+  ENDFOR
+
+  IF KeyWord_Set(SAVE) THEN BEGIN
+    file = Dialog_Pickfile(/WRITE, /OVERWRITE_PROMPT, FILE = 'fitting_'+String(xsub[0],format = '(F7.5)')+'_'+String(xsub[-1],format = '(F7.5)')+'.csv', DEFAULT_EXTENSION='csv', FILTER='*.csv')
+    IF file EQ '' THEN RETURN
+    CATCH, Error_status
+    
+    IF Error_status EQ 0 THEN BEGIN
+    
+      header = list(' ,Centre,Area')
+      FOR i=0, terms-1 DO header.add,strcompress('A'+string(i),/r)
+      FOR i=0, terms-1 DO header.add,strcompress('Sigma'+string(i),/r)
+      header.add,'ChiSq'
+      header = strjoin(header.toarray(),',')
+    
+      OpenW, fileLUN, file, /GET_LUN
+        Printf, fileLUN, header
+        FOREACH yvalue, ((self.initY)[self.yPlotType]), key DO BEGIN
+          print, key
+          Printf, fileLUN, StrJoin([[String(yvalue),String(positionList[key]),String(areaList[key])],aList[key],sigmaList[key],[chiList[key]]],',')
+        ENDFOREACH
+      Close, fileLUN
+      Free_LUN, fileLUN
+      
+    ENDIF
+  
+    IF Error_status NE 0 THEN BEGIN
+      
+      result = Dialog_Message('Error While Saving: ' + !ERROR_STATE.MSG)
+      CATCH, /CANCEL
+    ENDIF
+  
+    
+  
+  ENDIF
+
+  IF KeyWord_Set(CREATE) THEN BEGIN
+
+    IF Size((self.initY)[self.yPlotType],/TNAME) EQ 'STRING' THEN plotY = Indgen(N_Elements((self.initY)[self.yPlotType])) $
+    ELSE plotY = (self.initY)[self.yPlotType]
+  
+    IF Obj_Valid(self.fitBetPlotObj) THEN BEGIN
+      self.fitBetPlotObj.close
+      Obj_Destroy, self.fitBetPlotObj
+    ENDIF
+  
+    IF Size((self.initY)[self.yPlotType],/TNAME) EQ 'STRING' THEN BEGIN
+      self.yAxis.GetProperty, TICKVALUES = tickValues, TICKTEXT = tickText
+      tickText.GetProperty, STRINGS = tickStrings
+      self.fitBetPlotObj = Plot(plotY, positionList.toArray(), 'b', WINDOW_TITLE = 'Fit Between', XTITLE = (self.yTypeNames)[self.yPlotType], XTICKVALUES = tickValues, XTICKNAME = tickStrings, AXIS_STYLE = 1, YTITLE = 'Centre', YCOLOR='blue', MARGIN = [0.20, 0.15, 0.20, 0.15])
+      p_area = Plot(plotY,areaList.toArray(), 'r', /CURRENT, AXIS_STYLE=0, MARGIN = [0.20, 0.15, 0.20, 0.15])
+      a_area = AXIS('y', TARGET = p_area, MAJOR = 5, MINOR = 2, LOCATION = [max(p_area.xrange),0,0], TEXTPOS = 1, TITLE = 'Area', COLOR='red')
+      ;p_chi = Plot(plotY,areaList.toArray(), 'g', /CURRENT, AXIS_STYLE=0, MARGIN = [0.20, 0.15, 0.20, 0.15])
+      ;a_chi = AXIS('y', TARGET = p_chi, MAJOR = 5, MINOR = 2, LOCATION = [max(p_area.xrange)*1.1,0,0], TEXTPOS = 1, TITLE = 'Chi', COLOR='green')
+    ENDIF ELSE BEGIN
+      self.fitBetPlotObj = Plot(plotY, positionList.toArray(), 'b', WINDOW_TITLE = 'Fit Between', XTITLE = (self.yTypeNames)[self.yPlotType], AXIS_STYLE = 1, YTITLE = 'Centre', YCOLOR='blue', MARGIN = [0.20, 0.15, 0.20, 0.15])
+      p_area = Plot(plotY,areaList.toArray(), 'r', /CURRENT, AXIS_STYLE=0,MARGIN = [0.20, 0.15, 0.20, 0.15])
+      a_area = AXIS('y', TARGET = p_area, MAJOR = 5, MINOR = 2, LOCATION = [max(p_area.xrange),0,0], TEXTPOS = 1, TITLE = 'Area', COLOR='red')
+      ;p_chi = Plot(plotY,chiList.toArray(), 'g', /CURRENT, AXIS_STYLE=0, MARGIN = [0.20, 0.15, 0.20, 0.15])
+      ;a_chi = AXIS('y', TARGET = p_chi, MAJOR = 5, MINOR = 2, LOCATION = [max(p_area.xrange)*1.1,0,0], TEXTPOS = 1, TITLE = 'Chi', COLOR='green')
+    ENDELSE
+
+  ENDIF
 
 END
 
@@ -788,6 +884,14 @@ FUNCTION as__saxscontourplot::Init, x, y, z, FILENAMES=fileNames, NOTIFYOBJ = no
   wQBoundBase = Widget_Base(wStratBase, /ROW)
   wLowQBound = FSC_Field(wQBoundBase,VALUE = min(x), TITLE = 'Min q', DECIMAL = 4, XSIZE = 8, EVENT_PRO = 'as__saxscontourplot_event', /COLUMN, UVALUE = 'Lower Q Bound', UNAME = 'Lower Q Bound')
   wUpperQBound = FSC_Field(wQBoundBase, VALUE = max(x), TITLE = 'Max q', DECIMAL = 4, XSIZE = 8, EVENT_PRO = 'as__saxscontourplot_event', /COLUMN, UVALUE = 'Upper Q Bound', UNAME = 'Upper Q Bound')
+  wFitBetween1 = Widget_Base(wStratBase, /ROW)
+  wFitBetween2 = Widget_Base(wFitBetween1, /COLUMN)
+  wFitBetween3 = Widget_Base(wFitBetween1, /COLUMN, /BASE_ALIGN_CENTER)
+  wFitBetQ = Widget_Button(wFitBetween2, VALUE = 'Plot Fit Between Q', UNAME = 'Plot Fit Between')
+  wFitBetQ = Widget_Button(wFitBetween2, VALUE = 'Save Fit Between Q', UNAME = 'Save Fit Between')
+  wFitBetQTerms = Widget_Label(wFitBetween3,VALUE='No. Terms')
+  wFitBetQTerms = Widget_Combobox(wFitBetween3,VALUE=['3','4','5','6'],UNAME = 'Fit Between Terms')
+  Widget_Control, wFitBetQTerms, SET_COMBOBOX_SELECT=1
   wPlotQ = Widget_Button(wStratBase, VALUE = 'Plot Stratigraphic Slice', UNAME = 'Plot Q')
   wExportPlotQ = Widget_Button(wStratBase, VALUE = 'Export Stratigraphic Slice', UNAME = 'Export Plot Q')
   wContourDraw = Widget_Draw(wContourBase, XSIZE = 640, YSIZE = 480, GRAPHICS_LEVEL = 2, /BUTTON_EVENTS, UNAME = 'Contour Draw')
@@ -882,6 +986,7 @@ PRO as__saxscontourplot__Define
            rubberBand     : Obj_New(), $
            surfaceObj     : Obj_New(), $
            plotObj        : Obj_New(), $
+           fitBetPlotObj  : Obj_New(), $
            lowerQBoundObj : Obj_New(), $
            upperQBoundObj : Obj_New(), $
            notifyObj      : List(), $

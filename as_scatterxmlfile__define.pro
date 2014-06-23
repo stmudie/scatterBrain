@@ -443,9 +443,11 @@ PRO as_scatterXMLFile::Clear
 
 END
 
-PRO as_scatterXMLFile::SaveFile, fileName, EMPTY = empty, FILELIST = fileList, TYPEFILELIST = typeFileList
+PRO as_scatterXMLFile::SaveFile, fileName, EMPTY = empty, FILELIST = fileList, TYPEFILELIST = typeFileList, QUIET=quiet
 
   @as_scatterheader.macro
+  
+  quiet = KeyWord_Set(quiet)
   
   (*self.attLogline).logline = Ptr_New(Tag_Names(*self.logPVs))
   
@@ -457,7 +459,7 @@ PRO as_scatterXMLFile::SaveFile, fileName, EMPTY = empty, FILELIST = fileList, T
     ENDELSE
   ENDELSE
 
-  IF File_Test(self.experimentFile) THEN BEGIN
+  IF File_Test(self.experimentFile) AND ~quiet THEN BEGIN
     result = Dialog_Message('This will overwite the file '+ self.experimentFile +'. Are you sure you want to continue?',/QUESTION)
     IF result EQ 'No' THEN RETURN
   ENDIF
@@ -547,7 +549,7 @@ CONFIGDATAPATH = configDataPath
   ENDIF
 
   IF KeyWord_Set(configName) THEN (*self.configurations)[config].name = configName
-  IF KeyWord_Set(configDataPath) THEN (*self.configurations)[config].dataPath = configDataPath
+  IF N_Elements(configDataPath) THEN (*self.configurations)[config].dataPath = configDataPath
 
   IF KeyWord_Set(mask) THEN BEGIN
   

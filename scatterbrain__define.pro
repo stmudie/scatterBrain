@@ -484,9 +484,11 @@ PRO scatterbrain::event, event
                                self.settingsObj.SetProperty, binsize = event.value
         END
         'PSEUDO LOG' : BEGIN
+                         Widget_Control, Widget_Info(self.settingsBase, FIND_BY_UNAME = 'Q BIN SIZE'), GET_VALUE = step
+                         IF event.select EQ 1 THEN step = 0
                          Widget_Control, Widget_Info(self.settingsBase, FIND_BY_UNAME = 'Q BIN SIZE'), SENSITIVE = ~event.select
-                         self.frame_obj.SetProperty, step = 0
-                         self.settingsObj.SetProperty, binsize = 0
+                         self.frame_obj.SetProperty, step = step
+                         self.settingsObj.SetProperty, binsize = step
                        END
         'STARTING DIRECTORY' : BEGIN
                                  startingDirectory = Dialog_Pickfile(/DIRECTORY)

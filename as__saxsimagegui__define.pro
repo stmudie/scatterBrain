@@ -618,11 +618,9 @@ PRO as__saxsimagegui::NewParams, paramObj, CONFIGNO = configNo
   
   IF ConfigDataPath NE '' THEN BEGIN
     IF ~File_Test(ConfigDataPath) THEN BEGIN
-      result = Dialog_Message('Path set for configuration ' + configName + ' is invalid. Choose new path?', /QUESTION)
-      IF result EQ 'Yes' THEN BEGIN
-        configDataPath = Dialog_Pickfile(/MUST_EXIST, /DIRECTORY)
-        IF configDataPath NE '' THEN self.frame.logobj.SetParameters, CONFIGDATAPATH = configDataPath, CONFIGNO = configNo
-      ENDIF
+      result = Dialog_Message('Images path set for configuration ' + configName + ' is invalid. Using default (expriment/images) location. In the rare case you need to set a specific location use Acquire -> Change 1st Frame Data Path.', /INFORMATION)
+      self.frame.logobj.SetParameters, CONFIGDATAPATH = '', CONFIGNO = configNo
+      self.frame.logobj.SaveFile,/QUIET
     ENDIF
   ENDIF
  

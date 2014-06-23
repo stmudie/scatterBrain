@@ -278,7 +278,7 @@ wBaseLeft = Widget_Base(wBase, /COLUMN, /BASE_ALIGN_CENTER)
 wBaseCenter= Widget_Base(wBase, /COLUMN)
 wBaseCenterRight = Widget_Base(wBase,/ROW, /BASE_ALIGN_CENTER, /ALIGN_CENTER)
 wBaseRight = Widget_Base(wBase, /COLUMN)
-wColour = Widget_Draw(wBaseLeft, XSIZE = 100, YSIZE = 80, GRAPHICS_LEVEL = 2, COLOR_MODEL = colorModel)
+wColour = Widget_Draw(wBaseLeft, XSIZE = 100, YSIZE = 80, GRAPHICS_LEVEL = 2, COLOR_MODEL = colorModel, RETAIN = 2)
 
 oPalette = Obj_New('IDLgrPalette')
 
@@ -300,16 +300,16 @@ IF ~custTable THEN BEGIN
     customTables = ''
     oPalette->LoadCT, tableIndex < 40
 ENDIF 
-wDraw = Widget_Draw(wBaseRight, XSIZE = 200, YSIZE = 200, GRAPHICS_LEVEL = 2, COLOR_MODEL = colorModel, /BUTTON_EVENTS, EVENT_PRO = 'AS_editOPalette_Draw_Events')
+wDraw = Widget_Draw(wBaseRight, XSIZE = 200, YSIZE = 200, GRAPHICS_LEVEL = 2, RETAIN = 2, COLOR_MODEL = colorModel, /BUTTON_EVENTS, EVENT_PRO = 'AS_editOPalette_Draw_Events')
 
 wRedSlider = Widget_Slider(wBaseLeft, MAXIMUM = 255, XSIZE = 200, UNAME = 'Red Slider', /DRAG)
-wDrawRed = Widget_Draw(wBaseLeft, XSIZE = 167, YSIZE = 10, GRAPHICS_LEVEL = 2)
+wDrawRed = Widget_Draw(wBaseLeft, XSIZE = 167, YSIZE = 10, GRAPHICS_LEVEL = 2, RETAIN = 2)
 
 wGreenSlider = Widget_Slider(wBaseLeft, MAXIMUM = 255, XSIZE = 200, UNAME = 'Green Slider', /DRAG)
-wDrawGreen = Widget_Draw(wBaseLeft, XSIZE = 167, YSIZE = 10, GRAPHICS_LEVEL = 2)
+wDrawGreen = Widget_Draw(wBaseLeft, XSIZE = 167, YSIZE = 10, GRAPHICS_LEVEL = 2, RETAIN = 2)
 
 wBlueSlider = Widget_Slider(wBaseLeft, MAXIMUM = 255, XSIZE = 200, UNAME = 'Blue Slider', /DRAG)
-wDrawBlue = Widget_Draw(wBaseLeft, XSIZE = 167, YSIZE = 10, GRAPHICS_LEVEL = 2)
+wDrawBlue = Widget_Draw(wBaseLeft, XSIZE = 167, YSIZE = 10, GRAPHICS_LEVEL = 2, RETAIN = 2)
 
 wDoneBut = Widget_Button(wBaseLeft, VALUE = 'DONE', EVENT_PRO = 'AS_editOPalette_Done')
 
@@ -331,7 +331,7 @@ IF Obj_Valid(customPalette) THEN BEGIN
       wSizeLable = Widget_Label(wComboBase, VALUE = 'Choose Palette Size...   ')
       wPalSize = Widget_ComboBox(wComboBase, VALUE = ['1','4','9','16','25','36','49','64','81','100','121','144','169','196','225','256'], UNAME = 'Palette Size') 
       Widget_Control, wPalSize, SET_COMBOBOX_SELECT = Sqrt(custColours)-1
-      wCustomPal = Widget_Draw(wBaseCenter, XSIZE = 200, YSIZE = 200, GRAPHICS_LEVEL = 2, COLOR_MODEL = colorModel, /BUTTON_EVENTS, EVENT_PRO = 'AS_editOPalette_CustomPal_Events')
+      wCustomPal = Widget_Draw(wBaseCenter, XSIZE = 200, YSIZE = 200, GRAPHICS_LEVEL = 2, RETAIN = 2, COLOR_MODEL = colorModel, /BUTTON_EVENTS, EVENT_PRO = 'AS_editOPalette_CustomPal_Events')
       wSavePal = Widget_Button(wBaseCenter, VALUE = 'Save Palette', UNAME = 'Save Palette')
       wLoadTable = Widget_Button(wBaseCenterRight, VALUE = 'arrow.bmp', /BITMAP, UNAME = 'Load Table')
     ENDIF
