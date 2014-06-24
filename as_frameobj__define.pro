@@ -579,7 +579,7 @@ FUNCTION AS_FrameObj::GetImage, seqfnames, quiet=quiet, FRAME=frame, TYPEFRAME =
             return, -1
         ENDIF
         strtemp = 'Frame Seq. Read # ' + string(iframe,format='(I3.3)') $
-                    +' '+ path + seqfnames[iframe]
+                    +' '+ self.frame.path + seqfnames[iframe]
 ;        mesresult = AS_AddMessage(strtemp,wBase)
         
         IF iframe EQ 0 THEN BEGIN
@@ -649,7 +649,7 @@ FUNCTION AS_FrameObj::GetImage, seqfnames, quiet=quiet, FRAME=frame, TYPEFRAME =
                 endelse
             endelse
             
-            lasttime = float(time1)
+            if time1 NE !NULL THEN lasttime = float(time1) ELSE lasttime=0
             
         endif else begin            ; end of processing for first file in read-in sequence
 
