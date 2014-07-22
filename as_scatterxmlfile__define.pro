@@ -492,7 +492,7 @@ PRO as_scatterXMLFile::SaveFile, fileName, EMPTY = empty, FILELIST = fileList, T
       logLinesTemp = Replicate((*self.loglines)[0],N_Elements(fileList))
       fileListTemp = List()
       FOREACH logline, (*self.loglines).logline DO fileListTemp.add, File_Basename(logline)
-      FOREACH file, fileList, key DO loglinesTemp[key] = (*self.loglines)[Where(fileListTemp.toarray() EQ file)]
+      FOREACH file, fileList, key DO loglinesTemp[key] = (*self.loglines)[(Where(fileListTemp.toarray() EQ file))[0]]
     ENDIF ELSE loglinesTemp = *self.loglines 
     ;self->NewFromStruct, STRUCT = loglinesTemp, ATTSTRUCT = *self.attLogline, APPENDTO=experiment
     numLines = N_Elements(loglinesTemp)
@@ -553,16 +553,27 @@ CONFIGDATAPATH = configDataPath
 
   IF KeyWord_Set(mask) THEN BEGIN
   
-    *self.usermasks = !Null
+    knownMasks = List()
+    FOREACH um, *self.usermasks DO knownMasks.add, um.MaskName
+    
     FOREACH m, mask DO BEGIN
-    IF m.auto EQ 0 THEN auto = 'false' ELSE auto = 'true'
-    IF m.lock EQ 0 THEN lock = 'false' ELSE lock = 'true'
+      IF m.delete EQ 1 THEN BEGIN
+       ; IF 
+      ENDIF
+      IF m.auto EQ 0 THEN auto = 'false' ELSE auto = 'true'
+      IF m.lock EQ 0 THEN lock = 'false' ELSE lock = 'true'
       IF Size((*m.params),/N_DIMENSIONS) EQ 2 THEN BEGIN
         params = '['+ StrJoin(Transpose(StrCompress((*m.params)[0,*], /REMOVE_ALL)),',') + ']'
         params = params + '['+ StrJoin(Transpose(StrCompress((*m.params)[1,*], /REMOVE_ALL)),',') + ']'
       ENDIF ELSE params = '['+ StrJoin(StrCompress((*m.params), /REMOVE_ALL),',') + ']'
       colour = '[' + strcompress(strjoin(string(m.colour, format = '(I)'),','),/REMOVE_ALL) + ']'
-      *self.usermasks = [*self.usermasks,{USERMASK, usermask : params, MASKNAME : m.name, SHAPE :m.shape, AUTO : auto, COLOUR : colour, LOCK : lock}]
+      position = Where(knownMasks EQ m.name)
+      IF position EQ -1 THEN BEGIN
+          *self.usermasks = [*self.usermasks,{USERMASK, usermask : params, MASKNAME : m.name, SHAPE :m.shape, AUTO : auto, COLOUR : colour, LOCK : lock}]
+      ENDIF ELSE BEGIN
+          (*self.usermasks)[position] = {USERMASK, usermask : params, MASKNAME : m.name, SHAPE :m.shape, AUTO : auto, COLOUR : colour, LOCK : lock}
+      ENDELSE
+      
     ENDFOREACH 
 
     usedMasks = Where(mask.type GE 0)

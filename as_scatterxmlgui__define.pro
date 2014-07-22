@@ -266,12 +266,10 @@ PRO as_scatterXMLGUI::ParseFile, FILENAME=filename, LOGONLY=logOnly, UPDATE=upda
   IF numFiles GT startingNum THEN BEGIN
     IF numFiles-startingNum GT 100 THEN progressBarObj = Obj_New('progressbar', /START, /NOCANCEL, TEXT='Updating File List')
     names = ((*self.loglines).logline)[startingNum:numFiles-1]
-    name = File_Basename(names[0])
-    void = Widget_Tree(self.fileTree, VALUE = name, INDEX = 0)
     count = 0
-    IF N_Elements(names) GT 1 THEN BEGIN
+    IF N_Elements(names) GT 0 THEN BEGIN
       Widget_Control, self.fileTree, MAP = 0
-      FOREACH name, names[1:*], key DO BEGIN
+      FOREACH name, names, key DO BEGIN
         name = File_Basename(name)
         type = ((*self.loglines).type)[key]
         void = Widget_Tree(type EQ 'SUMMED' OR type EQ 'SUBTRACTED' ? self.fileTreeSummed : self.fileTree, VALUE = name, INDEX = 0)

@@ -292,7 +292,13 @@ PRO scatterbrain::event, event
                      END
          
         ; ** File -> Export Experiment file with selected
-        'EXPORT EXPERIMENT FILES' : print, 'yes'    
+        'EXPORT EXPERIMENT FILES' : BEGIN
+          IF ~self.fileSelectList.IsEmpty() THEN BEGIN
+            xmlfile = Dialog_Pickfile(TITLE = "New experiment file...", /WRITE, /OVERWRITE_PROMPT, DEFAULT_EXTENSION='xml', FILTER = ['*.xml'])
+            IF xmlfile EQ '' THEN RETURN
+            self.scatterXMLGUI_obj->SaveFile, xmlfile, FILELIST = self.fileSelectList.toarray()
+          ENDIF ELSE result = Dialog_Message("No images selected. Select images to include in exported experiment.")
+        END  
 
         ; ** ACQUIRE MENU - Disabled in non-control mode **
 
@@ -1104,13 +1110,17 @@ PRO scatterbrain::loadXML, xmlFile
   IF xmlFile EQ '' THEN RETURN
   self.experimentDir = File_DirName(xmlFile, /MARK_DIRECTORY)
   
-  imagesDir = self.experimentDir + 'images' + Path_Sep()
-  self.imagesDir = File_Test(imagesDir, /DIRECTORY) ? imagesDir : self.experimentDir
-
   self.scatterXMLGUI_obj->ParseFile, FILENAME = xmlFile
   IF xmlFile EQ 'error' THEN RETURN
   self.settingsObj.SetProperty, RECENTFILE = xmlFile
   self.updateRecentFileList
+                      
+  self.scatterXMLGUI_obj.GetParameters, configdatapath = imagesDir
+  
+  self.imagesDir = imagesDir
+  
+  self.imagesDir = File_Test(self.imagesDir, /DIRECTORY) ? self.imagesDir : self.experimentDir + 'images' + Path_Sep()
+  self.imagesDir = File_Test(self.imagesDir, /DIRECTORY) ? self.imagesDir : self.experimentDir
                       
   widgetIDS = [Widget_Info(self.wScatterBase, FIND_BY_UNAME = 'NEW EXPERIMENT EMPTY'),Widget_Info(self.wScatterBase, FIND_BY_UNAME = 'NEW EXPERIMENT FILES')]
   FOREACH widgetID, widgetIDS DO IF widgetID GT 0 THEN Widget_Control, widgetID, SENSITIVE = 1
@@ -1363,70 +1373,9 @@ PRO scatterbrain::LogFileSelected, Selected
                 self.frame_obj.SetProperty, AUTOSCALE = 0
                 result = self.ProcessImage(selected.name, /SAVESUMMED)
                END
-    'CONTOUR': BEGIN
-                 ;profiler, /RESET
-                 ;profiler,/SYSTEM
-                 profileIndices = IntArr(selected.name.count())
-                 self.frame_obj.SetProperty, UPDATEIMAGE = 0
-                 selected.name.reverse
-                 result = ''
-                 FOREACH name, selected.name, key DO BEGIN
-                   index = self.ProcessImage(name, /NOPLOT, NOSETUP = ~(key EQ 1) )
-                   IF index EQ -1 THEN result = Dialog_Message('File opening error encountered, continue anyway?',/QUESTION)
-                   IF result EQ 'No' THEN BREAK
-                   profileIndices[key] = index
-                 ENDFOREACH
-                 IF result EQ 'No' THEN BREAK
-                 self.frame_obj.SetProperty, UPDATEIMAGE = 1
-                 profileIndices = profileIndices[Where(profileIndices NE -1, /NULL)]
-                 IF N_Elements(profileIndices) EQ 0 THEN BEGIN
-                   result = Dialog_Message('No valid files selected to create contour - returning.')
-                   BREAK
-                 ENDIF
-                 data = self.profiles_obj.GetProfiles(profileIndices)
-                 self.profiles_obj.DeleteProfile, profileIndices
-                 
-                 self.profiles_obj.GetProperty, XRANGEZOOM = xRange
-                 
-                 yNames = self.scatterXMLGUI_obj.GetLogAttributes()
-                 
-                 indices = !Null
-                 imageIndex = !Null
-                 yStruct = {}
-                 FOREACH name, selected.name DO BEGIN
-                   indices = [indices, self.scatterXMLGui_Obj.GetIndex(name)]
-                   imageIndex = [imageIndex,Fix(StrMid(name, 7,4 ,/REVERSE_OFFSET))]
-                 ENDFOREACH
-                 FOREACH yName, Reverse(yNames) DO BEGIN
-                   valType = 'Number'
-                   attValString = ((self.scatterXMLGui_obj.GetValue(yName))[indices])
-                   FOREACH aVS, attValString DO BEGIN
-                     IF StRegex(aVS, '[^0-9]') + StRegex(aVS, '\.[0-9]*\.') + StRegex(aVS, '-[0-9]*-') NE -3 THEN BEGIN
-                       valType = 'String'
-                       BREAK
-                     ENDIF 
-                   ENDFOREACH
-                   IF valType EQ 'String' THEN attVal = attValString ELSE attVal = Double(attValString)
-                   yStruct = Create_Struct(yName, attVal, yStruct)
-                 ENDFOREACH
-                 yStruct = Create_Struct('Index', Indgen(data.count()),'File Index', imageIndex, 'Filename',selected.name.toArray(), yStruct)
-                 
-                 q = (data[0])[0,*]
-                                  
-                 inRange = Where(q GT xRange[0] AND q LT xRange[1])
-                 IF N_Elements(inRange) EQ 1 THEN inRange = Indgen(N_Elements(q))
-                
-                 q = q[inRange]
-                
-                 zContour = FltArr(N_Elements(q), data.count())
-                 FOREACH prof, data, index DO BEGIN
-                   zContour[*,index] =  Reform(prof[1,inRange])
-                 ENDFOREACH
-                 IF selected.add EQ 1 AND Obj_Valid(self.contourPlot) EQ 1 THEN BEGIN
-                  self.contourPlot.addProfiles, zContour
-                 ENDIF ELSE self.contourPlot = as__saxscontourplot(q, yStruct, zContour, GROUPLEADER = self.wScatterBase, NOTIFYOBJ = notify('ContourCallback',self))
-                 ;profiler, /REPORT, FILENAME = 'profiler.dat'
-               END
+    
+    'CONTOUR': self.contour, selected.name, add = selected.add
+    
     'MOVIE' : BEGIN
                 
                 self.frame_obj.GetProperty, IMAGEPATH = path
@@ -1558,6 +1507,79 @@ FUNCTION scatterbrain::ProcessImage, name, SAVESUMMED = saveSummed, LIVEFRAME = 
   
   RETURN, profileIndex
 
+END
+
+PRO scatterbrain::contour, fnames, profileIndices, add = add
+  
+  fnames.reverse
+  
+  IF N_Elements(profileIndices) EQ 0 THEN BEGIN
+    
+    delete = 1
+    
+    profileIndices = IntArr(fnames.count())
+    self.frame_obj.SetProperty, UPDATEIMAGE = 0
+    result = ''
+    FOREACH name, fnames, key DO BEGIN
+      index = self.ProcessImage(name, /NOPLOT, NOSETUP = ~(key EQ 1) )
+      IF index EQ -1 THEN result = Dialog_Message('File opening error encountered, continue anyway?',/QUESTION)
+      IF result EQ 'No' THEN RETURN
+      profileIndices[key] = index
+    ENDFOREACH
+    
+    self.frame_obj.SetProperty, UPDATEIMAGE = 1
+    
+  ENDIF
+  
+  profileIndices = profileIndices[Where(profileIndices NE -1, /NULL)]
+  IF N_Elements(profileIndices) EQ 0 THEN BEGIN
+    result = Dialog_Message('No valid files selected to create contour - returning.')
+    RETURN
+  ENDIF
+  
+  data = self.profiles_obj.GetProfiles(profileIndices)
+  
+  IF delete NE !Null THEN self.profiles_obj.DeleteProfile, profileIndices
+  
+  self.profiles_obj.GetProperty, XRANGEZOOM = xRange
+  
+  yNames = self.scatterXMLGUI_obj.GetLogAttributes()
+  
+  indices = !Null
+  imageIndex = !Null
+  yStruct = {}
+  FOREACH name, fnames DO BEGIN
+    indices = [indices, self.scatterXMLGui_Obj.GetIndex(name)]
+    imageIndex = [imageIndex,Fix(StrMid(name, 7,4 ,/REVERSE_OFFSET))]
+  ENDFOREACH
+  FOREACH yName, Reverse(yNames) DO BEGIN
+    valType = 'Number'
+    attValString = ((self.scatterXMLGui_obj.GetValue(yName))[indices])
+    FOREACH aVS, attValString DO BEGIN
+      IF StRegex(aVS, '[^0-9]') + StRegex(aVS, '\.[0-9]*\.') + StRegex(aVS, '-[0-9]*-') NE -3 THEN BEGIN
+        valType = 'String'
+        BREAK
+      ENDIF
+    ENDFOREACH
+    IF valType EQ 'String' THEN attVal = attValString ELSE attVal = Double(attValString)
+    yStruct = Create_Struct(yName, attVal, yStruct)
+  ENDFOREACH
+  yStruct = Create_Struct('Index', Indgen(data.count()),'File Index', imageIndex, 'Filename',fnames.toArray(), yStruct)
+  
+  q = (data[0])[0,*]
+  
+  inRange = Where(q GT xRange[0] AND q LT xRange[1])
+  IF N_Elements(inRange) EQ 1 THEN inRange = Indgen(N_Elements(q))
+  
+  q = q[inRange]
+  
+  zContour = FltArr(N_Elements(q), data.count())
+  FOREACH prof, data, index DO BEGIN
+    zContour[*,index] =  Reform(prof[1,inRange])
+  ENDFOREACH
+  IF keyword_set(add) AND Obj_Valid(self.contourPlot) EQ 1 THEN BEGIN
+    self.contourPlot.addProfiles, zContour
+  ENDIF ELSE self.contourPlot = as__saxscontourplot(q, yStruct, zContour, GROUPLEADER = self.wScatterBase, NOTIFYOBJ = notify('ContourCallback',self))
 END
 
 PRO scatterbrain::ExportCurrentImage, RAW=raw
@@ -1949,6 +1971,11 @@ PRO scatterbrain::PlotControlCallback, event
     'PLOTREPLOT' : BEGIN
                      result = self.ProcessImage(event.filename, DETECTORNO = event.detectorNo)
                    END
+    'SUM'        : BEGIN
+                    self.frame_obj.SetProperty, AUTOSCALE = 0
+                    result = self.ProcessImage(event.filenames, /SAVESUMMED)
+                   END
+    'CONTOUR'    : self.contour, event.filenames, event.indices, add = event.add
   ENDCASE
 
 END
@@ -2195,13 +2222,15 @@ FUNCTION scatterbrain::init     $
 ;    FILE_GET_PARMS = Widget_Button(MENU_FILE, UNAME = 'FILE_GET_SAX1' $
 ;                        , VALUE= 'Get SAXS Parameters')
 
-     FILE_NEW_XML = Widget_Button(MENU_FILE, VALUE ='Create New Experiment...', SENSITIVE = 1, /MENU)
+     EXPORT_SHORT_EXPERIMENT = Widget_Button(MENU_FILE, VALUE ='Export Exp. w/ Selected Images', SENSITIVE = 1, UNAME = 'EXPORT EXPERIMENT FILES')
      
      IF KeyWord_Set(epics) THEN BEGIN
+       FILE_NEW_XML = Widget_Button(MENU_FILE, VALUE ='Create New Experiment...', SENSITIVE = 1, /MENU)
        FILE_NEW_EMPTY_XML = Widget_Button(FILE_NEW_XML, VALUE ='Create New Empty Experiment From Template', SENSITIVE = 1, UNAME = 'NEW EXPERIMENT TEMPLATE')
        FILE_NEW_EMPTY_XML = Widget_Button(FILE_NEW_XML, VALUE ='Create New Empty Experiment From Current', SENSITIVE = 0, UNAME = 'NEW EXPERIMENT EMPTY')
        FILE_NEW_FILES_XML = Widget_Button(FILE_NEW_XML, VALUE ='Create New Experiment with Currently Selected Files', SENSITIVE = 0, UNAME = 'NEW EXPERIMENT FILES')
      ENDIF
+     
      
      FILE_GET_XML = Widget_Button(MENU_FILE, VALUE = 'Get Experiment', UNAME = 'LOAD XML')
      
@@ -2299,8 +2328,6 @@ FUNCTION scatterbrain::init     $
     EXPORT_IMAGE_CURRENT = Widget_Button(EXPORT_IMAGE, VALUE = 'Export Current Image', UNAME = 'EXPORT IMAGE')
     
     EXPORT_IMAGE_MASKS = Widget_Button(EXPORT_IMAGE, VALUE = 'Export Current Image With Annotations', UNAME = 'EXPORT IMAGE ALL')
-    
-    EXPORT_SHORT_EXPERIMENT = Widget_Button(FILE_NEW_XML, VALUE ='Export Experiment File with Only Currently Selected Files', SENSITIVE = 0, UNAME = 'EXPORT EXPERIMENT FILES')
     
     SET_ZINGER_MASK = Widget_Button(MENU_TOOLS, VALUE = 'Set Zinger Mask', UNAME = 'SET ZINGER MASK')
     

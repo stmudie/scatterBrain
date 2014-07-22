@@ -634,6 +634,7 @@ PRO AS_MaskObj::Event, event, scatterEvent
                       Widget_Control, defineMaskTable, SCR_YSIZE = (Widget_Info(defineMaskTable,/ROW_HEIGHTS))[0] * (self.mask.numPoints+2)
                       Widget_Control, self.mask.wMaskTab, SET_TAB_CURRENT = maskNo + 1
                       self.SetSelected, maskNo
+                     ; Where(self.deletedMasks
                       
     END
     'Delete Mask Base' : BEGIN
@@ -652,7 +653,12 @@ PRO AS_MaskObj::Event, event, scatterEvent
                        IF N_Elements(selected) EQ 1 THEN result = Dialog_Message('Are you sure you want to delete this mask? This mask will also become unavailable in other configs for this experiment file.', /QUESTION) $
                                         ELSE result = Dialog_Message('Are you sure you want to delete these masks? These masks will also become unavailable in other configs for this experiment file.', /QUESTION)
                        IF result EQ 'No' THEN RETURN
+                       
                        masks = self.mask.maskobjects.get(/all, isa='as_maskobject')
+                       FOREACH dm, masks DO BEGIN
+                          dm.GetProperty, name = name
+                          self.deletedMasks.add, name
+                       ENDFOREACH
                        Obj_Destroy, masks[selected]
                        numDeleted = 0
                        FOR maskNo=0, N_Elements(masks)-1 DO BEGIN
@@ -923,6 +929,7 @@ mask = { AS_MaskObj_Struc,            $ ; CURRENT MASK POLYGON DEFINITIONS
           defineMaskBase  : 0L,             $
           movingMask      : movingMask,     $
           selectedMask    : Obj_New(),      $
+          deletedMasks    : List(),         $
           oldMaskPoly     : Ptr_New(),      $
           nameChanges     : Ptr_New(),      $
           lastVertex      : List(),         $

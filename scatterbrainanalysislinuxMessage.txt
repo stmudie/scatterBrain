@@ -1,6 +1,9 @@
 UPDATED TO IDL8.3. IF UPGRADE DOESN'T WORK YOU WILL NEED TO DOWNLOAD FULL SCATTERBRAIN APPLICATION
 FROM https://www.synchrotron.org.au/aussyncbeamlines/saxswaxs/software-saxswaxs
 
+Version 2.505
+2d Sum and contour accessible from plot window. Export of experiment with selected files.
+
 Version 2.50
 "Fit between q" functionality in contour plot.
 

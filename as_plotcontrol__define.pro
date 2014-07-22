@@ -462,6 +462,31 @@ CASE TAG_NAMES( event, /STRUCTURE ) OF
                                       XDisplayFile, TEXT = APReturn, TITLE = 'Autoporod Info'
                                      
                                    END
+                  'SUM'          : BEGIN
+                                    selProfile = WIDGET_INFO( self.wProfileTree, /TREE_SELECT )
+                                    filenames = list()
+                                    FOR i =0, N_Elements(selProfile) - 1 DO BEGIN
+                                      Widget_Control, selProfile[i], GET_UVALUE = temp
+                                      self.oProfiles.GetProperty, FNAME=temp
+                                      filenames.add, temp
+                                    ENDFOR
+                                    self.notify, {SUM, filenames : filenames}
+                                    
+                                   END
+                  'CONTOUR'      : BEGIN
+                                     Widget_Control, event.id, GET_UVALUE = add
+                                     selProfile = WIDGET_INFO( self.wProfileTree, /TREE_SELECT )
+                                     filenames = list()
+                                     indices = list()
+                                     FOR i =0, N_Elements(selProfile) - 1 DO BEGIN
+                                       Widget_Control, selProfile[i], GET_UVALUE = temp
+                                       indices.add, temp
+                                       self.oProfiles.GetProperty, FNAME=temp
+                                       filenames.add, temp
+                                     ENDFOR
+                                     self.notify, {CONTOUR, filenames : filenames, indices : indices, add : add}
+                
+                                   END
                   'Hide'         : BEGIN
                                      selProfile = WIDGET_INFO( self.wProfileTree, /TREE_SELECT )
                                      index = IntArr(N_Elements(selProfile))
@@ -955,6 +980,10 @@ IF Keyword_Set(notifyObj) THEN $
   wOpacity10Button = Widget_Button(wOpacityButton, VALUE = '100%', UNAME = 'Opacity', UVALUE = 1.0)
   wProteinButton = Widget_Button(self.wContextBase, VALUE = 'Protein Tools', /MENU)
   wAutoPorodButton = Widget_Button(wProteinButton, VALUE = 'Autoporod', UNAME = 'AutoPorod')
+  w2DTools = Widget_Button(self.wContextBase, VALUE = '2D Tools',/MENU)
+  wSum = Widget_Button(w2dTools, VALUE = 'Sum', UNAME = 'SUM')
+  wContour = Widget_Button(w2dTools, VALUE = 'Contour', UNAME = 'CONTOUR', UVALUE = 0)
+  wContourAdd = Widget_Button(w2dTools, VALUE = 'Add to Contour', UNAME = 'CONTOUR', UVALUE = 1)
   ;wCopyBlankButton = Widget_Button(self.wContextBase, VALUE = 'Copy Blank', UNAME = 'Copy Blank')
     
   self.wInfoBox = Widget_Text(treeBase, VALUE = '', YSIZE = 5, EDITABLE=0)
