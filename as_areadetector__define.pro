@@ -57,12 +57,14 @@ PRO as_areadetector::InitCam
 
   @as_scatterheader.macro
 
-  IF self.basePV NE '' AND self.camPV NE '' THEN BEGIN
+  IF self.basePV NE '' THEN BEGIN
     IF Obj_Class(self.ADCamObj) EQ 'EPICS_AD_BASE' THEN Obj_Destroy, self.ADCamObj
     IF Obj_Class(self.ADFileObj) EQ 'EPICS_AD_FILE' THEN Obj_Destroy, self.ADFileObj
     IF Obj_Class(self.ADCamFileObj) EQ 'EPICS_AD_FILE' THEN Obj_Destroy, self.ADCamFileObj
-    self.ADCamObj = Obj_New('EPICS_AD_BASE', self.basePV + self.camPV)
-    self.ADCamFileObj = Obj_New('EPICS_AD_FILE', self.basePV + self.camPV)
+    IF self.camPV NE '' THEN BEGIN
+      self.ADCamObj = Obj_New('EPICS_AD_BASE', self.basePV + self.camPV)
+      self.ADCamFileObj = Obj_New('EPICS_AD_FILE', self.basePV + self.camPV)
+    ENDIF
     IF self.filePV NE '' THEN self.ADFileObj = Obj_New('EPICS_AD_FILE', self.basePV + self.filePV)
     
     IF Obj_Valid(self.ADCamObj) THEN self.ADCamObj->addProperty, 'PixelSize', 'PixelSize'
@@ -205,7 +207,7 @@ PRO as_areadetector::SetADProperty, $
 
   camValid = Obj_Valid(self.ADCamObj)
   imageValid = Obj_Valid(self.ADStdObj)
-  fileValid = 0;Obj_Valid(self.ADFileObj)
+  fileValid = Obj_Valid(self.ADFileObj)
   camFileValid = Obj_Valid(self.ADCamFileObj)
   logfilevalid = Obj_Valid(self.ADLogFileObj)
 
@@ -214,24 +216,25 @@ PRO as_areadetector::SetADProperty, $
     IF N_Elements(fileName) THEN BEGIN
       fileNameByte = BytArr(256)
       fileNameByte[0:N_Elements(Byte(fileName))-1] = Byte(fileName)
+      IF camFileValid THEN self.ADCamFileObj->SetProperty, 'Filename', filenameByte ELSE $
       IF fileValid THEN self.ADFileObj->SetProperty, 'Filename', filenameByte
-      IF camFileValid THEN self.ADCamFileObj->SetProperty, 'Filename', filenameByte
     ENDIF
     IF N_Elements(filePath) THEN BEGIN
       filePathByte = BytArr(256)
       filePathByte[0:N_Elements(Byte(filePath))-1] = Byte(filePath)
+      IF camFileValid THEN self.ADCamFileObj->SetProperty, 'FilePath', filePathByte ELSE $
       IF fileValid THEN self.ADFileObj->SetProperty, 'FilePath', filePathByte
-      IF camFileValid THEN self.ADCamFileObj->SetProperty, 'FilePath', filePathByte
+      
     ENDIF
     IF N_Elements(fileNumber) THEN BEGIN
+      IF camFileValid THEN self.ADCamFileObj->SetProperty, 'FileNumber', long(fileNumber) ELSE $
       IF fileValid THEN self.ADFileObj->SetProperty, 'FileNumber', long(fileNumber)
-      IF camFileValid THEN self.ADCamFileObj->SetProperty, 'FileNumber', long(fileNumber) 
     ENDIF
     IF N_Elements(fileTemplate) THEN BEGIN
       fileTemplateByte = BytArr(256)
       fileTemplateByte[0:N_Elements(Byte(fileTemplate))-1] = Byte(fileTemplate)
+      IF camFileValid THEN self.ADCamFileObj->SetProperty, 'FileTemplate', fileTemplateByte ELSE $
       IF fileValid THEN self.ADFileObj->SetProperty, 'FileTemplate', fileTemplateByte
-      IF camFileValid THEN self.ADCamFileObj->SetProperty, 'FileTemplate', fileTemplateByte
     ENDIF
     IF N_Elements(ImageMode) THEN BEGIN
       IF camValid THEN self.ADCamObj->SetProperty, 'ImageMode', ImageMode
