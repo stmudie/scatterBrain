@@ -174,14 +174,16 @@ PRO as_areadetectormap::Acquire
   
   @as_scatterheader.macro
   
-  castartgroup
-  FOR i = 0, N_Elements(*self.areaDetectors) - 1 DO BEGIN
-    
-      ((*self.areaDetectors)[i])->GetProperty, SOFTWARETRIGGER=softwareTrigger
-      IF softwareTrigger THEN ((*self.areaDetectors)[i])->SetProperty, /ACQUIRE
-    
-  ENDFOR
-  result = caendgroup()
+  result = caput('SR13ID01IOC69:Acquire_CMD')
+  
+;  castartgroup
+;  FOR i = 0, N_Elements(*self.areaDetectors) - 1 DO BEGIN
+;    
+;      ((*self.areaDetectors)[i])->GetProperty, SOFTWARETRIGGER=softwareTrigger
+;      IF softwareTrigger THEN ((*self.areaDetectors)[i])->SetProperty, /ACQUIRE
+;    
+;  ENDFOR
+;  result = caendgroup()
   
 
 END

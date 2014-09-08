@@ -39,7 +39,11 @@ PRO AS_PlotControl::event, event
 
 @as_scatterheader.macro
 
-widgetName = Widget_Info(event.ID, /UNAME)
+widgetType = Tag_Names(event,/STRUCTURE)
+
+IF widgetType EQ 'FSC_FIELD_EVENT' THEN BEGIN
+  event.object.getproperty, name = widgetName
+ENDIF ELSE widgetName = Widget_Info(event.ID, /UNAME)
 
 
 CASE TAG_NAMES( event, /STRUCTURE ) OF
@@ -406,6 +410,13 @@ CASE TAG_NAMES( event, /STRUCTURE ) OF
                                    END
                   'YLog'         : BEGIN
                                     self.oProfiles->LinLog, 'Y'                         
+                                   END
+                  'Power Field'  : BEGIN 
+                                    power = -event.object.Get_Value()
+                                    self.oProfiles.SetPowerPlot, power
+                                   END
+                  'Power Slide'  : BEGIN
+                                    self.oProfiles.SetPowerPlot, SLIDE = fix(event.value)
                                    END
                   'Delete All'   : BEGIN
                                      childLeaves = Widget_Info(self.wProfileTree, /ALL_CHILDREN)
@@ -924,13 +935,17 @@ IF Keyword_Set(notifyObj) THEN $
   logLabel = Widget_Label(wLogBase, VALUE = 'Lin <> Log  ')
   self.wXLog = Widget_Button(wLogBase,VALUE='X Axis', UNAME = 'XLog')
   self.wYLog = Widget_Button(wLogBase,VALUE='Y Axis', UNAME = 'YLog')
+  powerField = FSC_Field(wLogBase, Title = 'Power Law: -', VALUE = 0., XSIZE = 3, DECIMAL=2, OBJECT = powerFieldObj, EVENT_PRO = 'AS_PlotControl_event', NAME = 'Power Field')
+  powerSlide = Widget_Slider(wLogBase, /VERTICAL, VALUE = 50, MINIMUM=0, MAXIMUM=100, YSIZE = 1, UNAME = 'Power Slide')
+  Widget_Control, powerField, SET_UVALUE = powerFieldObj
+  
   allButtonBase = Widget_Base(self.wPCBase, /ROW)
   deleteAllBut = Widget_Button(allButtonBase, VALUE = 'Clear All', UNAME = 'Delete All')
   ExpandAllBut = Widget_Button(allButtonBase, VALUE = 'Expand All', UNAME = 'Expand All')
   CollapseAllBut = Widget_Button(allButtonBase, VALUE = 'Collapse All', UNAME = 'Collapse All')
   plotModeBase = Widget_Base(self.wPCBase, /EXCLUSIVE)
   IF KeyWord_Set(pollEpics) THEN BEGIN
-    realTimeButton = Widget_Button(plotModeBase, VALUE='Live Overwrite Mode', UNAME = 'Realtime')
+    realTimeButton = Widget_Button(plotModeBase, VALUE='Live Overwrite Mode', UNAME = 'RealtiI me')
     autoPlotButton = Widget_Button(plotModeBase, VALUE = 'Live Add Plot Mode', UNAME = 'AutoPlot') 
     ignoreLiveButton = Widget_Button(plotModeBase, VALUE = 'Ignore Live Data Mode', UNAME = 'IgnorePlot')
     Widget_Control, realTimeButton, /SET_BUTTON
@@ -985,7 +1000,7 @@ IF Keyword_Set(notifyObj) THEN $
   wContour = Widget_Button(w2dTools, VALUE = 'Contour', UNAME = 'CONTOUR', UVALUE = 0)
   wContourAdd = Widget_Button(w2dTools, VALUE = 'Add to Contour', UNAME = 'CONTOUR', UVALUE = 1)
   ;wCopyBlankButton = Widget_Button(self.wContextBase, VALUE = 'Copy Blank', UNAME = 'Copy Blank')
-    
+      
   self.wInfoBox = Widget_Text(treeBase, VALUE = '', YSIZE = 5, EDITABLE=0)
     
   Widget_Control, self.wPCBase, SET_UVALUE = self

@@ -72,7 +72,14 @@ PRO AS_XMLParamFile::Save, FILENAME = fileName, _REF_Extra=extra
 
   @as_scatterheader.macro
 
-  self->IDLffXMLDOMDocument::Save, FILENAME=fileName, _extra=extra, /PRETTY_PRINT
+  CATCH, Error_Status
+  
+  IF Error_Status EQ 0 THEN BEGIN
+    self->IDLffXMLDOMDocument::Save, FILENAME=fileName, _extra=extra, /PRETTY_PRINT
+  ENDIF ELSE BEGIN
+    print, !error_state.msg
+    result = Dialog_Message('Error encountered saving experiment file.')
+  ENDELSE
 
 END
 

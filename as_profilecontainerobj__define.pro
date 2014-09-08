@@ -334,6 +334,10 @@ FUNCTION AS_ProfileContainerObj::Init, GROUPLEADER=groupLeader, PLOTPALETTE = pl
   self.peakFit = IDLgrPlot(LINESTYLE = 1)
   self.peakFit.SetProperty, HIDE = 1
   
+  self.powerPlot = IDLgrPlot()
+  self.powerPlot.SetProperty, HIDE = 1
+  self.powerPlot.Description = 50
+  
     ; Because we may not be using exact axis ranging, the axes
     ; may extend further than the xrange and yrange. Get the
     ; actual axis range so that the plot, etc. can be scaled
@@ -381,6 +385,7 @@ FUNCTION AS_ProfileContainerObj::Init, GROUPLEADER=groupLeader, PLOTPALETTE = pl
   self.legend->Translate, 0.5,0.8,0
   self->Add, self.livePlot
   self->Add, self.peakFit
+  self->Add, self.powerPlot
 
   IF KeyWord_Set(groupLeader) THEN BEGIN
     self.groupLeader = groupLeader
@@ -585,6 +590,63 @@ PRO AS_ProfileContainerObj::SavePlotImage, FILENAME = fileName
 
 END
 
+PRO AS_ProfileContainerObj::SetPowerPlot, power, SLIDE = slide
+
+  @as_scatterheader.macro
+
+  IF ~N_elements(slide) THEN BEGIN
+    slide = self.PowerPlot.Description
+  ENDIF
+
+  IF N_Elements(power) EQ 0 THEN BEGIN
+    power = self.PowerPlot.Name
+  ENDIF
+
+  IF power GE 0 THEN BEGIN
+    self.PowerPlot.SetProperty, HIDE = 1
+  ENDIF ELSE BEGIN
+    self.PowerPlot.Name = power
+    self.PowerPlot.Description = slide
+    self.PowerPlot.SetProperty, HIDE = 0
+    
+    IF (self.profileRefs) NE !null THEN data = ((*self.profileRefs)[0].profiles).GetData() $
+                                 ELSE data = findgen(100)*0.00001 + 0.00001
+
+    max = max(data[1,*]*data[0,0]^power/(data[0,*]^power),whereMax)
+    
+    ;IF self.ylog THEN expnt = 10 ELSE expnt = 1
+
+    expnt = 7    
+    mult = (max - min(data[1,(where(data[1,*] Gt 0))]))*(slide^expnt/100.^expnt) + min(data[1,(where(data[1,*] Gt 0))])
+
+    powerProfile = [[data[0,*]],mult*[data[0,*]^power]/data[0,0]^power]
+   
+    IF self.xlog THEN powerProfile[0,*] = Alog10(powerProfile[0,*])
+    IF self.ylog THEN powerProfile[1,*] = Alog10(powerProfile[1,*])
+
+    self.powerPlot.SetProperty, DATAX = powerProfile[0,*], DATAY = powerProfile[1,*], HIDE = 0
+    self.profileXAxis->GetProperty, CRange=xrange
+    self.profileYAxis->GetProperty, CRange=yrange
+
+
+    ; Set up the scaling so that the axes for the plot and the
+    ; plot data extends from 0->1 in the X and Y directions.
+
+    xs = [((self.position[0]*xrange[1])-(self.position[2]*xrange[0])) / $
+      (xrange[1]-xrange[0]), (self.position[2]-self.position[0])/(xrange[1]-xrange[0])]
+
+    ys = [((self.position[1]*yrange[1])-(self.position[3]*yrange[0])) / $
+      (yrange[1]-yrange[0]), (self.position[3]-self.position[1])/(yrange[1]-yrange[0])]
+
+    ; Scale the plot data and axes into 0->1.
+    self.powerPlot->SetProperty, XCoord_Conv=xs, YCoord_Conv=ys
+
+    ;self.UpdatePlot, /KEEPFIT
+
+  ENDELSE
+
+END
+
 FUNCTION AS_ProfileContainerObj::FitPeak, index, FULLRANGE = fullRange, PLOT = plot
   
   @as_scatterheader.macro
@@ -688,6 +750,7 @@ PRO AS_ProfileContainerObj::LinLog, AXIS, _REF_Extra=extra
       self.peakFit.SetProperty, DATAX = data[0,*], DATAY = data[1,*]
     ENDIF
   ENDIF
+  self.SetPowerPlot
   self->LinLogQMarkers
   
 END
@@ -997,6 +1060,8 @@ END
 PRO AS_ProfileContainerObj::UpdatePlot, void, KEEPFIT = keepFit
 
   @as_scatterheader.macro
+
+  self.SetPowerPlot
 
   IF ~KeyWord_Set(keepFit) THEN BEGIN
     self.messageObj.SetProperty, STRINGS = ''
@@ -1604,6 +1669,7 @@ PRO AS_ProfileContainerObj__Define
                absGUI             : Obj_New(), $
                qCalibGUI          : Obj_New(), $
                peakFit            : Obj_New(), $
+               powerPlot          : Obj_New(), $
                messageObj         : Obj_New(), $
                notifyObj          : List()   , $
                showErrorBars      : 0          $

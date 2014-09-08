@@ -557,9 +557,9 @@ CONFIGDATAPATH = configDataPath
     FOREACH um, *self.usermasks DO knownMasks.add, um.MaskName
     
     FOREACH m, mask DO BEGIN
-      IF m.delete EQ 1 THEN BEGIN
+      ;IF m.delete EQ 1 THEN BEGIN
        ; IF 
-      ENDIF
+      ;ENDIF
       IF m.auto EQ 0 THEN auto = 'false' ELSE auto = 'true'
       IF m.lock EQ 0 THEN lock = 'false' ELSE lock = 'true'
       IF Size((*m.params),/N_DIMENSIONS) EQ 2 THEN BEGIN
