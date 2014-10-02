@@ -203,7 +203,15 @@ CASE widgetName OF
                               END
             'AUTO FIND 4 SECTORS' :
             'X BEAM CENTRE':BEGIN
-                              self.frame.xc = event.value
+              
+                              CASE self.rotation OF
+                                0 : self.frame.xc = event.value
+                                1 : self.frame.yc = event.value
+                                2 : self.frame.xc = event.value
+                                3 : self.frame.yc = event.value
+                              ENDCASE
+              
+                              
                               self.UpdateBeamCursor
                               self.cake.ok = 0
                               self.cake.newmask = 1
@@ -212,7 +220,14 @@ CASE widgetName OF
                             END
 
             'Y BEAM CENTRE':BEGIN
-                              self.frame.yc = event.value
+              
+                              CASE self.rotation OF
+                                0 : self.frame.yc = event.value
+                                1 : self.frame.xc = -event.value
+                                2 : self.frame.yc = -event.value
+                                3 : self.frame.xc = event.value
+                              ENDCASE
+                              
                               self.UpdateBeamCursor
                               self.cake.ok = 0
                               self.cake.newmask = 1
@@ -558,8 +573,6 @@ PRO as__saxsimagegui::LoadConfig, configNo
   
   
   self.AS_Maskobj::NewParams, self.frame.logObj, CONFIG = configNo
-  Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME='X BEAM CENTRE'), SET_VALUE = self.frame.yc
-  Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME='Y BEAM CENTRE'), SET_VALUE = self.frame.xc
   self.LoadCakeLUT, configNo
   Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME='PARAM LABEL'), SET_VALUE = (self.configNames[configNo])[0]
   Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME='CONFIG COMBO'), SET_COMBOBOX_SELECT = configNo + 1
@@ -574,7 +587,8 @@ PRO as__saxsimagegui::LoadConfig, configNo
   
   CASE self.rotation OF
     0 : BEGIN
-          
+          xc = self.frame.xc
+          yc = self.frame.yc
         END
     1 : BEGIN
           xsize = self.frame.nypix
@@ -583,10 +597,15 @@ PRO as__saxsimagegui::LoadConfig, configNo
           self.frameModel_obj.rotate, [0,0,1], 90
           self.frameModel_obj.translate, xsize, 0, 0
           
+          xc = self.frame.yc
+          yc = self.frame.xc
         END
     2 : BEGIN
           self.frameModel_obj.rotate, [0,0,1], 180
           self.frameModel_obj.translate, xsize, ysize, 0
+          
+          xc = self.frame.xc
+          yc = self.frame.yc
         END
     3 : BEGIN
           xsize = self.frame.nypix
@@ -594,8 +613,14 @@ PRO as__saxsimagegui::LoadConfig, configNo
     
           self.frameModel_obj.rotate, [0,0,1], 270
           self.frameModel_obj.translate, 0, ysize, 0
+          
+          xc = self.frame.yc
+          yc = self.frame.xc
         END
   ENDCASE
+
+  Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME='X BEAM CENTRE'), SET_VALUE = xc
+  Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME='Y BEAM CENTRE'), SET_VALUE = yc
 
   Widget_Control, Widget_Info(self.imageGUIBase, FIND_BY_UNAME='FRAME_DRAW'), XSIZE = xsize, YSIZE = ysize
 
@@ -605,6 +630,11 @@ PRO as__saxsimagegui::LoadConfig, configNo
 
 END
 
+FUNCTION as__saxsimagegui::GetCurrentConfigName
+
+  return, self.configNames[self.currentConfig]
+
+END
 
 PRO as__saxsimagegui::NewParams, paramObj, CONFIGNO = configNo
   
