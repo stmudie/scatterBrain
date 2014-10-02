@@ -615,6 +615,7 @@ PRO AS_PlotControl::Callback, event
                 Widget_Control, self.wPCBase, ysize = event.y
                 Widget_Control, self.wProfileTree, ysize = 0 > (event.y - 165)
               END
+  'QMarker' : self.notify, {QMARKER, q:event.q}
   ELSE :
   ENDCASE
 

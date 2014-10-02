@@ -106,6 +106,35 @@ FUNCTION as_maskObject::GetSaveParams
   
 END
 
+PRO as_maskObject::SetSaveParams, params, EXCLUDE_TYPE = exclude_type
+
+  @as_scatterheader.macro
+
+  self.SetProperty, COLOUR = params.colour
+
+    self.NAME = params.name
+    CASE params.maskshape OF
+      'Polygon' : BEGIN
+                    self.maskshape = 0
+                    *self.data = params.data
+                  END
+      'Circle'  : BEGIN 
+                    self.maskshape = 1
+                    self.centreX = params.data[0]
+                    self.centreY = params.data[1]
+                    self.radiusMax = params.data[2]
+                    self.radiusMin = params.data[3]
+                    self.angleMax = params.data[4]
+                    self.angleMin = params.data[5]
+                  END 
+    ENDCASE
+    
+    IF ~KeyWord_Set(exclude_type) THEN self.maskType = params.maskType
+    self.beamRelative = params.beamRelative
+    self.lock = params.lock
+
+END
+
 PRO as_maskObject::SetProperty, $
   COLOUR = COLOUR, $
   LINEOPACITY = lineOpacity, $

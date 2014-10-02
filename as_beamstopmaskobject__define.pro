@@ -117,6 +117,20 @@ FUNCTION as_beamstopmaskobject::GetSaveParams
  
 END
 
+PRO as_beamstopmaskobject::SetSaveParams, params, _ref_extra = extra
+
+  @as_scatterheader.macro
+
+  self.NAME = params.name
+  self.maskType = params.maskType 
+  self.offsetX = params.offsetX 
+  self.offsetY = params.offsetY
+  self.radius = params.radius 
+  self.angle = params.angle 
+  self.width = params.width
+
+END
+
 PRO as_beamstopmaskobject::SetProperty, $
   COLOUR = COLOUR, $
   LINEOPACITY = lineOpacity, $

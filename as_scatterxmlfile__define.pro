@@ -553,8 +553,7 @@ CONFIGDATAPATH = configDataPath
 
   IF KeyWord_Set(mask) THEN BEGIN
   
-    knownMasks = List()
-    FOREACH um, *self.usermasks DO knownMasks.add, um.MaskName
+    userMasks = list()
     
     FOREACH m, mask DO BEGIN
       ;IF m.delete EQ 1 THEN BEGIN
@@ -567,14 +566,10 @@ CONFIGDATAPATH = configDataPath
         params = params + '['+ StrJoin(Transpose(StrCompress((*m.params)[1,*], /REMOVE_ALL)),',') + ']'
       ENDIF ELSE params = '['+ StrJoin(StrCompress((*m.params), /REMOVE_ALL),',') + ']'
       colour = '[' + strcompress(strjoin(string(m.colour, format = '(I)'),','),/REMOVE_ALL) + ']'
-      position = Where(knownMasks EQ m.name)
-      IF position EQ -1 THEN BEGIN
-          *self.usermasks = [*self.usermasks,{USERMASK, usermask : params, MASKNAME : m.name, SHAPE :m.shape, AUTO : auto, COLOUR : colour, LOCK : lock}]
-      ENDIF ELSE BEGIN
-          (*self.usermasks)[position] = {USERMASK, usermask : params, MASKNAME : m.name, SHAPE :m.shape, AUTO : auto, COLOUR : colour, LOCK : lock}
-      ENDELSE
-      
+      usermasks.add, {USERMASK, usermask : params, MASKNAME : m.name, SHAPE :m.shape, AUTO : auto, COLOUR : colour, LOCK : lock}
     ENDFOREACH 
+
+    *self.usermasks = usermasks.toArray()
 
     usedMasks = Where(mask.type GE 0)
     (*self.Configurations)[config].userMasks = '[' + StrJoin(mask[usedMasks].name, ',') + '][' + StrJoin(mask[usedMasks].type, ',') + ']'
@@ -582,28 +577,28 @@ CONFIGDATAPATH = configDataPath
   ENDIF
   
 
-  IF KeyWord_Set(changedMaskNames) THEN BEGIN
-    row = 0
-    FOREACH cMN, changedMaskNames[1,*] DO BEGIN
-      conf=0
-      FOREACH um, (*self.Configurations).userMasks DO BEGIN
-        ;userMaskFragments = StrSplit(um,'[,[]'+cMN+'[],]',/REGEX,/EXTRACT) 
-        userMaskFragments = StrSplit(um,',[]',/EXTRACT)
-        userMaskFragments[Where(userMaskFragments EQ cMN[0],/NULL)] = changedMaskNames[0,row]
-        ;IF N_Elements(userMaskFragments) EQ 2 THEN ((*self.Configurations)[conf].userMasks) = StrJoin([userMaskFragments[0],changedMaskNames[0,row],userMaskFragments[1]])
-        numFrags = N_Elements(userMaskFragments)
-        IF numFrags GT 1 THEN BEGIN
-          userMaskFragments[0] = '['+userMaskFragments[0]
-          userMaskFragments[(numFrags/2) - 1] = userMaskFragments[(numFrags/2) - 1]+']'
-          userMaskFragments[(numFrags/2)] = '['+userMaskFragments[(numFrags/2)]
-          userMaskFragments[-1] = userMaskFragments[-1]+']' 
-          ((*self.Configurations)[conf].userMasks) = StrJoin(userMaskFragments, ',')
-        ENDIF
-        conf++
-      ENDFOREACH
-      row++
-    ENDFOREACH
-  ENDIF
+;  IF KeyWord_Set(changedMaskNames) THEN BEGIN
+;    row = 0
+;    FOREACH cMN, changedMaskNames[1,*] DO BEGIN
+;      conf=0
+;      FOREACH um, (*self.Configurations).userMasks DO BEGIN
+;        ;userMaskFragments = StrSplit(um,'[,[]'+cMN+'[],]',/REGEX,/EXTRACT) 
+;        userMaskFragments = StrSplit(um,',[]',/EXTRACT)
+;        userMaskFragments[Where(userMaskFragments EQ cMN[0],/NULL)] = changedMaskNames[0,row]
+;        ;IF N_Elements(userMaskFragments) EQ 2 THEN ((*self.Configurations)[conf].userMasks) = StrJoin([userMaskFragments[0],changedMaskNames[0,row],userMaskFragments[1]])
+;        numFrags = N_Elements(userMaskFragments)
+;        IF numFrags GT 1 THEN BEGIN
+;          userMaskFragments[0] = '['+userMaskFragments[0]
+;          userMaskFragments[(numFrags/2) - 1] = userMaskFragments[(numFrags/2) - 1]+']'
+;          userMaskFragments[(numFrags/2)] = '['+userMaskFragments[(numFrags/2)]
+;          userMaskFragments[-1] = userMaskFragments[-1]+']' 
+;          ((*self.Configurations)[conf].userMasks) = StrJoin(userMaskFragments, ',')
+;        ENDIF
+;        conf++
+;      ENDFOREACH
+;      row++
+;    ENDFOREACH
+;  ENDIF
 
   IF KeyWord_Set(counterDefs) THEN BEGIN
     ((*self.configurations)[config].beamstop) = counterDefs.beamstop
@@ -622,7 +617,7 @@ CONFIGDATAPATH = configDataPath
   
   IF KeyWord_Set(frame) THEN BEGIN
      
-     ((*self.configurations).detector) = frame.detector
+     ((*self.configurations)[config].detector) = frame.detector
      
      ((*self.configurations)[config].wavelength) = frame.wlen
      ((*self.configurations)[config].length)     = frame.len
@@ -706,11 +701,12 @@ CONFIGNO = config
        knownMasks = StrSplit(textSplit[0],',',/EXTRACT)
        IF N_Elements(textSplit) GT 1 THEN maskType = StrSplit(textSplit[1],',',/EXTRACT)
        maskdef = Replicate({maskdef}, N_Elements(*self.usermasks)) 
-       FOREACH knownmask, knownMasks, index DO BEGIN
+       FOREACH umask, *self.usermasks, index DO BEGIN
         
-         userMaskNum = Where(((*self.userMasks).maskname) EQ knownMask)
-         type = Long(maskType[index])
-         tempParams = StrSplit(((*self.userMasks).usermask)[userMaskNum],'[]',/EXTRACT)
+         ;userMaskNum = Where(((*self.userMasks).maskname) EQ knownMask)
+         knownMaskIndex = Where(umask.maskname EQ knownMasks)
+         if knownMaskIndex GE 0 THEN type = Long(maskType[knownMaskIndex]) ELSE type = 0
+         tempParams = StrSplit(umask.usermask,'[]',/EXTRACT)
          tempParams1 = StrSplit(tempParams[0],',',/EXTRACT)
 
          IF N_Elements(tempParams) EQ 2 THEN BEGIN
@@ -718,9 +714,9 @@ CONFIGNO = config
            params = Transpose([[tempParams1],[tempParams2]])
          ENDIF ELSE params = tempParams1
          
-         IF ((*self.userMasks).colour)[userMaskNum] EQ '' THEN colour = '[0,0,0]' ELSE colour = ((*self.userMasks).colour)[userMaskNum]
+         IF umask.colour EQ '' THEN colour = '[0,0,0]' ELSE colour = umask.colour
          colour = Fix([strsplit(colour,'[,]',/EXTRACT)])
-         maskdef[userMaskNum] = { name: ((*self.userMasks).maskname)[userMaskNum], type: type, shape: ((*self.userMasks).shape)[userMaskNum], auto: ((*self.userMasks).auto)[userMaskNum] EQ 'true', lock: ((*self.userMasks).lock)[userMaskNum] EQ 'true', colour: colour, params : Ptr_New(Float(params)) }
+         maskdef[index] = { name: umask.maskname, type: type, shape: umask.shape, auto: umask.auto EQ 'true', lock: umask.lock EQ 'true', colour: colour, params : Ptr_New(Float(params)) }
 
        ENDFOREACH
 

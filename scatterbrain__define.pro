@@ -875,6 +875,11 @@ PRO scatterbrain::event, event
         'TEXP' : BEGIN
 
             Widget_Control, event.id, GET_VALUE = expList
+            if event.str EQ 'A' THEN BEGIN
+              result = caput('SR13ID01IOC69:AutoAcquire', 1)
+            endif else begin
+              result = caput('SR13ID01IOC69:AutoAcquire', 0)
+            endelse
             time = as_stringtonumber(event.str, /FLOAT)
             inList = Where(Abs(time - Float(expList)) LT 0.001)
             IF inList EQ -1 THEN BEGIN
@@ -1132,6 +1137,7 @@ PRO scatterbrain::loadXML, xmlFile
   IF numLoadConfig.detector1 EQ -1 THEN numLoadConfig.detector1 = 0
   
   self.frame_obj->NewParams, self.scatterXMLGUI_obj, CONFIGNO = numLoadConfig.detector1
+  self.frame_obj->LOADCONFIG, numLoadConfig.detector1
   IF Obj_Valid(self.frame_obj2) THEN BEGIN
     self.frame_obj2->LOADCONFIG, numLoadConfig.detector2
     result = self.qCalibGUI(frameNo = 1)
@@ -1146,9 +1152,6 @@ PRO scatterbrain::loadXML, xmlFile
   self.frame_obj->ReSize, BUFFER = self.aux_base_size + [50,50]
   geom = Widget_Info(self.wScatterBase, /GEOM)
   self.scatterXMLGUI_obj->SetProperty, HEIGHT = geom.scr_ysize*.9 
-
-  
-  
 
 END
 
@@ -1327,24 +1330,35 @@ PRO scatterbrain::LogFileSelected, Selected
                  ENDIF
                END
     'EXPORT PROFILES' : BEGIN
-                 profileIndices = IntArr(selected.name.count())
+                 profileIndices = List()
                  self.frame_obj.SetProperty, UPDATEIMAGE = 0
+                 IF Obj_Valid(self.frame_obj2) THEN self.frame_obj2.SetProperty, UPDATEIMAGE = 0
                  selected.name.reverse
-                 FOREACH name, selected.name, key DO profileIndices[key] = self.ProcessImage(name, /NOPLOT, NOSETUP = ~(key EQ 1) )
+                 FOREACH name, selected.name, key DO BEGIN
+                  profileIndices.add, self.ProcessImage(name, /NOPLOT, NOSETUP = ~(key EQ 1), PROFILEINDEX2=profileIndex2)
+                  IF Obj_Valid(self.frame_obj2) THEN profileIndices.add, profileIndex2
+                 ENDFOREACH
                  self.frame_obj.SetProperty, UPDATEIMAGE = 1
-                 data = self.profiles_obj.GetProfiles(profileIndices)
-                 self.profiles_obj.DeleteProfile, profileIndices
+                 IF Obj_Valid(self.frame_obj2) THEN self.frame_obj2.SetProperty, UPDATEIMAGE = 1
+                 data = self.profiles_obj.GetProfiles(profileIndices.toArray())
+                 self.profiles_obj.DeleteProfile, profileIndices.toArray()
                  saveDirectory = Dialog_Pickfile(/DIRECTORY)
                  titleList = list('q   ', 'I   ', 'Err   ')
                  
+                 configText = ''                
                  FOREACH name, selected.Name, i DO BEGIN
-      
-                   OpenW, profileFile, saveDirectory + StrMid(name,0,(strsplit(name, '.'))[-1]-1) + '.dat', /GET_LUN
-                     PrintF, profileFile, name
-                     PrintF, profileFile, titleList.toarray(), FORMAT = '(' + StrCompress(3,/REMOVE) + 'A' + StrCompress(1+StrLen((data[i])[0]),/REMOVE) + ')'
-                     PrintF, profileFile, data[i], FORMAT = '(' + StrCompress(3,/REMOVE) + 'A' + StrCompress(1+StrLen((data[i])[0]),/REMOVE) + ')'
-                   Free_Lun, profileFile
-                
+                   
+                   FOR detNo=0,Obj_Valid(self.frame_obj2) DO BEGIN
+                     IF Obj_Valid(self.frame_obj2) THEN BEGIN
+                        IF detNo THEN configText = self.frame_obj2.GetCurrentConfigName() ELSE configText = self.frame_obj.GetCurrentConfigName()
+                     ENDIF
+                     i += detNo
+                     OpenW, profileFile, saveDirectory + StrMid(name,0,(strsplit(name, '.'))[-1]-1) + '_' + configText + '.dat', /GET_LUN
+                       PrintF, profileFile, name
+                       PrintF, profileFile, titleList.toarray(), FORMAT = '(' + StrCompress(3,/REMOVE) + 'A' + StrCompress(1+StrLen((data[i])[0]),/REMOVE) + ')'
+                       PrintF, profileFile, data[i], FORMAT = '(' + StrCompress(3,/REMOVE) + 'A' + StrCompress(1+StrLen((data[i])[0]),/REMOVE) + ')'
+                     Free_Lun, profileFile
+                 ENDFOR
                  ENDFOREACH
                    
                END
@@ -1464,7 +1478,7 @@ PRO scatterbrain::LogFileSelected, Selected
   ENDCASE
 END
 
-FUNCTION scatterbrain::ProcessImage, name, SAVESUMMED = saveSummed, LIVEFRAME = liveFrame, NOPLOT = noPlot, NOSETUP = noSetup, DETECTORNO = detectorNo
+FUNCTION scatterbrain::ProcessImage, name, SAVESUMMED = saveSummed, LIVEFRAME = liveFrame, NOPLOT = noPlot, NOSETUP = noSetup, DETECTORNO = detectorNo, PROFILEINDEX2 = profileIndex2
 
   @as_scatterheader.macro
 
@@ -1496,7 +1510,7 @@ FUNCTION scatterbrain::ProcessImage, name, SAVESUMMED = saveSummed, LIVEFRAME = 
   IF Obj_Valid(self.frame_obj2) THEN BEGIN
     IF detectorNo NE 0 THEN BEGIN
       self.frame_obj2.GetProperty, CONFIGNAME = configName, TIME = time, I0SF = i0sf, IBSSF = ibssf
-      IF ISA(profileData2, 'STRUCT') THEN self.profiles_obj.AddProfile, profileData2.q_arr, profileData2.profile, profileData2.error, name, CONFIGNAME = configName, DETECTORNO = 1, TIME = time, I0COUNT = i0sf, IBSCOUNT = ibssf, LIVE = live, NOPLOT = noPlot, PROFILEINDEX = profileIndex
+      IF ISA(profileData2, 'STRUCT') THEN self.profiles_obj.AddProfile, profileData2.q_arr, profileData2.profile, profileData2.error, name, CONFIGNAME = configName, DETECTORNO = 1, TIME = time, I0COUNT = i0sf, IBSCOUNT = ibssf, LIVE = live, NOPLOT = noPlot, PROFILEINDEX = profileIndex2
     ENDIF
   ENDIF
   
@@ -1926,6 +1940,15 @@ PRO scatterbrain::FrameCallback, event
                          ELSE :
                        ENDCASE
                      END
+    'APPLYMASKS' : BEGIN
+                     event.object.GetProperty, ALLMASKS = allMasks
+                     IF self.frame_obj NE event.object THEN BEGIN
+                       self.frame_obj.SynchroniseMasks, allMasks
+                     ENDIF
+                     IF self.frame_obj2 NE event.object THEN BEGIN
+                       self.frame_obj2.SynchroniseMasks, allMasks
+                     ENDIF
+                   END
   ELSE :
   ENDCASE
 
@@ -1976,6 +1999,11 @@ PRO scatterbrain::PlotControlCallback, event
                     result = self.ProcessImage(event.filenames, /SAVESUMMED)
                    END
     'CONTOUR'    : self.contour, event.filenames, event.indices, add = event.add
+    'QMARKER'    : BEGIN
+                    self.frame_obj.Overlay_QCirc, event.q
+                    IF obj_valid(self.frame_obj2) THEN self.frame_obj2.Overlay_QCirc, event.q
+                    
+                  END
   ENDCASE
 
 END
@@ -2489,7 +2517,7 @@ FUNCTION scatterbrain::init     $
       exposeBase = Widget_Base(wScatterColumns[0], /ROW, /ALIGN_CENTER)
       texpLabel = Widget_Label(exposeBase, VALUE = 'Time: ')
       texp = Widget_Combobox(exposeBase, /DYNAMIC_RESIZE, /EDITABLE, UNAME = 'TEXP' $
-        , value=['1','2','5','10','20','30','40','60','120'], sensitive=1)
+        , value=['1','2','5','10','20','30','40','60','120','A'], sensitive=1)
     
             
       buffer = Widget_Label(wScatterRows[0], VALUE = '', SCR_XSIZE = 5)

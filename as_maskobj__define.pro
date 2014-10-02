@@ -239,6 +239,7 @@ PRO AS_MaskObj::ApplyMasks
 
   self.PolyChanged, /SET
   self.UpdateMaskArray
+  self.notify, {APPLYMASKS, object: self}
 
 END
 
@@ -300,7 +301,7 @@ PRO AS_MaskObj::ShowMaskTable, show
     i = 0
     FOREACH mask, maskObjects DO BEGIN
       IF ~Obj_Valid(mask) THEN CONTINUE
-      tabBase = Widget_Base(self.mask.wMaskTab, TITLE = mask.name, /ROW, UNAME='Mask Tab ' + StrCompress(String(i),/REMOVE_ALL)) 
+      tabBase = Widget_Base(self.mask.wMaskTab, TITLE = mask.name, /ROW, UNAME='Mask Tab ' + StrCompress(String(i),/REMOVE_ALL), UVALUE=mask.name) 
       ;defineMaskPropertySheet = Widget_PropertySheet(defineUserMasksBase,  VALUE = maskObjects, SCR_XSIZE = 70+150*N_Elements(maskObjects[0:*:2]), ysize = 17, EVENT_PRO = 'AS_DefineMaskPropertyEvent', UNAME = 'defineMaskPropSheet') 
       defineMaskPropertySheet = Widget_PropertySheet(tabBase,  VALUE = mask, ysize = 17, EVENT_PRO = 'AS_DefineMaskPropertyEvent', UNAME = 'defineMaskPropSheet') 
       defineMaskTableBase = Widget_Base(tabBase, /ROW, UNAME = 'Mask Table Base')
@@ -373,11 +374,50 @@ PRO AS_MaskObj::AddDefinedMasks
 
 END
 
+PRO AS_MaskObj::SynchroniseMasks, masks
+
+  maskHash = hash()
+  
+  FOREACH m, self.mask.maskObjects.get(/all) DO BEGIN
+    maskHash[m.name] = m
+  ENDFOREACH
+
+  FOREACH m, masks DO BEGIN
+    IF maskHash.hasKey(m.name) THEN BEGIN
+      mask_to_update = maskHash.remove([m.name])
+      mask_to_update.SetSaveParams, m.GetSaveParams(), /EXCLUDE_TYPE
+      self.UpdateTable, mask_to_update
+    ENDIF ELSE BEGIN
+      self.AddMask, NAME = m.name, MASKTYPE = 0
+      self.mask.selectedMask.SetSaveParams, m.GetSaveParams(), /EXCLUDE_TYPE
+      self.UpdateTable
+    ENDELSE
+  ENDFOREACH
+
+  IF maskHash.count() GT 0 THEN BEGIN
+    tabTitles = list()
+    FOREACH tab, Widget_Info(self.mask.wMaskTab, /ALL_CHILDREN) DO BEGIN
+      Widget_Control, tab, GET_UVALUE = uvalue
+      tabTitles.add, uvalue
+    ENDFOREACH
+    selected = list()
+    FOREACH name, maskHash.keys() DO selected.add, (Where(tabTitles EQ name))[0]-1   ; Minus 1 to account for beamstop mask
+    selected = selected.toArray()
+    self.DeleteMask, selected[where(selected GE 0)]
+  
+  ENDIF
+
+  
+  self.RefreshPropertySheet
+
+END
+
 PRO AS_MaskObj::UpdateTable, updatedMask
 
   @as_scatterheader.macro
-
+  
   IF ~Obj_Valid(updatedMask) THEN updatedMask = self.mask.selectedMask
+  IF ~ISA(updatedMask, 'AS_MASKOBJECT') THEN RETURN
   updatedMask.GetProperty, DATA = data, SELECTEDVERTEX = selectedVertex, /RELATIVE
   table = Where(self.mask.maskObjects.Get(/ALL, ISA = 'as_maskobject') EQ updatedMask)
   table = Widget_Info(self.mask.defineMaskBase, FIND_BY_UNAME='Mask Table ' + StrCompress(table, /REMOVE_ALL))
@@ -477,9 +517,11 @@ PRO AS_MaskObj::MaskNameUpdated, newName, oldName
 
 END
 
-PRO AS_MaskObj::GetProperty, _REF_Extra = extra
+PRO AS_MaskObj::GetProperty, ALLMASKS=allMasks, _REF_Extra = extra
 
   @as_scatterheader.macro
+
+  IF Arg_Present(allMasks) THEN allMasks = self.mask.maskObjects.Get(/ALL)
 
   self.AS_FrameObj::GetProperty, _EXTRA = extra
 
@@ -614,29 +656,7 @@ PRO AS_MaskObj::Event, event, scatterEvent
                       prop = Widget_Info(event.top, FIND_BY_UNAME = 'defineMaskPropSheet')
                       Widget_Control, prop, SCR_XSIZE = event.x, SCR_YSIZE = event.y
     END
-    'Add Mask'    : BEGIN
-                      masks = self.mask.maskObjects.get(/ALL, ISA = 'as_maskobject', COUNT = maskNo)
-                      maskNames = list()
-                      FOREACH mask, masks DO maskNames.add, mask.name
-                      maskObject = as_maskobject()
-                      newName = ''
-                      i=1
-                      WHILE newName EQ '' DO BEGIN
-                        newName = 'Mask ' + StrCompress(maskNo+i)
-                        IF maskNames.where(newName) NE !NULL THEN newName = ''
-                        i++
-                      ENDWHILE
-                      maskObject.SetProperty, fillOpacity = 0.5, NAME = newName, maskType = 1
-                      self.mask.maskObjects.add, maskObject
-                      tabBase = Widget_Base(self.mask.wMaskTab, TITLE = maskObject.name, /ROW, UNAME='Mask Tab ' + StrCompress(maskNo,/REMOVE_ALL) )
-                      defineMaskPropertySheet = Widget_PropertySheet(tabBase,  VALUE = maskObject, ysize = 17, EVENT_PRO = 'AS_DefineMaskPropertyEvent', UNAME = 'defineMaskPropSheet') 
-                      defineMaskTable = Widget_Table(tabBase, XSIZE = 2, YSIZE = self.mask.numPoints*2, SCR_XSIZE = 196, COLUMN_WIDTHS = 60, /ALL_EVENTS, /EDITABLE, /CONTEXT_EVENTS, ALIGNMENT = 2, UVALUE = {CellChangedFlag: 0, CellBuffer: [0,0], CellPosition: [0,0]}, UNAME='Mask Table ' + StrCompress(maskNo,/REMOVE_ALL))
-                      Widget_Control, defineMaskTable, SCR_YSIZE = (Widget_Info(defineMaskTable,/ROW_HEIGHTS))[0] * (self.mask.numPoints+2)
-                      Widget_Control, self.mask.wMaskTab, SET_TAB_CURRENT = maskNo + 1
-                      self.SetSelected, maskNo
-                     ; Where(self.deletedMasks
-                      
-    END
+    'Add Mask'    : self.AddMask
     'Delete Mask Base' : BEGIN
                       masks = self.mask.maskobjects.get(/all, isa='as_maskobject')
                       maskNames = List()
@@ -654,26 +674,11 @@ PRO AS_MaskObj::Event, event, scatterEvent
                                         ELSE result = Dialog_Message('Are you sure you want to delete these masks? These masks will also become unavailable in other configs for this experiment file.', /QUESTION)
                        IF result EQ 'No' THEN RETURN
                        
-                       masks = self.mask.maskobjects.get(/all, isa='as_maskobject')
-                       FOREACH dm, masks DO BEGIN
-                          dm.GetProperty, name = name
-                          self.deletedMasks.add, name
-                       ENDFOREACH
-                       Obj_Destroy, masks[selected]
-                       numDeleted = 0
-                       FOR maskNo=0, N_Elements(masks)-1 DO BEGIN
-                         tabID = Widget_Info(self.mask.defineMaskBase, FIND_BY_UNAME = 'Mask Tab ' + StrCompress(maskNo,/REMOVE_ALL))
-                         tableID = Widget_Info(self.mask.defineMaskBase, FIND_BY_UNAME = 'Mask Table ' + StrCompress(maskNo,/REMOVE_ALL))
-                         IF Where(maskNo EQ selected, /NULL) NE !NULL THEN BEGIN
-                           numDeleted ++
-                           Widget_Control, tabID, /DESTROY
-                         ENDIF ELSE BEGIN
-                           Widget_Control, tabID, SET_UNAME = 'Mask Tab ' + StrCompress(maskNo-numDeleted,/REMOVE_ALL)
-                           Widget_Control, tableID, SET_UNAME = 'Mask Table ' + StrCompress(maskNo-numDeleted,/REMOVE_ALL)
-                         ENDELSE
-                       ENDFOR
-                       self.SetSelected, -1
+                      
+                       self.DeleteMask, selected
+                       
                        Widget_Control, event.top, /DESTROY
+                       
                        RETURN
                        
     END
@@ -801,6 +806,62 @@ PRO AS_MaskObj::RefreshPropertySheet
 
 END
 
+PRO AS_MaskObj::AddMask, NAME=name, MASKTYPE = maskType
+
+  @as_scatterheader.macro
+  
+  If N_Elements(maskType) EQ 0 THEN maskType = 1
+  
+  masks = self.mask.maskObjects.get(/ALL, ISA = 'as_maskobject', COUNT = maskNo)
+  maskNames = list()
+  FOREACH mask, masks DO maskNames.add, mask.name
+  maskObject = as_maskobject()
+  newName = ''
+  i=1
+  IF KeyWord_Set(name) THEN newName = name ELSE BEGIN
+    WHILE newName EQ '' DO BEGIN
+      newName = 'Mask ' + StrCompress(maskNo+i)
+      IF maskNames.where(newName) NE !NULL THEN newName = ''
+      i++
+    ENDWHILE
+  ENDELSE
+  maskObject.SetProperty, fillOpacity = 0.5, NAME = newName, maskType = maskType
+  self.mask.maskObjects.add, maskObject
+  tabBase = Widget_Base(self.mask.wMaskTab, TITLE = maskObject.name, /ROW, UNAME='Mask Tab ' + StrCompress(maskNo,/REMOVE_ALL), UVALUE = maskObject.name)
+  defineMaskPropertySheet = Widget_PropertySheet(tabBase,  VALUE = maskObject, ysize = 17, EVENT_PRO = 'AS_DefineMaskPropertyEvent', UNAME = 'defineMaskPropSheet')
+  defineMaskTable = Widget_Table(tabBase, XSIZE = 2, YSIZE = self.mask.numPoints*2, SCR_XSIZE = 196, COLUMN_WIDTHS = 60, /ALL_EVENTS, /EDITABLE, /CONTEXT_EVENTS, ALIGNMENT = 2, UVALUE = {CellChangedFlag: 0, CellBuffer: [0,0], CellPosition: [0,0]}, UNAME='Mask Table ' + StrCompress(maskNo,/REMOVE_ALL))
+  Widget_Control, defineMaskTable, SCR_YSIZE = (Widget_Info(defineMaskTable,/ROW_HEIGHTS))[0] * (self.mask.numPoints+2)
+  Widget_Control, self.mask.wMaskTab, SET_TAB_CURRENT = maskNo + 1
+  self.SetSelected, maskNo
+    
+END
+
+PRO AS_MaskObj::DeleteMask, selected
+
+  ;  FOREACH dm, masks DO BEGIN
+;    dm.GetProperty, name = name
+;    self.deletedMasks.add, name
+;  ENDFOREACH
+
+  masks = self.mask.maskobjects.get(/all, isa='as_maskobject')
+
+  Obj_Destroy, masks[selected]
+  numDeleted = 0
+  FOR maskNo=0, N_Elements(masks)-1 DO BEGIN
+    tabID = Widget_Info(self.mask.defineMaskBase, FIND_BY_UNAME = 'Mask Tab ' + StrCompress(maskNo,/REMOVE_ALL))
+    tableID = Widget_Info(self.mask.defineMaskBase, FIND_BY_UNAME = 'Mask Table ' + StrCompress(maskNo,/REMOVE_ALL))
+    IF Where(maskNo EQ selected, /NULL) NE !NULL THEN BEGIN
+      numDeleted ++
+      Widget_Control, tabID, /DESTROY
+    ENDIF ELSE BEGIN
+      Widget_Control, tabID, SET_UNAME = 'Mask Tab ' + StrCompress(maskNo-numDeleted,/REMOVE_ALL)
+      Widget_Control, tableID, SET_UNAME = 'Mask Table ' + StrCompress(maskNo-numDeleted,/REMOVE_ALL)
+    ENDELSE
+  ENDFOR
+  self.SetSelected, -1
+
+END
+
 PRO AS_MaskObj::NewParams, paramObj, CONFIG = config, MASKONLY=maskOnly 
 
   @as_scatterheader.macro
@@ -846,13 +907,6 @@ PRO AS_MaskObj::UpdateMaskArray
           maskObject.GetProperty, DATA=data
           polyvec = PolyFillV(data[0,*], data[1,*],self.frame.nxpix,self.frame.nypix)
           nmsk = nmsk+1
-
-;          IF N_Elements(polyvec) LT 3 THEN BEGIN
-;              maskstr = ['Border','BeamStop','#1','#2','#3','#4','#5','#6','#7','#8']
-;              retmes = Dialog_Message('Problem with '+maskstr(i)+' masking polygon')
-;              RETURN,0
-;          ENDIF
-
           mask[polyvec]=1
       ENDIF
   ENDFOREACH
@@ -877,13 +931,6 @@ PRO AS_MaskObj::UpdateMaskArray
           IF N_Elements(data) LT 6 THEN CONTINUE
           polyvec = PolyFillV(data[0,*], data[1,*],self.frame.nxpix,self.frame.nypix)
           nmsk = nmsk+1
-
-;          IF N_Elements(polyvec) LT 3 THEN BEGIN
-;              maskstr = ['Border','BeamStop','#1','#2','#3','#4','#5','#6','#7','#8']
-;              retmes = Dialog_Message('Problem with '+maskstr(i)+' masking polygon')
-;              RETURN,0
-;          ENDIF
-
           mask[polyvec]=0
       ENDIF
   ENDFOREACH

@@ -95,7 +95,8 @@ PRO AS_ProfileContainerObj::drawEvent, event
           q = long(dataX*expo)/expo
         
           self->AddQMarker, q
-          info.frame_obj->Overlay_QCirc, q
+          self.NotifyObject, {type: 'QMarker', q:q}
+          ;info.frame_obj->Overlay_QCirc, q
         Widget_Control, self.groupLeader, SET_UVALUE=info, /NO_COPY
       ENDIF
     ENDIF ELSE BEGIN

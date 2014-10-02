@@ -1265,7 +1265,7 @@ PRO AS_FrameObj::ReSize, DIM=dim, BUFFER=buffer
   IF Keyword_Set(dim) THEN BEGIN
     self.frame.frameWinObj->GetProperty, DIMENSIONS = origDim
     aspect = origDim[0]/origDim[1]
-    ratio = dim[0]/dim[1]
+    ratio = dim[0]/float(dim[1])
     IF ratio LE aspect THEN BEGIN
       x = dim[0]
       y = dim[0]/aspect
@@ -1274,8 +1274,14 @@ PRO AS_FrameObj::ReSize, DIM=dim, BUFFER=buffer
       y = dim[1]
     ENDELSE
   ENDIF ELSE BEGIN
-    x = self.frame.nxpix
-    y = self.frame.nypix
+      if self.rotation mod 2 EQ 1 THEN BEGIN
+          x = self.frame.nypix
+          y = self.frame.nxpix
+      endif else begin
+          x = self.frame.nxpix
+          y = self.frame.nypix
+      endelse
+      
   ENDELSE
 
   IF ~Keyword_Set(buffer) THEN buffer = [0,0] 

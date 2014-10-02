@@ -1,6 +1,9 @@
 UPDATED TO IDL8.3. IF UPGRADE DOESN'T WORK YOU WILL NEED TO DOWNLOAD FULL SCATTERBRAIN APPLICATION
 FROM https://www.synchrotron.org.au/aussyncbeamlines/saxswaxs/software-saxswaxs
 
+Version 2.6
+Fixes to SAXS/WAXS mode. Especially synchronisation of masks.
+
 Version 2.506
 2d Sum and contour accessible from plot window. Export of experiment with selected files. Power law plot.
 
