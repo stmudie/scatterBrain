@@ -778,16 +778,24 @@ PRO scatterbrain::event, event
                     control = -1
                     fileName = !Null
                     detectorState = !Null
+                    
                     WHILE control NE 1 DO BEGIN
                       control = -1
                       self.areaDetectorObj.GetProperty, detID, CONTROL = control
-                      IF control EQ 1 THEN self.areaDetectorObj.GetProperty, detID, FILENAME = fileName, FILEPATH = filePath, FILENUMBER = fileNumber, FILETEMPLATE = fileTemplate, NUMIMAGES = numImages, EXPOSURETIME = exposureTime, DETECTORSTATE = detectorState, TRIGGERMODE = triggerMode, /GETCAMERAFILE
+                      IF control EQ 1 THEN self.areaDetectorObj.GetProperty, detID, FILENAME = fileName, FILEPATH = filePath, FILENUMBER = fileNumber, FILETEMPLATE = fileTemplate, NUMIMAGES = numImages, DETECTORSTATE = detectorState, TRIGGERMODE = triggerMode, /GETCAMERAFILE
+                      IF N_Elements(exposureTimeTemp) THEN exposureTime.add, exposureTimeTemp
                       detID++
                       IF control EQ -1 THEN BREAK
                     ENDWHILE
                     
+                    exposureTime = list()
+                    self.areaDetectorObj.GetProperty, 0, NUMDETECTORS = numDet
+                    FOR detID = 0, numDet - 1 DO BEGIN
+                      self.areaDetectorObj.GetProperty, detID, EXPOSURETIME = exposureTimeTemp
+                      IF N_Elements(exposureTimeTemp) THEN exposureTime.add, exposureTimeTemp
+                    ENDFOR
+                                        
                     IF detectorState EQ !Null THEN RETURN
-                    
                     IF triggerMode EQ 'Gap Less' THEN self.frame_obj.SetProperty, SATURATION = 3*2.^20 ELSE self.frame_obj.SetProperty, SATURATION = 2.^20
                     
                     IF ~self.scanMode AND detectorState NE 'Acquire' THEN BEGIN
@@ -823,7 +831,10 @@ PRO scatterbrain::event, event
                     ;TODO There are a couple of timer things happening here that aren't related to RIMAGE. Should just create a widget to put timer on and run all slow timing events off that.
                     IF N_Elements(fileNumber) THEN Widget_Control, Widget_Info(event.top,FIND_BY_UNAME='RINDEX'), SET_VALUE = StrCompress(fileNumber,/REMOVE_ALL)
                     IF N_Elements(numImages) THEN Widget_Control, Widget_Info(event.top,FIND_BY_UNAME='RNUMIMAGES'), SET_VALUE = StrCompress(numImages,/REMOVE_ALL)
-                    IF N_Elements(exposureTime) THEN Widget_Control, Widget_Info(event.top,FIND_BY_UNAME='REXPTIME'), SET_VALUE = StrCompress(Number_Formatter(exposureTime,DECIMAL=2),/REMOVE_ALL)
+                    IF N_Elements(exposureTime) GT 0 THEN BEGIN
+                      Widget_Control, Widget_Info(event.top,FIND_BY_UNAME='REXPTIME'), SET_VALUE = StrCompress(Number_Formatter(exposureTime[0],DECIMAL=2),/REMOVE_ALL)
+                      IF N_Elements(exposureTime) GT 1 THEN Widget_Control, Widget_Info(event.top,FIND_BY_UNAME='REXPTIME2'), SET_VALUE = StrCompress(Number_Formatter(exposureTime[1],DECIMAL=2),/REMOVE_ALL)
+                    ENDIF
                     IF self.liveLog NE '' THEN BEGIN
                       liveLog = self.liveLog
                       self.scatterXMLGUI_obj->ParseFile, FILENAME = liveLog, /LOGONLY, /UPDATE
@@ -874,7 +885,9 @@ PRO scatterbrain::event, event
         ; change the exposure time
         'TEXP' : BEGIN
 
+            
             Widget_Control, event.id, GET_VALUE = expList
+            Widget_Control, event.id, GET_UVALUE = timeNum
             time = as_stringtonumber(event.str, /FLOAT)
             inList = Where(Abs(time - Float(expList)) LT 0.001)
             IF inList EQ -1 THEN BEGIN
@@ -883,11 +896,14 @@ PRO scatterbrain::event, event
               newPos = Where(expList EQ StrCompress(Time,/REMOVE_ALL))
               Widget_Control, event.id, SET_VALUE = expList, SET_COMBOBOX_SELECT = newPos
             ENDIF
-            detID = 0
-            self.areaDetectorObj->GetProperty, detID, NUMIMAGES = numImages
-            ;TODO This delta added to exposure period is for the 1M. Need to make it a configuration item. Also detID needs to be set from active detector.
-            IF numImages GT 1 THEN period = time + 0.05 ELSE period = time
-            self.areaDetectorObj->SetProperty, EXPOSURETIME = time, EXPOSUREPERIOD = period
+            self.areaDetectorObj->GetProperty, 0, NUMDETECTORS=numDet
+            
+            FOR detID = fix(timeNum)-1, numDet-1 DO BEGIN
+              self.areaDetectorObj->GetProperty, detID, NUMIMAGES = numImages
+              ;TODO This delta added to exposure period is for the 1M. Need to make it a configuration item. Also detID needs to be set from active detector.
+              IF numImages GT 1 THEN period = time + 0.05 ELSE period = time
+              self.areaDetectorObj->SetProperty, detID, EXPOSURETIME = time, EXPOSUREPERIOD = period
+            ENDFOR
             
         END
 
@@ -2480,7 +2496,7 @@ FUNCTION scatterbrain::init     $
 
     if pollEpics GT 0 then begin
       labelFont = 'Arial*BOLD*14'
-      nScatterColumns = 4
+      nScatterColumns = 5
       wScatterColumns = LonArr(nScatterColumns)
       
       wScatterColumns[0] = WIDGET_BASE(wScatterRows[0],/COLUMN,/BASE_ALIGN_BOTTOM, /ALIGN_BOTTOM)
@@ -2488,7 +2504,7 @@ FUNCTION scatterbrain::init     $
       readExposureLabel = Widget_Label(wScatterColumns[0], VALUE='-', /DYNAMIC_RESIZE, FONT = labelFont, /ALIGN_CENTER, UNAME = 'REXPTIME')
       exposeBase = Widget_Base(wScatterColumns[0], /ROW, /ALIGN_CENTER)
       texpLabel = Widget_Label(exposeBase, VALUE = 'Time: ')
-      texp = Widget_Combobox(exposeBase, /DYNAMIC_RESIZE, /EDITABLE, UNAME = 'TEXP' $
+      texp = Widget_Combobox(exposeBase, /DYNAMIC_RESIZE, /EDITABLE, UNAME = 'TEXP', UVALUE = 1 $
         , value=['1','2','5','10','20','30','40','60','120'], sensitive=1)
     
             
@@ -2516,6 +2532,14 @@ FUNCTION scatterbrain::init     $
       wScatterColumns[3] = WIDGET_BASE(wScatterRows[0],/COLUMN,/BASE_ALIGN_BOTTOM,/ALIGN_BOTTOM)
       numImages = Widget_Label(wScatterColumns[3], VALUE = '99999', FONT = labelFont, UNAME = 'RNUMIMAGES', /ALIGN_CENTER)
       numImages = FSC_InputField(wScatterColumns[3],VALUE='1',TITLE='Images: ', XSIZE = 5, /INTEGER, /CR_Only, Event_Pro='scatterbrain_event', NAME='NUMIMAGES')
+      
+      wScatterColumns[4] = WIDGET_BASE(wScatterRows[0],/COLUMN,/BASE_ALIGN_BOTTOM, /ALIGN_BOTTOM)
+      
+      readExposureLabel = Widget_Label(wScatterColumns[4], VALUE='-', /DYNAMIC_RESIZE, FONT = labelFont, /ALIGN_CENTER, UNAME = 'REXPTIME2')
+      exposeBase2 = Widget_Base(wScatterColumns[4], /ROW, /ALIGN_CENTER)
+      texpLabel = Widget_Label(exposeBase2, VALUE = 'Det 2 Time: ')
+      texp = Widget_Combobox(exposeBase2, /DYNAMIC_RESIZE, /EDITABLE, UNAME = 'TEXP', UVALUE = 2 $
+        , value=['1','2','5','10','20','30','40','60','120'], sensitive=1)
       
     endif
 

@@ -944,13 +944,13 @@ IF Keyword_Set(notifyObj) THEN $
   ExpandAllBut = Widget_Button(allButtonBase, VALUE = 'Expand All', UNAME = 'Expand All')
   CollapseAllBut = Widget_Button(allButtonBase, VALUE = 'Collapse All', UNAME = 'Collapse All')
   plotModeBase = Widget_Base(self.wPCBase, /EXCLUSIVE)
-  IF KeyWord_Set(pollEpics) THEN BEGIN
-    realTimeButton = Widget_Button(plotModeBase, VALUE='Live Overwrite Mode', UNAME = 'RealtiI me')
+  ;IF KeyWord_Set(pollEpics) THEN BEGIN  ; Put this if statement back in if making overwrite mode the default.
+    realTimeButton = Widget_Button(plotModeBase, VALUE='Live Overwrite Mode', UNAME = 'Realtime')
     autoPlotButton = Widget_Button(plotModeBase, VALUE = 'Live Add Plot Mode', UNAME = 'AutoPlot') 
     ignoreLiveButton = Widget_Button(plotModeBase, VALUE = 'Ignore Live Data Mode', UNAME = 'IgnorePlot')
-    Widget_Control, realTimeButton, /SET_BUTTON
-    self.oProfiles.SetProperty, REALTIME = 1
-  ENDIF ELSE self.oProfiles.SetProperty, REALTIME = 0
+    Widget_Control, ignoreLiveButton, /SET_BUTTON
+    ;self.oProfiles.SetProperty, REALTIME = 1
+  ;ENDIF ELSE self.oProfiles.SetProperty, REALTIME = 0
   
   
   wPlotLabel = Ptr_New(/ALLOCATE_HEAP)

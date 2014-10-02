@@ -174,7 +174,7 @@ PRO as_areadetectormap::Acquire
   
   @as_scatterheader.macro
   
-  result = caput('SR13ID01IOC69:Acquire_CMD')
+  result = caput('SR13ID01IOC69:Acquire_CMD', 1)
   
 ;  castartgroup
 ;  FOR i = 0, N_Elements(*self.areaDetectors) - 1 DO BEGIN
@@ -240,9 +240,19 @@ PRO as_areadetectormap::NewParams, paramObj
 
 END
 
-PRO as_areadetectormap::GetProperty, detID, _REF_EXTRA = extra
+PRO as_areadetectormap::GetProperty, detID, FILENAME = fileName, NUMDETECTORS = numDet, _REF_EXTRA = extra
 
   @as_scatterheader.macro
+
+  IF Arg_Present(fileName) THEN BEGIN
+    result = caget('SR13ID01IOC69:FileNameCommon', fileName)
+    fileName = String(fileName)
+  ENDIF
+
+  IF Arg_Present(numDet) THEN numDet = N_Elements(*self.areaDetectors)
+
+  ;IF Arg_Present(ExposureTime) THEN result = caget('SR13ID01IOC69:AcquireTimeCommon', exposureTime)
+  ;IF Arg_Present(ExposureTime) THEN result = caget('SR13ID01IOC69:AcquirePeriodCommon', exposurePeriod)
 
   IF detID GT N_Elements(*self.areaDetectors) - 1 THEN RETURN
   IF ~Obj_Valid((*self.areaDetectors)[0]) THEN RETURN
@@ -259,10 +269,14 @@ PRO as_areadetectormap::GetProperty, detID, _REF_EXTRA = extra
 
 END
 
-PRO as_areadetectormap::SetProperty, detID, _REF_EXTRA = extra
+PRO as_areadetectormap::SetProperty, detID, FILENAME = fileName, _REF_EXTRA = extra
 
   @as_scatterheader.macro
 
+  IF KeyWord_Set(fileName) THEN result = caput('SR13ID01IOC69:FileNameCommon', ezcaStringToByte(fileName))
+  ;IF KeyWord_Set(exposureTime) THEN result = caput('SR13ID01IOC69:AcquireTimeCommon', exposureTime)
+  ;IF KeyWord_Set(exposurePeriod) THEN result = caput('SR13ID01IOC69:AcquirePeriodCommon', exposurePeriod)
+  
   IF N_Elements(detID) GT 0 THEN (*self.areaDetectors)[detID]->SetProperty, _EXTRA=extra ELSE BEGIN
   
     FOR i = 0, N_Elements((*self.areaDetectors)) - 1 DO BEGIN
