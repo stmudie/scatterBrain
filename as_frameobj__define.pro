@@ -617,7 +617,7 @@ FUNCTION AS_FrameObj::GetImage, seqfnames, quiet=quiet, FRAME=frame, TYPEFRAME =
 ;                profdata.opticstr[cur] = log_data.opticstr[index] $
 ;                                        + ' ' + strjoin(log_data.sdata[*,index],' ')
                 
-                void = self.frame.logObj->GetScale(index,I0=iosum,IBS = bssum,TIME=time1)
+                void = self.frame.logObj->GetScale(index,I0=iosum,IBS = bssum, IT= itsum, TIME=time1)
                 
                 ;d = min(abs(self.frame.batchtsexp-time1),itime)
                 ;time = self.frame.batchtsexp[itime]
@@ -640,12 +640,14 @@ FUNCTION AS_FrameObj::GetImage, seqfnames, quiet=quiet, FRAME=frame, TYPEFRAME =
                         timesum = 1.0
                         iosum = 1
                         bssum = 1
+                        itsum = 1
                     endelse
                 endif else begin
                     errnorm = 1
                     timesum = 1.0
                     iosum = 1
                     bssum = 1
+                    itsum = 1
                 endelse
             endelse
             
@@ -670,7 +672,7 @@ FUNCTION AS_FrameObj::GetImage, seqfnames, quiet=quiet, FRAME=frame, TYPEFRAME =
                 ; since the last frame.  If the Io value has changed by more than 10% since
                 ; the last frame log entry, give the user the opportunity to skip the frame
                 ; entirely.
-                void = self.frame.logObj->GetScale(index,I0=i0counts, IBS = ibscounts,TIME=time1)
+                void = self.frame.logObj->GetScale(index,I0=i0counts, IBS = ibscounts, IT = itcounts, TIME=time1)
 ;                io_ratio_check = float(i0counts)/float(lastio)
 ;                if (io_ratio_check GT self.frame.errthresh) OR (io_ratio_check LT 1/self.frame.errthresh) then begin
 ;
@@ -695,6 +697,7 @@ FUNCTION AS_FrameObj::GetImage, seqfnames, quiet=quiet, FRAME=frame, TYPEFRAME =
 ;                time = self.frame.batchtsexp[itime]
                 iosum = iosum + i0counts
                 bssum = bssum + ibscounts
+                itsum = itsum + itcounts
                 timesum = timesum + time1 - self.frame.toverhead
             endif else begin
                 if self.frame.nrmtype GT 0 then begin ; abort read-in sequence if nrmtype > 0
@@ -706,6 +709,7 @@ FUNCTION AS_FrameObj::GetImage, seqfnames, quiet=quiet, FRAME=frame, TYPEFRAME =
                 endif else begin            ; if nrmtype = 0 use bogus count values
                     iosum = 1
                     bssum = 1
+                    itsum = 1
                 endelse
             endelse
 
@@ -757,6 +761,7 @@ FUNCTION AS_FrameObj::GetImage, seqfnames, quiet=quiet, FRAME=frame, TYPEFRAME =
 
     self.frame.i0counts = iosum
     self.frame.iBScounts = bssum
+    self.frame.itcounts = itsum
     self.frame.time = timesum
 
     self.frame.itsf = itsf
@@ -1340,6 +1345,7 @@ frame = { AS_FrameObj_Struc, $
                ionrm     : 300000.0,       $
                ibsnrm    : 300000.0,       $
                i0counts  : 0L,             $
+               itcounts  : 0L,             $
                iBScounts : 0L,             $
                time      : 0.0,            $
                itsf      : 0.0,            $

@@ -403,7 +403,7 @@ PRO as__saxscontourplot::fitBetween, CREATE = CREATE, SAVE = SAVE
         Printf, fileLUN, header
         FOREACH yvalue, ((self.initY)[self.yPlotType]), key DO BEGIN
           print, key
-          Printf, fileLUN, StrJoin([[String(yvalue),String(positionList[key]),String(areaList[key])],aList[key],sigmaList[key],[chiList[key]]],',')
+          Printf, fileLUN, StrJoin([string(yvalue),string(positionList[key]),string(areaList[key]),string(aList[key]),string(sigmaList[key]),string(chiList[key])],',')
         ENDFOREACH
       Close, fileLUN
       Free_LUN, fileLUN

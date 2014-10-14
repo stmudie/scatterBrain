@@ -1998,7 +1998,7 @@ PRO scatterbrain::FrameCallback, event
                      IF self.frame_obj NE event.object THEN BEGIN
                        self.frame_obj.SynchroniseMasks, allMasks
                      ENDIF
-                     IF self.frame_obj2 NE event.object THEN BEGIN
+                     IF Obj_Valid(self.frame_obj2) AND self.frame_obj2 NE event.object THEN BEGIN
                        self.frame_obj2.SynchroniseMasks, allMasks
                      ENDIF
                    END
