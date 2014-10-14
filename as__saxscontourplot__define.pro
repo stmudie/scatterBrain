@@ -223,10 +223,10 @@ PRO as__saxscontourplot::event, event
                       IF N_Elements(leafID) GT 1 THEN result = Dialog_Message('You have dropped multiple blanks - using first in list')
                       Widget_Control, leafID[0], GET_UVALUE = uvalue
                       IF ISA(uvalue, 'STRUCT') THEN BEGIN
-                        IF Tag_Names(uvalue, /STRUCTURE_NAME) EQ 'DAT' THEN self.notify, {DATCONTOURBLANK, name : uvalue.filename }
+                        IF Tag_Names(uvalue, /STRUCTURE_NAME) EQ 'DAT' THEN self.notify, {DATCONTOURBLANK, object: self, config: self.config, name : uvalue.filename }
                       ENDIF ELSE BEGIN
                         Widget_Control, leafID[0], GET_VALUE = value
-                        self.notify, {CONTOURBLANK, name : value }
+                        self.notify, {CONTOURBLANK, object: self, config: self.config, name : value }
                       ENDELSE  
                      END
     'NO BLANK'    : BEGIN
@@ -800,9 +800,11 @@ PRO as__saxscontourplot::cleanup
 
 END
 
-FUNCTION as__saxscontourplot::Init, x, y, z, FILENAMES=fileNames, NOTIFYOBJ = notifyObj, IRREGULAR = irregular, GROUPLEADER = groupLeader
+FUNCTION as__saxscontourplot::Init, x, y, z, config, FILENAMES=fileNames, NOTIFYOBJ = notifyObj, IRREGULAR = irregular, GROUPLEADER = groupLeader
   
   @as_scatterheader.macro
+  
+  if N_Elements(config) GT 0 THEN self.config = config
   
   IF KeyWord_Set(irregular) THEN BEGIN
   
@@ -1006,7 +1008,8 @@ PRO as__saxscontourplot__Define
            noBlank        : 0,       $
            settingQBounds : 0,       $
            interpX        : 1,       $
-           interpY        : 1        $
+           interpY        : 1,       $
+           config         : ''       $
            }
 
 END

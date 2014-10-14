@@ -222,9 +222,9 @@ CASE widgetName OF
             'Y BEAM CENTRE':BEGIN
               
                               CASE self.rotation OF
-                                0 : self.frame.yc = event.value
+                                0 : self.frame.yc = -event.value
                                 1 : self.frame.xc = -event.value
-                                2 : self.frame.yc = -event.value
+                                2 : self.frame.yc = event.value
                                 3 : self.frame.xc = event.value
                               ENDCASE
                               
@@ -444,6 +444,7 @@ CASE widgetName OF
       
       ENDCASE
       self->as_saxsimagetools::event, event, scatterEvent
+      self.frame.framewinobj->draw
 END
 
 PRO as__saxsimagegui::hist, xstruct
