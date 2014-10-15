@@ -360,8 +360,8 @@ FUNCTION AS_CakeObj::CakeSetup, force_range=force_range, sectors=sectors
 
     ;profdata.qmin = q_data.q[overhang]
     ;profdata.qmax = max(q_data.q)
-    self.frame.qimin = q_temp[overhang]
-    self.frame.qimax = max(q_temp)
+    ;self.frame.qimin = q_temp[overhang]
+    ;self.frame.qimax = max(q_temp)
 
     ;*******************************************************************************
     ; Now remake the cakedata data structure - this will be used in saxs_cake function

@@ -2613,7 +2613,7 @@ FUNCTION scatterbrain::init     $
 
     CASE !VERSION.OS_FAMILY OF 
       'Windows'     : currentImageFont = 'Arial*18*BOLD'
-      'unix'        : currentImageFont = 'lucidasans-18'
+      'unix'        : currentImageFont = 'lucidasans-12'
     ENDCASE
     
     simage = Widget_Label(wScatterRows[1],xsize=200, FONT = currentImageFont, VALUE = 'Current Image Frame' $

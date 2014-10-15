@@ -955,8 +955,10 @@ IF Keyword_Set(notifyObj) THEN $
   
   
   wPlotLabel = Ptr_New(/ALLOCATE_HEAP)
-  
-  treeBase = Widget_Base(self.wPCBase, /COLUMN)
+  CASE StrUpCase(!Version.OS_Family) OF
+    'UNIX': treeBase = Widget_Base(self.wPCBase, YSIZE = 200, XSIZE = 300, /COLUMN)
+    ELSE:   treeBase = Widget_Base(self.wPCBase, /COLUMN)
+  ENDCASE
   IF KeyWord_Set(dock) THEN self.wProfileTree = Widget_Tree(treeBase, /MULTIPLE, /DRAGGABLE, /DROP_EVENTS, /CONTEXT, XSIZE = 280, YSIZE = geom.ysize - 165) $
                        ELSE self.wProfileTree = Widget_Tree(treeBase, /MULTIPLE, /DRAGGABLE, /DROP_EVENTS, /CONTEXT, XSIZE = 280)
   
