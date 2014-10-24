@@ -306,19 +306,7 @@ PRO scatterbrain::event, event
         
         ; Open the live log file for the experiment.
         
-        'ACQ_LIVELOG'  : BEGIN
-        
-          file = Dialog_Pickfile(PATH = self.imagesDir, /MUST_EXIST,filter = '*.log')
-          self.liveLog = file 
-          path = File_DirName(self.liveLog, /MARK_DIRECTORY)
-          self.frame_obj.SetProperty, PATH=path
-          
-          IF self.pollEpics EQ 0 THEN BEGIN
-            self.scatterXMLGUI_obj->ParseFile, FILENAME = file, /LOGONLY, /UPDATE
-            IF file EQ 'error' THEN self.liveLog = ''
-          ENDIF
-        
-        END
+        'ACQ_LIVELOG'  : self.OpenLiveLog
         
         'ACQ_POLLLIVELOG' : BEGIN
           IF Tag_Names(event, /STRUCTURE_NAME) EQ 'WIDGET_BUTTON' THEN BEGIN
@@ -454,8 +442,10 @@ PRO scatterbrain::event, event
                                  Widget_Control, errorBarsButtons, SET_VALUE=self.settingsObj.ErrorBars
                                  startingDirectory = Widget_Button(self.settingsBase, VALUE = 'Set Starting Directory', UNAME = 'STARTING DIRECTORY')
                                  nonExclusiveSettings2 = Widget_Base(self.settingsBase, /COLUMN,/NONEXCLUSIVE)
+                                 autoCheckForLogfile = Widget_Button(nonExclusiveSettings2, VALUE = 'Check and Open LiveLogFile on Experiment Open?', UNAME = 'AUTO CHECK LIVELOGFILE')
                                  autoCheckForUpdates = Widget_Button(nonExclusiveSettings2, VALUE = 'Check For Updates on start up?', UNAME = 'AUTO CHECK UPDATE')
                                  
+                                 Widget_Control, autoCheckForLogfile, SET_BUTTON = self.settingsObj.autoCheckLiveLogFile
                                  Widget_Control, autoCheckForUpdates, SET_BUTTON = self.settingsObj.autoCheckUpdates
                                                                   
                                  Widget_Control, self.settingsBase, SET_UVALUE = self
@@ -500,6 +490,9 @@ PRO scatterbrain::event, event
                                  startingDirectory = Dialog_Pickfile(/DIRECTORY)
                                  IF File_Test(startingDirectory, /DIRECTORY) THEN self.settingsObj.startingDirectory1 = startingDirectory
                                END
+        'AUTO CHECK LIVELOGFILE' : BEGIN
+                                     self.settingsObj.autoCheckLiveLogFile = event.select
+                                END
         'AUTO CHECK UPDATE' : BEGIN
                                 self.settingsObj.autoCheckUpdates = event.select
                               END
@@ -1109,6 +1102,18 @@ PRO scatterbrain::saveXML
 
 END
 
+PRO scatterbrain::OpenLiveLog, file
+  IF N_Elements(file) GT 0 THEN IF File_Test(file) EQ 0 THEN file = Dialog_Pickfile(PATH = self.imagesDir, /MUST_EXIST,filter = '*.log')
+  self.liveLog = file
+  path = File_DirName(self.liveLog, /MARK_DIRECTORY)
+  self.frame_obj.SetProperty, PATH=path
+  
+  IF self.pollEpics EQ 0 THEN BEGIN
+    self.scatterXMLGUI_obj->ParseFile, FILENAME = file, /LOGONLY, /UPDATE
+    IF file EQ 'error' THEN self.liveLog = ''
+  ENDIF
+END
+
 PRO scatterbrain::loadXML, xmlFile
 
   @as_scatterheader.macro
@@ -1153,21 +1158,37 @@ PRO scatterbrain::loadXML, xmlFile
   
   self.frame_obj->NewParams, self.scatterXMLGUI_obj, CONFIGNO = numLoadConfig.detector1
   self.frame_obj->LOADCONFIG, numLoadConfig.detector1
+  self.frame_obj.GetProperty, IMAGEPATH=path
+  self.imagesDir = path
   IF Obj_Valid(self.frame_obj2) THEN BEGIN
     self.frame_obj2->LOADCONFIG, numLoadConfig.detector2
     result = self.qCalibGUI(frameNo = 1)
   ENDIF
   IF self.pollEpics GT 0 THEN self.areaDetectorObj->NewParams, self.scatterXMLGUI_obj
-  self.profiles_obj.NewParams, self.scatterXMLGUI_obj
   result = self.qCalibGUI()
   ; TODO Need to start using saxsControl
   ;self.saxsControl->NewParams, self.scatterXMLGUI_obj
   ;self.filenames.log = xmlFile
-  self.frame_obj->SetProperty, PATH = self.imagesDir
   self.frame_obj->ReSize, BUFFER = self.aux_base_size + [50,50]
   geom = Widget_Info(self.wScatterBase, /GEOM)
-  self.scatterXMLGUI_obj->SetProperty, HEIGHT = geom.scr_ysize*.9 
-
+  self.scatterXMLGUI_obj->SetProperty, HEIGHT = geom.scr_ysize*.9
+  
+  ; Find likely livelogfile
+  IF self.settingsObj.autoCheckLiveLogFile THEN BEGIN
+    livelogfile = strjoin([self.imagesDir, 'livelogfile.log'])
+    If File_Test(livelogfile) THEN BEGIN
+      self.scatterXMLGUI_obj.GetParameters, NUMRAWIMAGES = numexp
+      numlog = File_Lines(livelogfile)
+      IF numexp LT numlog THEN BEGIN
+        response = Dialog_Message(as_wraptext("Livelogfile found with " + strcompress(numlog, /R) + " images which is more than the number of raw images, " + strcompress(numexp, /R) + ", in current experiment. " + $
+                                    "Should logfile be opened? To stop checking for logfiles on experiment open use option in General Settings.", 300),/QUESTION)
+        IF response EQ 'Yes' THEN BEGIN
+          self.OpenLiveLog, livelogfile
+        ENDIF
+      ENDIF
+    ENDIF
+  ENDIF
+  
 END
 
 PRO scatterBrain::newXML, event, DATA = data

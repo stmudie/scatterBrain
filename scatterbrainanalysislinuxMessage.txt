@@ -1,5 +1,5 @@
-UPDATED TO IDL8.3. IF UPGRADE DOESN'T WORK YOU WILL NEED TO DOWNLOAD FULL SCATTERBRAIN APPLICATION
-FROM https://www.synchrotron.org.au/aussyncbeamlines/saxswaxs/software-saxswaxs
+Version 2.67
+Lots of small, but important, updates.
 
 Version 2.6
 Fixes to SAXS/WAXS mode. Especially synchronisation of masks.
@@ -9,6 +9,9 @@ Version 2.506
 
 Version 2.50
 "Fit between q" functionality in contour plot.
+
+UPDATED TO IDL8.3. IF UPGRADE DOESN'T WORK YOU WILL NEED TO DOWNLOAD FULL SCATTERBRAIN APPLICATION
+FROM https://www.synchrotron.org.au/aussyncbeamlines/saxswaxs/software-saxswaxs
 
 Version 2.30
 Various Bug Fixes.
