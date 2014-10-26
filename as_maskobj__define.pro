@@ -282,7 +282,11 @@ PRO AS_MaskObj::ShowMaskTable, show
     primaryMonitor = monitorObj.GetPrimaryMonitorIndex()
     monitorSize = monitorObj.GetRectangles(/EXCLUDE_TASKBAR)
     
-    defineMaskBase = Widget_Base(GROUP_LEADER=self.frame.group_leader, TITLE = 'scatterBrain Mask Definitions', /FLOATING, /TLB_SIZE_EVENT, /TLB_KILL_REQUEST_EVENTS, UVALUE=self, /COLUMN, MBAR = menuBar, X_SCROLL_SIZE = 600, Y_SCROLL_SIZE = 800, UNAME = 'Mask Base')
+    CASE StrUpCase(!Version.OS_Family) OF
+      'UNIX': defineMaskBase = Widget_Base(GROUP_LEADER=self.frame.group_leader, TITLE = 'scatterBrain Mask Definitions', /FLOATING, /TLB_SIZE_EVENT, /TLB_KILL_REQUEST_EVENTS, UVALUE=self, /COLUMN, MBAR = menuBar, X_SCROLL_SIZE = 640, Y_SCROLL_SIZE = 750, UNAME = 'Mask Base')
+      ELSE:   defineMaskBase = Widget_Base(GROUP_LEADER=self.frame.group_leader, TITLE = 'scatterBrain Mask Definitions', /FLOATING, /TLB_SIZE_EVENT, /TLB_KILL_REQUEST_EVENTS, UVALUE=self, /COLUMN, MBAR = menuBar, X_SCROLL_SIZE = 600, Y_SCROLL_SIZE = 800, UNAME = 'Mask Base')
+    ENDCASE
+    
     addButtonMenu = Widget_Button(menuBar, /MENU, VALUE='Add Mask')
     addButton = Widget_Button(addButtonMenu, VALUE='Add Mask', UNAME = 'Add Mask')
     deleteButtonMenu = Widget_Button(menuBar, /MENU, VALUE='Delete Mask')
@@ -290,7 +294,7 @@ PRO AS_MaskObj::ShowMaskTable, show
     applyButtonMenu = Widget_Button(menuBar, /MENU, VALUE='Apply Masks')
     applyButton = Widget_Button(applyButtonMenu, VALUE='Apply Masks', UNAME = 'Apply Masks')
     maskPropertiesBase = Widget_Base(defineMaskBase, /ROW)
-    self.mask.wMaskTab = Widget_Tab(maskPropertiesBase, /MULTILINE)
+    self.mask.wMaskTab = Widget_Tab(maskPropertiesBase, MULTILINE=3)
     beamStopBase = Widget_Base(self.mask.wMaskTab, TITLE = 'Beamstop', /ROW, UNAME='Mask Tab Beamstop') 
     defineBeamStopPropertySheet = Widget_PropertySheet(beamStopBase, VALUE = self.mask.beamStop, ysize = 15, EVENT_PRO = 'AS_DefineBeamStopPropertyEvent', UNAME = 'Beamstop Property')
     
@@ -307,7 +311,10 @@ PRO AS_MaskObj::ShowMaskTable, show
       defineMaskTableBase = Widget_Base(tabBase, /ROW, UNAME = 'Mask Table Base')
       buffer = Widget_Label(tabBase, VALUE = '', XSIZE = 36)
       mask.getproperty, DATA=data, /RELATIVE
-      defineMaskTable = Widget_Table(tabBase, XSIZE = 2, YSIZE = self.mask.numPoints*2, SCR_XSIZE = 196, COLUMN_WIDTHS = 60, FORMAT = '(F7.2)', /ALL_EVENTS, /EDITABLE, /CONTEXT_EVENTS, ALIGNMENT = 2, UVALUE = {CellChangedFlag: 0, CellBuffer: [0,0], CellPosition: [0,0]}, UNAME='Mask Table ' + StrCompress(String(i),/REMOVE_ALL))
+      CASE StrUpCase(!Version.OS_Family) OF
+        'UNIX': defineMaskTable = Widget_Table(tabBase, XSIZE = 2, YSIZE = self.mask.numPoints*2, SCR_XSIZE = 220, COLUMN_WIDTHS = 60, FORMAT = '(F7.2)', /ALL_EVENTS, /EDITABLE, /CONTEXT_EVENTS, ALIGNMENT = 2, UVALUE = {CellChangedFlag: 0, CellBuffer: [0,0], CellPosition: [0,0]}, UNAME='Mask Table ' + StrCompress(String(i),/REMOVE_ALL))
+        ELSE:   defineMaskTable = Widget_Table(tabBase, XSIZE = 2, YSIZE = self.mask.numPoints*2, SCR_XSIZE = 196, COLUMN_WIDTHS = 60, FORMAT = '(F7.2)', /ALL_EVENTS, /EDITABLE, /CONTEXT_EVENTS, ALIGNMENT = 2, UVALUE = {CellChangedFlag: 0, CellBuffer: [0,0], CellPosition: [0,0]}, UNAME='Mask Table ' + StrCompress(String(i),/REMOVE_ALL))
+      ENDCASE
       Widget_Control, defineMaskTable, SCR_YSIZE = (Widget_Info(defineMaskTable,/ROW_HEIGHTS))[0] * (self.mask.numPoints+2)
       IF data NE !null THEN Widget_Control, defineMaskTable, SET_VALUE = data
       i += 1

@@ -306,19 +306,7 @@ PRO scatterbrain::event, event
         
         ; Open the live log file for the experiment.
         
-        'ACQ_LIVELOG'  : BEGIN
-        
-          file = Dialog_Pickfile(PATH = self.imagesDir, /MUST_EXIST,filter = '*.log')
-          self.liveLog = file 
-          path = File_DirName(self.liveLog, /MARK_DIRECTORY)
-          self.frame_obj.SetProperty, PATH=path
-          
-          IF self.pollEpics EQ 0 THEN BEGIN
-            self.scatterXMLGUI_obj->ParseFile, FILENAME = file, /LOGONLY, /UPDATE
-            IF file EQ 'error' THEN self.liveLog = ''
-          ENDIF
-        
-        END
+        'ACQ_LIVELOG'  : self.OpenLiveLog
         
         'ACQ_POLLLIVELOG' : BEGIN
           IF Tag_Names(event, /STRUCTURE_NAME) EQ 'WIDGET_BUTTON' THEN BEGIN
@@ -454,8 +442,10 @@ PRO scatterbrain::event, event
                                  Widget_Control, errorBarsButtons, SET_VALUE=self.settingsObj.ErrorBars
                                  startingDirectory = Widget_Button(self.settingsBase, VALUE = 'Set Starting Directory', UNAME = 'STARTING DIRECTORY')
                                  nonExclusiveSettings2 = Widget_Base(self.settingsBase, /COLUMN,/NONEXCLUSIVE)
+                                 autoCheckForLogfile = Widget_Button(nonExclusiveSettings2, VALUE = 'Check and Open LiveLogFile on Experiment Open?', UNAME = 'AUTO CHECK LIVELOGFILE')
                                  autoCheckForUpdates = Widget_Button(nonExclusiveSettings2, VALUE = 'Check For Updates on start up?', UNAME = 'AUTO CHECK UPDATE')
                                  
+                                 Widget_Control, autoCheckForLogfile, SET_BUTTON = self.settingsObj.autoCheckLiveLogFile
                                  Widget_Control, autoCheckForUpdates, SET_BUTTON = self.settingsObj.autoCheckUpdates
                                                                   
                                  Widget_Control, self.settingsBase, SET_UVALUE = self
@@ -500,6 +490,9 @@ PRO scatterbrain::event, event
                                  startingDirectory = Dialog_Pickfile(/DIRECTORY)
                                  IF File_Test(startingDirectory, /DIRECTORY) THEN self.settingsObj.startingDirectory1 = startingDirectory
                                END
+        'AUTO CHECK LIVELOGFILE' : BEGIN
+                                     self.settingsObj.autoCheckLiveLogFile = event.select
+                                END
         'AUTO CHECK UPDATE' : BEGIN
                                 self.settingsObj.autoCheckUpdates = event.select
                               END
@@ -1109,6 +1102,18 @@ PRO scatterbrain::saveXML
 
 END
 
+PRO scatterbrain::OpenLiveLog, file
+  IF N_Elements(file) GT 0 THEN IF File_Test(file) EQ 0 THEN file = Dialog_Pickfile(PATH = self.imagesDir, /MUST_EXIST,filter = '*.log')
+  self.liveLog = file
+  path = File_DirName(self.liveLog, /MARK_DIRECTORY)
+  self.frame_obj.SetProperty, PATH=path
+  
+  IF self.pollEpics EQ 0 THEN BEGIN
+    self.scatterXMLGUI_obj->ParseFile, FILENAME = file, /LOGONLY, /UPDATE
+    IF file EQ 'error' THEN self.liveLog = ''
+  ENDIF
+END
+
 PRO scatterbrain::loadXML, xmlFile
 
   @as_scatterheader.macro
@@ -1153,21 +1158,37 @@ PRO scatterbrain::loadXML, xmlFile
   
   self.frame_obj->NewParams, self.scatterXMLGUI_obj, CONFIGNO = numLoadConfig.detector1
   self.frame_obj->LOADCONFIG, numLoadConfig.detector1
+  self.frame_obj.GetProperty, IMAGEPATH=path
+  self.imagesDir = path
   IF Obj_Valid(self.frame_obj2) THEN BEGIN
     self.frame_obj2->LOADCONFIG, numLoadConfig.detector2
     result = self.qCalibGUI(frameNo = 1)
   ENDIF
   IF self.pollEpics GT 0 THEN self.areaDetectorObj->NewParams, self.scatterXMLGUI_obj
-  self.profiles_obj.NewParams, self.scatterXMLGUI_obj
   result = self.qCalibGUI()
   ; TODO Need to start using saxsControl
   ;self.saxsControl->NewParams, self.scatterXMLGUI_obj
   ;self.filenames.log = xmlFile
-  self.frame_obj->SetProperty, PATH = self.imagesDir
   self.frame_obj->ReSize, BUFFER = self.aux_base_size + [50,50]
   geom = Widget_Info(self.wScatterBase, /GEOM)
-  self.scatterXMLGUI_obj->SetProperty, HEIGHT = geom.scr_ysize*.9 
-
+  self.scatterXMLGUI_obj->SetProperty, HEIGHT = geom.scr_ysize*.9
+  
+  ; Find likely livelogfile
+  IF self.settingsObj.autoCheckLiveLogFile THEN BEGIN
+    livelogfile = strjoin([self.imagesDir, 'livelogfile.log'])
+    If File_Test(livelogfile) THEN BEGIN
+      self.scatterXMLGUI_obj.GetParameters, NUMRAWIMAGES = numexp
+      numlog = File_Lines(livelogfile)
+      IF numexp LT numlog THEN BEGIN
+        response = Dialog_Message(as_wraptext("Livelogfile found with " + strcompress(numlog, /R) + " images which is more than the number of raw images, " + strcompress(numexp, /R) + ", in current experiment. " + $
+                                    "Should logfile be opened? To stop checking for logfiles on experiment open use option in General Settings.", 300),/QUESTION)
+        IF response EQ 'Yes' THEN BEGIN
+          self.OpenLiveLog, livelogfile
+        ENDIF
+      ENDIF
+    ENDIF
+  ENDIF
+  
 END
 
 PRO scatterBrain::newXML, event, DATA = data
@@ -1378,23 +1399,34 @@ PRO scatterbrain::LogFileSelected, Selected
                    
                END
     'EXPORT PROFILES SINGLE FILE' : BEGIN
-                 profileIndices = IntArr(selected.name.count())
+                 profileIndices = List()
                  self.frame_obj.SetProperty, UPDATEIMAGE = 0
+                 IF Obj_Valid(self.frame_obj2) THEN self.frame_obj2.SetProperty, UPDATEIMAGE = 0
                  selected.name.reverse
-                 FOREACH name, selected.name, key DO profileIndices[key] = self.ProcessImage(name, /NOPLOT, NOSETUP = ~(key EQ 1) )
+                 FOREACH name, selected.name, key DO BEGIN
+                  profileIndices.add, self.ProcessImage(name, /NOPLOT, NOSETUP = ~(key EQ 1), PROFILEINDEX2=profileIndex2)
+                  IF Obj_Valid(self.frame_obj2) THEN profileIndices.add, profileIndex2
+                 ENDFOREACH
                  self.frame_obj.SetProperty, UPDATEIMAGE = 1
-                 data = self.profiles_obj.GetProfiles(profileIndices)
-                 self.profiles_obj.DeleteProfile, profileIndices
-                 profilesArray = DblArr(N_Elements(data)+1,N_Elements((data[0])[0,*]))
-                 profilesArray[0,*] = (data[0])[0,*]
-                 FOREACH p, data, key DO profilesArray[key+1,*] = p[1,*]
-                 titleArray =['q', selected.name.toArray()]
+                 IF Obj_Valid(self.frame_obj2) THEN self.frame_obj2.SetProperty, UPDATEIMAGE = 1
+                 data = self.profiles_obj.GetProfiles(profileIndices.toArray())
+                 self.profiles_obj.DeleteProfile, profileIndices.toArray()
+                 profilesArray = List(reform((data[0])[0,*]))
+                 If Obj_Valid(self.frame_obj2) THEN BEGIN
+                     profilesArray[0] = [profilesArray[0], reform((data[1])[0,*])]
+                     FOR i=0, N_Elements(data)-1, 2 DO profilesArray.add, [reform((data[i])[1,*]), reform((data[i+1])[1,*])]
+                 Endif ELSE FOREACH p, data, key DO profilesArray.add, p[1,*]
+                 titleArray = List('q')
+                 configNameArray = list(self.frame_obj.GetCurrentConfigName())
+                 IF Obj_Valid(self.frame_obj2) THEN configNameArray.add, self.frame_obj2.GetCurrentConfigName()
+                 ;FOREACH name, selected.name DO titleArray.add, replicate(name, 1 + Obj_Valid(self.frame_obj2)) + configNameArray.toArray(), /EXTRACT
+                 FOREACH name, selected.name DO titleArray.add, name
                  saveName = Dialog_Pickfile()
                  IF saveName EQ '' THEN BREAK
-                 columnWidth = Max(StrLen(titleArray)) + 1 > StrLen(profilesArray[0]) + 1
+                 columnWidth = Max(StrLen(titleArray.toArray())) + 1 > StrLen((profilesArray[0])[0]) + 1
                  OpenW, fileLUT, saveName, /GET_LUN
-                   PrintF, fileLUT, titleArray, FORMAT = '(' + StrCompress(data.count() + 1,/REMOVE) + 'A' + StrCompress(columnWidth,/REMOVE) + ')'
-                   PrintF, fileLUT, profilesArray, FORMAT = '(' + StrCompress(data.count() + 1,/REMOVE) + 'A' + StrCompress(columnWidth,/REMOVE) + ')'  
+                   PrintF, fileLUT, titleArray.toArray(), FORMAT = '(' + StrCompress(titleArray.count(),/REMOVE) + '(A' + StrCompress(columnWidth,/REMOVE) + ',","))'
+                   PrintF, fileLUT, profilesArray.toArray(), FORMAT = '(' + StrCompress(titleArray.count(),/REMOVE) + '(A' + StrCompress(columnWidth,/REMOVE) + ',","))'  
                  Free_Lun, fileLUT
                  
                END
@@ -1512,7 +1544,10 @@ FUNCTION scatterbrain::ProcessImage, name, SAVESUMMED = saveSummed, LIVEFRAME = 
   ENDELSE
   
   profileData=self.frame_obj->GetAndCake(name, SAVESUMMED = saveSummed, SUMMEDNAME = summedName, FRAME = liveFrame1, NOSETUP = noSetup, typeFrame = typeFrame)
-  IF Obj_Valid(self.frame_obj2) THEN profileData2=self.frame_obj2->GetAndCake(name, SAVESUMMED = saveSummed, SUMMEDNAME = summedName, FRAME = liveFrame2, NOSETUP = noSetup, TYPEFRAME = typeFrame)
+  IF Obj_Valid(self.frame_obj2) THEN BEGIN
+    IF KeyWord_Set(saveSummed) THEN summedNameTemp = strjoin((strsplit(summedName, '.',/extract))[0:-2]) + '_' + self.frame_obj2.GetCurrentConfigName() + '.tif'
+    profileData2=self.frame_obj2->GetAndCake(name, SAVESUMMED = saveSummed, SUMMEDNAME = summedNameTemp, FRAME = liveFrame2, NOSETUP = noSetup, TYPEFRAME = typeFrame)
+  ENDIF
   IF Size(profileData, /TNAME) EQ 'INT' THEN BEGIN
     IF profileData[0] EQ -1 THEN RETURN, -1
   ENDIF
@@ -1547,68 +1582,86 @@ PRO scatterbrain::contour, fnames, profileIndices, add = add
     delete = 1
     
     profileIndices = IntArr(fnames.count())
+    profileIndices2 = IntArr(fnames.count())
     self.frame_obj.SetProperty, UPDATEIMAGE = 0
     result = ''
     FOREACH name, fnames, key DO BEGIN
-      index = self.ProcessImage(name, /NOPLOT, NOSETUP = ~(key EQ 1) )
+      index = self.ProcessImage(name, /NOPLOT, NOSETUP = ~(key EQ 1), PROFILEINDEX2 = profileIndex2)
       IF index EQ -1 THEN result = Dialog_Message('File opening error encountered, continue anyway?',/QUESTION)
       IF result EQ 'No' THEN RETURN
       profileIndices[key] = index
+
+      IF Obj_Valid(self.frame_obj2) THEN BEGIN
+        IF profileIndex2 EQ -1 THEN result = Dialog_Message('File opening error encountered, continue anyway?',/QUESTION)
+        IF result EQ 'No' THEN RETURN
+        profileIndices2[key] = profileIndex2
+      ENDIF
+      
     ENDFOREACH
     
     self.frame_obj.SetProperty, UPDATEIMAGE = 1
     
   ENDIF
   
-  profileIndices = profileIndices[Where(profileIndices NE -1, /NULL)]
-  IF N_Elements(profileIndices) EQ 0 THEN BEGIN
-    result = Dialog_Message('No valid files selected to create contour - returning.')
-    RETURN
-  ENDIF
+  FOR f =0, Obj_Valid(self.frame_obj2) DO BEGIN
   
-  data = self.profiles_obj.GetProfiles(profileIndices)
+    config = self.frame_obj.GetCurrentConfigName()
+    IF f THEN BEGIN
+      profileIndices = profileIndices2
+      config = self.frame_obj2.GetCurrentConfigName()
+    ENDIF
   
-  IF delete NE !Null THEN self.profiles_obj.DeleteProfile, profileIndices
-  
-  self.profiles_obj.GetProperty, XRANGEZOOM = xRange
-  
-  yNames = self.scatterXMLGUI_obj.GetLogAttributes()
-  
-  indices = !Null
-  imageIndex = !Null
-  yStruct = {}
-  FOREACH name, fnames DO BEGIN
-    indices = [indices, self.scatterXMLGui_Obj.GetIndex(name)]
-    imageIndex = [imageIndex,Fix(StrMid(name, 7,4 ,/REVERSE_OFFSET))]
-  ENDFOREACH
-  FOREACH yName, Reverse(yNames) DO BEGIN
-    valType = 'Number'
-    attValString = ((self.scatterXMLGui_obj.GetValue(yName))[indices])
-    FOREACH aVS, attValString DO BEGIN
-      IF StRegex(aVS, '[^0-9]') + StRegex(aVS, '\.[0-9]*\.') + StRegex(aVS, '-[0-9]*-') NE -3 THEN BEGIN
-        valType = 'String'
-        BREAK
-      ENDIF
+    profileIndices = profileIndices[Where(profileIndices NE -1, /NULL)]
+    IF N_Elements(profileIndices) EQ 0 THEN BEGIN
+      result = Dialog_Message('No valid files selected to create contour - returning.')
+      RETURN
+    ENDIF
+    
+    data = self.profiles_obj.GetProfiles(profileIndices)
+    
+    IF delete NE !Null THEN self.profiles_obj.DeleteProfile, profileIndices
+    
+    self.profiles_obj.GetProperty, XRANGEZOOM = xRange
+    
+    yNames = self.scatterXMLGUI_obj.GetLogAttributes()
+    
+    indices = !Null
+    imageIndex = !Null
+    yStruct = {}
+    FOREACH name, fnames DO BEGIN
+      indices = [indices, self.scatterXMLGui_Obj.GetIndex(name)]
+      imageIndex = [imageIndex,Fix(StrMid(name, 7,4 ,/REVERSE_OFFSET))]
     ENDFOREACH
-    IF valType EQ 'String' THEN attVal = attValString ELSE attVal = Double(attValString)
-    yStruct = Create_Struct(yName, attVal, yStruct)
-  ENDFOREACH
-  yStruct = Create_Struct('Index', Indgen(data.count()),'File Index', imageIndex, 'Filename',fnames.toArray(), yStruct)
-  
-  q = (data[0])[0,*]
-  
-  inRange = Where(q GT xRange[0] AND q LT xRange[1])
-  IF N_Elements(inRange) EQ 1 THEN inRange = Indgen(N_Elements(q))
-  
-  q = q[inRange]
-  
-  zContour = FltArr(N_Elements(q), data.count())
-  FOREACH prof, data, index DO BEGIN
-    zContour[*,index] =  Reform(prof[1,inRange])
-  ENDFOREACH
-  IF keyword_set(add) AND Obj_Valid(self.contourPlot) EQ 1 THEN BEGIN
-    self.contourPlot.addProfiles, zContour
-  ENDIF ELSE self.contourPlot = as__saxscontourplot(q, yStruct, zContour, GROUPLEADER = self.wScatterBase, NOTIFYOBJ = notify('ContourCallback',self))
+    FOREACH yName, Reverse(yNames) DO BEGIN
+      valType = 'Number'
+      attValString = ((self.scatterXMLGui_obj.GetValue(yName))[indices])
+      FOREACH aVS, attValString DO BEGIN
+        IF StRegex(aVS, '[^0-9]') + StRegex(aVS, '\.[0-9]*\.') + StRegex(aVS, '-[0-9]*-') NE -3 THEN BEGIN
+          valType = 'String'
+          BREAK
+        ENDIF
+      ENDFOREACH
+      IF valType EQ 'String' THEN attVal = attValString ELSE attVal = Double(attValString)
+      yStruct = Create_Struct(yName, attVal, yStruct)
+    ENDFOREACH
+    yStruct = Create_Struct('Index', Indgen(data.count()),'File Index', imageIndex, 'Filename',fnames.toArray(), yStruct)
+    
+    q = (data[0])[0,*]
+    
+    inRange = Where(q GT xRange[0] AND q LT xRange[1])
+    IF N_Elements(inRange) EQ 1 THEN inRange = Indgen(N_Elements(q))
+    
+    q = q[inRange]
+    
+    zContour = FltArr(N_Elements(q), data.count())
+    FOREACH prof, data, index DO BEGIN
+      zContour[*,index] =  Reform(prof[1,inRange])
+    ENDFOREACH
+    IF keyword_set(add) AND Obj_Valid(self.contourPlot) EQ 1 THEN BEGIN
+      self.contourPlot.addProfiles, zContour
+    ENDIF ELSE self.contourPlot = as__saxscontourplot(q, yStruct, zContour, config, GROUPLEADER = self.wScatterBase, NOTIFYOBJ = notify('ContourCallback',self))
+
+  ENDFOR
 END
 
 PRO scatterbrain::ExportCurrentImage, RAW=raw
@@ -1832,10 +1885,16 @@ PRO scatterbrain::ContourCallback, event
 
   CASE Tag_Names(Event, /STRUCTURE_NAME) OF
     'CONTOURBLANK'  :BEGIN
-                       blankID = self.ProcessImage(event.name, /NOPLOT)
+                       blankID = self.ProcessImage(event.name, /NOPLOT, PROFILEINDEX2 = profileIndex2)
+                       IF Obj_Valid(self.frame_obj2) THEN BEGIN
+                         IF event.config EQ self.frame_obj2.GetCurrentConfigName() THEN BEGIN 
+                          self.profiles_obj.DeleteProfile, blankID
+                          blankID = profileIndex2
+                         ENDIF
+                       ENDIF
                        blank = self.profiles_obj.GetProfiles(blankID)
                        self.profiles_obj.DeleteProfile, blankID
-                       self.contourPlot.SetBlank, Reform(blank.toArray()), event.name
+                       event.object.SetBlank, Reform(blank.toArray()), event.name
                      END
     'DATCONTOURBLANK' : BEGIN
                           profile = self.ReadDat(event.name)
@@ -1960,7 +2019,8 @@ PRO scatterbrain::FrameCallback, event
                      IF self.frame_obj NE event.object THEN BEGIN
                        self.frame_obj.SynchroniseMasks, allMasks
                      ENDIF
-                     IF self.frame_obj2 NE event.object AND Obj_Valid(self.frame_obj2) THEN BEGIN
+
+                     IF Obj_Valid(self.frame_obj2) AND self.frame_obj2 NE event.object THEN BEGIN
                        self.frame_obj2.SynchroniseMasks, allMasks
                      ENDIF
                    END
@@ -2575,7 +2635,7 @@ FUNCTION scatterbrain::init     $
 
     CASE !VERSION.OS_FAMILY OF 
       'Windows'     : currentImageFont = 'Arial*18*BOLD'
-      'unix'        : currentImageFont = 'lucidasans-18'
+      'unix'        : currentImageFont = 'lucidasans-12'
     ENDCASE
     
     simage = Widget_Label(wScatterRows[1],xsize=200, FONT = currentImageFont, VALUE = 'Current Image Frame' $

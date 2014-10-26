@@ -222,9 +222,9 @@ CASE widgetName OF
             'Y BEAM CENTRE':BEGIN
               
                               CASE self.rotation OF
-                                0 : self.frame.yc = event.value
+                                0 : self.frame.yc = -event.value
                                 1 : self.frame.xc = -event.value
-                                2 : self.frame.yc = -event.value
+                                2 : self.frame.yc = event.value
                                 3 : self.frame.xc = event.value
                               ENDCASE
                               
@@ -444,6 +444,7 @@ CASE widgetName OF
       
       ENDCASE
       self->as_saxsimagetools::event, event, scatterEvent
+      self.frame.framewinobj->draw
 END
 
 PRO as__saxsimagegui::hist, xstruct
@@ -804,7 +805,7 @@ FUNCTION as__saxsimagegui::init, base, qData, profileObj, RESOURCE=resource, _RE
     fancyFrameBase = Widget_Base(imageGUIRight)
     controlTabLabel = Widget_Label(fancyFrameBase, VALUE = ' Control Tabs ', FONT='Arial*16*bold', XOFFSET = 2)
     tabBase = Widget_Base(fancyFrameBase,/COLUMN,/FRAME,YOFFSET=10,YPAD=8)
-    wBotScatterColTab = Widget_Tab(tabBase, UNAME='CONTROL_TAB',/MULTILINE)
+    wBotScatterColTab = Widget_Tab(tabBase, UNAME='CONTROL_TAB',MULTILINE=3)
       
       wBotScatterCol1 = Widget_Base(wBotScatterColTab,TITLE='Details', /COLUMN)
       datadir = CW_FIELD(wBotScatterCol1, xsize=20, /NOEDIT, /COLUMN, TITLE = 'Data Directory' $

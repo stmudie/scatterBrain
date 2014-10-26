@@ -271,6 +271,14 @@ PRO as_scatterXMLGUI::ParseFile, FILENAME=filename, LOGONLY=logOnly, UPDATE=upda
       Widget_Control, self.fileTree, MAP = 0
       FOREACH name, names, key DO BEGIN
         name = File_Basename(name)
+        
+        FOREACH sep, ['/','\'] DO BEGIN
+          split = Strsplit(name, sep,/EXTRACT)
+          IF N_Elements(split) GT 1 THEN BEGIN
+            name = split[-1]
+          ENDIF
+        ENDFOREACH
+        
         type = ((*self.loglines).type)[key]
         void = Widget_Tree(type EQ 'SUMMED' OR type EQ 'SUBTRACTED' ? self.fileTreeSummed : self.fileTree, VALUE = name, INDEX = 0)
         count += 1

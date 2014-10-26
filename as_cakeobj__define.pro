@@ -360,8 +360,8 @@ FUNCTION AS_CakeObj::CakeSetup, force_range=force_range, sectors=sectors
 
     ;profdata.qmin = q_data.q[overhang]
     ;profdata.qmax = max(q_data.q)
-    self.frame.qimin = q_temp[overhang]
-    self.frame.qimax = max(q_temp)
+    ;self.frame.qimin = q_temp[overhang]
+    ;self.frame.qimax = max(q_temp)
 
     ;*******************************************************************************
     ; Now remake the cakedata data structure - this will be used in saxs_cake function
@@ -708,7 +708,7 @@ FUNCTION AS_CakeObj::GetAndCake, f_name, FRAME = liveFrame, NOPROFILE = noProfil
         ENDIF
         self.frame.fname = File_Basename(summedName) 
         Write_Tiff, path + File_Basename(summedName), Reverse(*self.frame.rawData,2), /LONG, /SIGNED, DESCRIPTION='Summed frame created by scatterBrain using the following files: ' + StrJoin(f_name.toarray(),' ',/SINGLE)
-        self.frame.logobj.NewLogLine, summedName, self.frame.time, self.frame.i0counts, 0, self.frame.iBScounts, TYPE = 'SUMMED'
+        self.frame.logobj.NewLogLine, summedName, self.frame.time, self.frame.i0counts, self.frame.itcounts, self.frame.iBScounts, TYPE = 'SUMMED'
       ENDIF ELSE BEGIN
         result = Dialog_Message('Invalid filename, not saving summed image, you will not be able to use it for background subtractions, etc.')
       ENDELSE

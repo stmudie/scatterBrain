@@ -198,6 +198,8 @@ PRO AS_ProfileContainerObj::drawEvent, event
             self.livePlot->GetProperty, HIDE = hide
             IF HIDE EQ 0 THEN BEGIN
               self.livePlot->GetProperty, DATA = data
+              xrange=[0.1,1]
+              yrange=[0.01,0.1]
               IF N_Elements(data) GT 0 THEN BEGIN
                 xrange = [min(data[0,*]),max(data[0,*])]
                 yrange = [min(data[1,*]),max(data[1,*])]

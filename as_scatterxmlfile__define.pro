@@ -681,7 +681,8 @@ NORMPARAMS = normParams, $
 LOGPARAMS = logParams, $
 RAWLOG = rawLog, $
 CONFIGDATAPATH = configDataPath, $
-CONFIGNO = config
+CONFIGNO = config, $
+NUMRAWIMAGES = numRawImages
 
 
   @as_scatterheader.macro
@@ -831,6 +832,8 @@ CONFIGNO = config
 
   IF Arg_Present(rawLog) THEN rawLog = *self.loglines
 
+  IF Arg_Present(numRawImages) THEN void = Where((*self.loglines).type EQ 'RAW', numRawImages) 
+    
 END
 
 FUNCTION as_scatterXMLFile::GetLogAttributes

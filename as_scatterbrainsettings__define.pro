@@ -2,8 +2,15 @@ FUNCTION as_scatterBrainSettings::init
 
   @as_scatterheader.macro
 
+  self.fileversion = 2
+
   self.settingsPath = self.getSettingsPath()
   
+  void = {SCATTERBRAINSETTINGS, scatterBrainSettings : '', FileVersion: ''}
+
+  self.scatterBrainSettings = Ptr_New({SCATTERBRAINSETTINGS})
+  self.attScatterBrainSettings = Ptr_New({ATTRIBUTESSCATTERBRAINSETTINGS, scatterBrainSettings: ['FileVersion']})
+   
   void = {CAMERAPVS, cameraPVs : '', wavelengthPV : '', lengthPV : '', WAXSAnglePV : ''}
   
   self.cameraPVs = Ptr_New({CAMERAPVS})
@@ -20,9 +27,9 @@ FUNCTION as_scatterBrainSettings::init
   self.recentFile = Ptr_New(replicate({RECENTFILE},8))
   self.attRecentFile = Ptr_New({ATTRIBUTESRECENTFILE, recentFile :['']})
   
-  void = {GENERAL, generalSettings : '', zingerThresh : '', binSize : '', startingdirectory1 : '', startingDirectory2 : '', autoCheckUpdates : '', errorBars : ''}
+  void = {GENERAL, generalSettings : '', zingerThresh : '', binSize : '', startingdirectory1 : '', startingDirectory2 : '', autoCheckLiveLogFile: '', autoCheckUpdates : '', errorBars : ''}
   self.general = Ptr_New({GENERAL})
-  self.attGeneral = Ptr_New({ATTRIBUTESGENERAL, generalSettings : ['zingerThresh', 'binSize', 'startingdirectory1', 'startingDirectory2', 'autoCheckUpdates', 'errorBars']})
+  self.attGeneral = Ptr_New({ATTRIBUTESGENERAL, generalSettings : ['zingerThresh', 'binSize', 'startingdirectory1', 'startingDirectory2', 'autoCheckLiveLogFile', 'autoCheckUpdates', 'errorBars']})
     
   RETURN, self.as_xmlparamfile::init()
 
@@ -77,6 +84,8 @@ PRO as_scatterBrainSettings::ParseFile
     self.savefile
   ENDIF
 
+  self->AS_XMLPARAMFILE::ParseFile, self.settingsPath + 'scatterBrainSettings.xml', STRUCT = *self.scatterBrainSettings, ATTSTRUCT=*self.attScatterBrainSettings
+  *self.scatterBrainSettings = *self.structArray
   self->AS_XMLPARAMFILE::ParseFile, self.settingsPath + 'scatterBrainSettings.xml', STRUCT = *self.detector, ATTSTRUCT=*self.attDetector
   *self.detector = *self.structArray
   self->AS_XMLPARAMFILE::ParseFile, self.settingsPath + 'scatterBrainSettings.xml', STRUCT = *self.recentFile, ATTSTRUCT=*self.attRecentFile
@@ -86,7 +95,12 @@ PRO as_scatterBrainSettings::ParseFile
   self->AS_XMLPARAMFILE::ParseFile, self.settingsPath + 'scatterBrainSettings.xml', STRUCT = *self.general, ATTSTRUCT=*self.attGeneral
   *self.general = *self.structArray
   
-  ;Set some defaults if values weren't present in file
+  ;Set some defaults if values weren't present in file, or version number change.
+  
+  ;FileVersion change - turn auto update back on.
+  IF Fix((*self.scatterBrainSettings).FileVersion) LT self.fileversion THEN BEGIN
+    self.SetProperty, autoCheckUpdates = 1
+  ENDIF
   
   ;General Settings
   general = *self.general
@@ -100,6 +114,7 @@ PRO as_scatterBrainSettings::ParseFile
     CD, CURRENT = current
     self.SetProperty, startingDirectory2 = current
   ENDIF
+  IF general.autoCheckLiveLogFile EQ '' THEN self.SetProperty, autoCheckLiveLogFile = 1
   IF general.autoCheckUpdates EQ '' THEN self.SetProperty, autoCheckUpdates = 1
   
   ;Detector Settings
@@ -117,7 +132,7 @@ PRO as_scatterBrainSettings::SaveFile
 
   @as_scatterheader.macro
   
-  self->New, 'scatterBrainSettings', FILEVERSION = '1'
+  self->New, 'scatterBrainSettings', FILEVERSION = StrCompress(String(self.fileversion, FORMAT = '(D5.2)'), /R)
   self->NewFromStruct, 'scatterBrainSettings', STRUCT = *self.general, ATTSTRUCT = *self.attGeneral, APPENDTO = 'base'
   self->NewFromStruct, STRUCT = *self.cameraPVs, ATTSTRUCT = *self.attCameraPVs, APPENDTO = 'base'
   detectorList = self->AddElement('base', 'DETECTORLIST','')
@@ -152,6 +167,7 @@ PRO as_scatterBrainSettings::GetProperty, $
   SETTINGSPATH = settingsPath, $
   startingdirectory1 = startingdirectory1, $
   STARTINGDIRECTORY2 = startingDirectory2, $
+  AUTOCHECKLIVELOGFILE = autoCheckLiveLogFile, $
   AUTOCHECKUPDATES = autoCheckUpdates, $
   ERRORBARS = errorBars
 
@@ -180,6 +196,7 @@ PRO as_scatterBrainSettings::GetProperty, $
   IF Arg_Present(settingsPath) THEN settingsPath = self.settingsPath
   IF Arg_Present(startingdirectory1) THEN startingdirectory1 = (*self.general).startingdirectory1
   IF Arg_Present(startingDirectory2) THEN startingDirectory2 = (*self.general).startingDirectory2
+  IF Arg_Present(autoCheckLiveLogFile) THEN autoCheckLiveLogFile = Fix((*self.general).autoCheckLiveLogFile)
   IF Arg_Present(autoCheckUpdates) THEN autoCheckUpdates = Fix((*self.general).autoCheckUpdates)
   IF Arg_Present(errorBars) THEN errorBars = Fix((*self.general).errorBars)
 
@@ -210,6 +227,7 @@ PRO as_scatterBrainSettings::SetProperty, $
   startingdirectory1 = startingdirectory1, $
   STARTINGDIRECTORY2 = startingDirectory2, $
   AUTOCHECKUPDATES = autoCheckUpdates, $
+  AUTOCHECKLIVELOGFILE = autoCheckLiveLogFile, $
   NOSAVE = noSave, $
   ERRORBARS = errorBars
 
@@ -275,7 +293,10 @@ PRO as_scatterBrainSettings::SetProperty, $
   ENDIF
   IF ISA(startingdirectory1, 'STRING') AND Ptr_Valid(self.general) THEN (*self.general).startingdirectory1 = startingdirectory1
   IF ISA(startingDirectory2, 'STRING') AND Ptr_Valid(self.general) THEN (*self.general).startingDirectory2 = startingDirectory2
-  IF Ptr_Valid(self.general) THEN (*self.general).autoCheckUpdates = KeyWord_Set(autoCheckUpdates)
+  IF Ptr_Valid(self.general) THEN BEGIN
+    IF N_Elements(autoCheckLiveLogFile) GT 0 THEN (*self.general).autoCheckLiveLogFile = KeyWord_Set(autoCheckLiveLogFile)
+    IF N_Elements(autoCheckUpdates) GT 0 THEN (*self.general).autoCheckUpdates = KeyWord_Set(autoCheckUpdates)
+  ENDIF
   IF N_Elements(errorBars) AND Ptr_Valid(self.general) THEN (*self.general).errorBars = String(errorBars)
   
   IF ~KeyWord_Set(NOSAVE) THEN self.SaveFile
@@ -288,6 +309,9 @@ PRO as_scatterBrainSettings__define
   void = {as_scatterBrainSettings, $
           INHERITS as_xmlparamfile, $
           settingsPath: '', $
+          fileVersion : 0, $
+          scatterBrainSettings : Ptr_New(), $
+          attScatterBrainSettings: Ptr_New(), $
           detector : Ptr_New(), $
           attDetector : Ptr_New(),$
           cameraPVs : Ptr_New(), $

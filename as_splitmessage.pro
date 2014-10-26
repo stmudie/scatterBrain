@@ -2,6 +2,12 @@ FUNCTION as_splitmessage, messageInput, xsize
 
   @as_scatterheader.macro
 
+  CASE StrUpCase(!Version.OS_Family) OF
+    'WINDOWS': newline = String([13B,10B])
+    'UNIX': newline = String([10B])
+    ELSE : newline = String([10B])
+  ENDCASE
+
   messageLines = StrSplit(messageInput, String(Byte([13B])),/EXTRACT)
 
   newMessage = ''
@@ -19,7 +25,7 @@ FUNCTION as_splitmessage, messageInput, xsize
       endChar = spaces[(Where((!d.X_CH_SIZE*(spaces-startChar)) LT xsize))[-1]]
       endChar = endChar > spaces[(Where(spaces GT endChar))[0]]
       newMessage = newMessage + StrMid(message,startChar, endChar-startChar)
-      newMessage = newMessage + String([13B])
+      newMessage = newMessage + newline
       IF endChar GE StrLen(message) THEN BEGIN
         BREAK
       ENDIF
