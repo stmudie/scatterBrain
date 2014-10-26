@@ -1960,7 +1960,7 @@ PRO scatterbrain::FrameCallback, event
                      IF self.frame_obj NE event.object THEN BEGIN
                        self.frame_obj.SynchroniseMasks, allMasks
                      ENDIF
-                     IF self.frame_obj2 NE event.object THEN BEGIN
+                     IF self.frame_obj2 NE event.object AND Obj_Valid(self.frame_obj2) THEN BEGIN
                        self.frame_obj2.SynchroniseMasks, allMasks
                      ENDIF
                    END
@@ -2531,7 +2531,7 @@ FUNCTION scatterbrain::init     $
       readExposureLabel = Widget_Label(wScatterColumns[0], VALUE='-', /DYNAMIC_RESIZE, FONT = labelFont, /ALIGN_CENTER, UNAME = 'REXPTIME')
       exposeBase = Widget_Base(wScatterColumns[0], /ROW, /ALIGN_CENTER)
       texpLabel = Widget_Label(exposeBase, VALUE = 'Time: ')
-      texp = Widget_Combobox(exposeBase, /DYNAMIC_RESIZE, /EDITABLE, UNAME = 'TEXP' $
+      texp = Widget_Combobox(exposeBase, /DYNAMIC_RESIZE, /EDITABLE, UNAME = 'TEXP', UVALUE = 1 $
         , value=['1','2','5','10','20','30','40','60','120','A'], sensitive=1)
     
             
