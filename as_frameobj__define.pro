@@ -7,7 +7,7 @@ FUNCTION AS_FrameObj::Init, RAWDATA = rawData, HISTMAX=histMax, HISTMIN=histMin,
       THEN self.notify = List(notify, /EXTRACT)
   
   
-  self.frame.path  =     'No Name Yet'        
+  self.frame.path  =     'No_Name_Yet'        
   self.frame.errThresh = 5              
   self.frame.batchtsexp = [0,1,2,5,10,20,30,40,60,80,120,180,240]
   self.frame.offset  =  0
@@ -1330,8 +1330,8 @@ frame = { AS_FrameObj_Struc, $
                lineObject  : Obj_New(),    $
                frameFont_obj: Obj_New(),   $
                histObj: Obj_New(),         $
-               fnamelist : 'No Names Yet', $
-               path      : 'No Name Yet',  $
+               fnamelist : 'No_Names_Yet', $
+               path      : 'No_Name_Yet',  $
                timestamp : '',             $
                header   : Ptr_New(),       $
                zing : 3.0,                 $ ; zinger rejection factor (was in profdata).
