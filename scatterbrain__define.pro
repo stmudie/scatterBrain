@@ -248,8 +248,8 @@ PRO scatterbrain::event, event
                                    path = [self.frame_obj.frame.path,path2]
                                    
                                    
-                                   IF path[0] EQ '' OR path[0] EQ 'No Name Yet' THEN path[0] = self.settingsobj.startingDirectory1
-                                   IF path[1] EQ '' OR path[1] EQ 'No Name Yet' THEN path[1] = self.settingsobj.startingDirectory2
+                                   IF path[0] EQ '' OR path[0] EQ 'No_Name_Yet' THEN path[0] = self.settingsobj.startingDirectory1
+                                   IF path[1] EQ '' OR path[1] EQ 'No_Name_Yet' THEN path[1] = self.settingsobj.startingDirectory2
                                    
                                    path = self.GetUserDir(path)
                                    
@@ -1103,7 +1103,12 @@ PRO scatterbrain::saveXML
 END
 
 PRO scatterbrain::OpenLiveLog, file
-  IF N_Elements(file) GT 0 THEN IF File_Test(file) EQ 0 THEN file = Dialog_Pickfile(PATH = self.imagesDir, /MUST_EXIST,filter = '*.log')
+  IF N_Elements(file) EQ 0 THEN BEGIN
+    file = Dialog_Pickfile(PATH = self.imagesDir, /MUST_EXIST,filter = '*.log')
+  ENDIF ELSE BEGIN
+    IF File_Test(file) EQ 0 THEN file = Dialog_Pickfile(PATH = self.imagesDir, /MUST_EXIST,filter = '*.log')
+  ENDELSE
+  
   self.liveLog = file
   path = File_DirName(self.liveLog, /MARK_DIRECTORY)
   self.frame_obj.SetProperty, PATH=path
@@ -2019,6 +2024,7 @@ PRO scatterbrain::FrameCallback, event
                      IF self.frame_obj NE event.object THEN BEGIN
                        self.frame_obj.SynchroniseMasks, allMasks
                      ENDIF
+
                      IF Obj_Valid(self.frame_obj2) AND self.frame_obj2 NE event.object THEN BEGIN
                        self.frame_obj2.SynchroniseMasks, allMasks
                      ENDIF
@@ -2590,7 +2596,7 @@ FUNCTION scatterbrain::init     $
       readExposureLabel = Widget_Label(wScatterColumns[0], VALUE='-', /DYNAMIC_RESIZE, FONT = labelFont, /ALIGN_CENTER, UNAME = 'REXPTIME')
       exposeBase = Widget_Base(wScatterColumns[0], /ROW, /ALIGN_CENTER)
       texpLabel = Widget_Label(exposeBase, VALUE = 'Time: ')
-      texp = Widget_Combobox(exposeBase, /DYNAMIC_RESIZE, /EDITABLE, UNAME = 'TEXP' $
+      texp = Widget_Combobox(exposeBase, /DYNAMIC_RESIZE, /EDITABLE, UNAME = 'TEXP', UVALUE = 1 $
         , value=['1','2','5','10','20','30','40','60','120','A'], sensitive=1)
     
             
