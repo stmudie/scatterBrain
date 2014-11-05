@@ -1386,10 +1386,10 @@ PRO scatterbrain::LogFileSelected, Selected
                    
                    FOR detNo=0,Obj_Valid(self.frame_obj2) DO BEGIN
                      IF Obj_Valid(self.frame_obj2) THEN BEGIN
-                        IF detNo THEN configText = self.frame_obj2.GetCurrentConfigName() ELSE configText = self.frame_obj.GetCurrentConfigName()
+                        IF detNo THEN configText = '_' + self.frame_obj2.GetCurrentConfigName() ELSE configText = '_' + self.frame_obj.GetCurrentConfigName()
                      ENDIF
                      i += detNo
-                     OpenW, profileFile, saveDirectory + StrMid(name,0,(strsplit(name, '.'))[-1]-1) + '_' + configText + '.dat', /GET_LUN
+                     OpenW, profileFile, saveDirectory + StrMid(name,0,(strsplit(name, '.'))[-1]-1) + configText + '.dat', /GET_LUN
                        PrintF, profileFile, name
                        PrintF, profileFile, titleList.toarray(), FORMAT = '(' + StrCompress(3,/REMOVE) + 'A' + StrCompress(1+StrLen((data[i])[0]),/REMOVE) + ')'
                        PrintF, profileFile, data[i], FORMAT = '(' + StrCompress(3,/REMOVE) + 'A' + StrCompress(1+StrLen((data[i])[0]),/REMOVE) + ')'

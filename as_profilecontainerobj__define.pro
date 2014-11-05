@@ -395,7 +395,7 @@ FUNCTION AS_ProfileContainerObj::Init, GROUPLEADER=groupLeader, PLOTPALETTE = pl
     geom = Widget_Info(groupLeader,/GEOMETRY)
     self.wBase = Widget_Base(Group_Leader=groupLeader, TITLE = 'scatterBrain Plot', XOFFSET = geom.xoffset + geom.xsize + 2*geom.margin + 200, /ROW, /TLB_SIZE_EVENTS, /TLB_KILL_REQUEST_EVENTS, MBAR=wMenuBase, EVENT_PRO='as_profilecontainerobj_baseEvent', UNAME = 'Base')
   ENDIF ELSE self.wBase = Widget_Base(TITLE = 'scatterBrain Plot', /ROW, /TLB_SIZE_EVENTS, MBAR=wMenuBase, UNAME = 'Base')
-  wDraw = Widget_Draw(self.wBase, XSIZE = self.drawSize[0], YSIZE = self.drawSize[1], GRAPHICS_LEVEL=2, /BUTTON_EVENTS, /EXPOSE_EVENTS, EVENT_PRO='as_profilecontainerobj_drawEvent')
+  wDraw = Widget_Draw(self.wBase, XSIZE = self.drawSize[0], YSIZE = self.drawSize[1], GRAPHICS_LEVEL=2, /BUTTON_EVENTS, /EXPOSE_EVENTS, RETAIN = 2, EVENT_PRO='as_profilecontainerobj_drawEvent')
   Widget_Control, wMenuBase, SET_UNAME = 'menuBar'
   wSaveMenu = Widget_Button(wMenuBase, /MENU, VALUE = 'Save Profiles')
   wSaveSingleFile = Widget_Button(wSaveMenu, VALUE = 'Save ALL profiles to ONE large file', UNAME = 'SAVE SINGLE')
