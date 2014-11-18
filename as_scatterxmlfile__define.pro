@@ -408,7 +408,38 @@ PRO as_scatterXMLFile::ParseFile, fileName, LOGONLY=logOnly, UPDATE=upDate
 
   IF (*self.loglines) NE !NULL THEN BEGIN
     ((*self.loglines)[Where((*self.loglines).type EQ '',/NULL)].type) = 'RAW'
-
+    
+    IF (Where(tag_names(*self.loglines) EQ 'Gapless_Mode'))[0] GE 0 THEN BEGIN
+      gapless_pos = Where((*self.loglines).Gapless_Mode EQ 'Gapless',/NULL)]
+      last_filename = ''
+      FOREACH g, gapless_pos DO BEGIN
+        line = (*self.loglines)[g]
+        filename = File_Basename(line.logline)
+        filename = StrMid(filename, 0, StrLen(filename)-7)
+        IF filename NE last_filename THEN BEGIN
+          g_pos_array = list(g)
+          count = 1
+          ibs = line.ibs
+          it = line.it
+          i0 = line.i0
+        ENDIF ELSE BEGIN
+          g_pos_array.add, g
+          count += 1
+          ibs += line.ibs
+          it += line.it
+          i0 += line.i0
+        ENDELSE
+        IF count EQ 3 THEN BEGIN
+          ((*self.loglines)[g_pos_array[0]]).ibs = ibs
+          ((*self.loglines)[g_pos_array[0]]).it = it
+          ((*self.loglines)[g_pos_array[0]]).i0 = i0
+          ((*self.loglines)[g_pos_array[0]]).logline = StrMid(line.logline, 0, StrLen(filename)-7) + '.tif'
+          *self.loglines = (*self.loglines)[[findgen(g_pos_array[0]+1), g_pos_array[2]+1 + findgen(N_elements(*self.loglines)-g_pos_array[2]+1]
+        ENDIF
+         
+      ENDFOREACH
+    ENDIF
+    
     IF ~KeyWord_Set(logonly) THEN BEGIN
       void = Where((*self.loglines).type EQ 'RAW', NCOMPLEMENT = addedLines)
       self.addedlines = addedLines

@@ -1164,7 +1164,7 @@ PRO scatterbrain::loadXML, xmlFile
   self.frame_obj->NewParams, self.scatterXMLGUI_obj, CONFIGNO = numLoadConfig.detector1
   self.frame_obj->LOADCONFIG, numLoadConfig.detector1
   self.frame_obj.GetProperty, IMAGEPATH=path
-  self.imagesDir = path
+  IF path NE 'No_Name_Yet' AND path NE '' THEN self.imagesDir = path ELSE self.frame_obj.SetProperty, path=self.imagesDir
   IF Obj_Valid(self.frame_obj2) THEN BEGIN
     self.frame_obj2->LOADCONFIG, numLoadConfig.detector2
     result = self.qCalibGUI(frameNo = 1)
