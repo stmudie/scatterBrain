@@ -1228,6 +1228,11 @@ PRO scatterBrain::newXML, event, DATA = data
   IF Tag_Names(event, /STRUCTURE_NAME) EQ 'TEMPLATE' THEN BEGIN
     IF event.template NE 'Current' THEN BEGIN
       templateFile = self.settingsObj.settingsPath + Path_Sep() + event.template + '.xml'
+      IF File_Test(xmlfile) THEN BEGIN
+        result = Dialog_Message('Experiment already exists.', /ERROR)
+        RETURN
+      ENDIF
+      
       IF File_Test(templateFile) THEN BEGIN
         File_Copy, templateFile, xmlfile 
       ENDIF ELSE BEGIN

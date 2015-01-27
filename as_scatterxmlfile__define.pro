@@ -409,32 +409,40 @@ PRO as_scatterXMLFile::ParseFile, fileName, LOGONLY=logOnly, UPDATE=upDate
   IF (*self.loglines) NE !NULL THEN BEGIN
     ((*self.loglines)[Where((*self.loglines).type EQ '',/NULL)].type) = 'RAW'
     
-    IF (Where(tag_names(*self.loglines) EQ 'Gapless_Mode'))[0] GE 0 THEN BEGIN
-      gapless_pos = Where((*self.loglines).Gapless_Mode EQ 'Gapless',/NULL)]
+    IF (Where(tag_names(*self.loglines) EQ 'GAPLESS_MODE'))[0] GE 0 THEN BEGIN
+      gapless_pos = Where((*self.loglines).Gapless_Mode EQ '1',/NULL)
       last_filename = ''
+      num_gapless = 0
+      print, gapless_pos
       FOREACH g, gapless_pos DO BEGIN
+        print, g
+        g -= 2*num_gapless
         line = (*self.loglines)[g]
         filename = File_Basename(line.logline)
         filename = StrMid(filename, 0, StrLen(filename)-7)
         IF filename NE last_filename THEN BEGIN
+          last_filename = filename
           g_pos_array = list(g)
           count = 1
-          ibs = line.ibs
-          it = line.it
-          i0 = line.i0
+          ibs = fix(line.ibs)
+          it = fix(line.it)
+          i0 = fix(line.i0)
         ENDIF ELSE BEGIN
           g_pos_array.add, g
           count += 1
-          ibs += line.ibs
-          it += line.it
-          i0 += line.i0
+          ibs += fix(line.ibs)
+          it += fix(line.it)
+          i0 += fix(line.i0)
         ENDELSE
         IF count EQ 3 THEN BEGIN
-          ((*self.loglines)[g_pos_array[0]]).ibs = ibs
-          ((*self.loglines)[g_pos_array[0]]).it = it
-          ((*self.loglines)[g_pos_array[0]]).i0 = i0
-          ((*self.loglines)[g_pos_array[0]]).logline = StrMid(line.logline, 0, StrLen(filename)-7) + '.tif'
-          *self.loglines = (*self.loglines)[[findgen(g_pos_array[0]+1), g_pos_array[2]+1 + findgen(N_elements(*self.loglines)-g_pos_array[2]+1]
+          (*self.loglines)[g_pos_array[0]].ibs = ibs
+          (*self.loglines)[g_pos_array[0]].it = it
+          (*self.loglines)[g_pos_array[0]].i0 = i0map
+          (*self.loglines)[g_pos_array[0]].logline = filename + '.tif'
+          second_array_length = N_elements(*self.loglines)-(g_pos_array[2]+1)
+          if second_array_length GT 0 THEN second_array = g_pos_array[2]+1 + findgen(second_array_length) else second_array = g_pos_array[2]+1
+          *self.loglines = (*self.loglines)[[findgen(g_pos_array[0]+1), second_array ]]
+          num_gapless++
         ENDIF
          
       ENDFOREACH
@@ -863,7 +871,11 @@ NUMRAWIMAGES = numRawImages
 
   IF Arg_Present(rawLog) THEN rawLog = *self.loglines
 
-  IF Arg_Present(numRawImages) THEN void = Where((*self.loglines).type EQ 'RAW', numRawImages) 
+  IF Arg_Present(numRawImages) THEN BEGIN
+    IF ptr_valid(self.loglines) THEN IF N_Elements(*self.loglines) GT 0 THEN BEGIN 
+      void = Where((*self.loglines).type EQ 'RAW', numRawImages)
+    ENDIF ELSE numRawImages = 0
+  ENDIF
     
 END
 
