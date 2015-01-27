@@ -435,7 +435,8 @@ PRO as_scatterXMLFile::ParseFile, fileName, LOGONLY=logOnly, UPDATE=upDate
           (*self.loglines)[g_pos_array[0]].it = it
           (*self.loglines)[g_pos_array[0]].i0 = i0
           (*self.loglines)[g_pos_array[0]].logline = File_Dirname(line.logline, /MARK_DIRECTORY) + filename + '.tif'
-          *self.loglines = (*self.loglines)[[findgen(g_pos_array[2]), g_pos_array[0] + findgen(N_elements(*self.loglines)-g_pos_array[0])]]
+          IF g_pos_array[2] NE 0 THEN *self.loglines = (*self.loglines)[[findgen(g_pos_array[2]), g_pos_array[0] + findgen(N_elements(*self.loglines)-g_pos_array[0])]] $
+                                 ELSE *self.loglines = (*self.loglines)[g_pos_array[0] + findgen(N_elements(*self.loglines)-g_pos_array[0])]
           
         ENDIF
          
