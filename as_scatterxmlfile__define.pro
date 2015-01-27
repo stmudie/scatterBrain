@@ -414,10 +414,10 @@ PRO as_scatterXMLFile::ParseFile, fileName, LOGONLY=logOnly, UPDATE=upDate
       last_filename = ''
       FOREACH g, reverse(gapless_pos) DO BEGIN
         line = (*self.loglines)[g]
-        filename = File_Basename(line.logline)
-        filename = StrMid(filename, 0, StrLen(filename)-7)
-        IF filename NE last_filename THEN BEGIN
-          last_filename = filename
+        fname = File_Basename(line.logline)
+        fname = StrMid(fname, 0, StrLen(fname)-7)
+        IF fname NE last_filename THEN BEGIN
+          last_filename = fname
           g_pos_array = list(g)
           count = 1
           ibs = fix(line.ibs)
@@ -434,7 +434,7 @@ PRO as_scatterXMLFile::ParseFile, fileName, LOGONLY=logOnly, UPDATE=upDate
           (*self.loglines)[g_pos_array[0]].ibs = ibs
           (*self.loglines)[g_pos_array[0]].it = it
           (*self.loglines)[g_pos_array[0]].i0 = i0
-          (*self.loglines)[g_pos_array[0]].logline = File_Dirname(line.logline, /MARK_DIRECTORY) + filename + '.tif'
+          (*self.loglines)[g_pos_array[0]].logline = File_Dirname(line.logline, /MARK_DIRECTORY) + fname + '.tif'
           IF g_pos_array[2] NE 0 THEN *self.loglines = (*self.loglines)[[findgen(g_pos_array[2]), g_pos_array[0] + findgen(N_elements(*self.loglines)-g_pos_array[0])]] $
                                  ELSE *self.loglines = (*self.loglines)[g_pos_array[0] + findgen(N_elements(*self.loglines)-g_pos_array[0])]
           
