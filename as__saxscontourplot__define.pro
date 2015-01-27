@@ -38,6 +38,34 @@ PRO as__saxscontourplot::event, event
     'Contour Filename' : IF event.select EQ 1 THEN self.plotIndex, /FILENAMES
 
     'Contour Image Index' : IF event.select EQ 1 THEN self.imageIndex
+
+    'X Linear' :  BEGIN
+                    IF event.select EQ 1 THEN BEGIN
+                      self.xscaleType = 0
+                      result = self.UpdateContour()
+                      self.upperQBoundObj.GetProperty, DATA = data
+                      data[0,*] = 10^data[0,*]
+                      self.upperQBoundObj.SetProperty, DATA = data
+                      self.lowerQBoundObj.GetProperty, DATA = data
+                      data[0,*] = 10^data[0,*]
+                      self.lowerQBoundObj.SetProperty, DATA = data
+                      self.oContourWindow.Draw
+                    ENDIF
+                  END 
+    'X Log' :     BEGIN
+                    IF event.select EQ 1 THEN BEGIN
+                      self.xscaleType = 1
+                      self.upperQBoundObj.GetProperty, DATA = data
+                      result = self.UpdateContour()
+                      self.upperQBoundObj.GetProperty, DATA = data
+                      data[0,*] = alog10(data[0,*])
+                      self.upperQBoundObj.SetProperty, DATA = data
+                      self.lowerQBoundObj.GetProperty, DATA = data
+                      data[0,*] = alog10(data[0,*])
+                      self.lowerQBoundObj.SetProperty, DATA = data
+                      self.oContourWindow.Draw
+                    ENDIF
+                  END
                               
     'Linear Scale'  :  BEGIN 
                          IF event.select EQ 0 THEN BREAK
@@ -121,15 +149,29 @@ PRO as__saxscontourplot::event, event
                                      self.lowerQBoundObj.GetProperty, DATA = dataLow
                                      self.upperQBoundObj.GetProperty, DATA = dataUp
                                      
+                                     IF self.xscaleType EQ 1 THEN BEGIN
+                                       dataLowSave = dataLow[0,0]
+                                       dataUp[0,*] = 10^dataUp[0,*]
+                                       dataLow[0,*] = 10^dataLow[0,*]
+                                       xPos = 10^xPos
+                                     ENDIF
+
                                      qShift = ((dataUp[0,0] + dataLow[0,0])/2) - xPos
                                      dataLow[0,*] -= qShift                                    
                                      dataUp[0,*] -= qShift
                                      
+                                     Widget_Control, Widget_Info(self.wContourBase,FIND_BY_UNAME = 'Lower Q Bound'), SET_VALUE = String(dataLow[0,0])
+                                     Widget_Control, Widget_Info(self.wContourBase,FIND_BY_UNAME = 'Upper Q Bound'), SET_VALUE = String(dataUp[0,0])
+
+                                     IF self.xscaleType EQ 1 THEN BEGIN
+                                     dataUp[0,*] = alog10(dataUp[0,*])
+                                     dataLow[0,*] = alog10(dataLow[0,*])
+                                     IF Total(Finite(dataLow)) LT 4 THEN dataLow[0,*] = dataLowSave
+                                   ENDIF
+                                     
                                      self.lowerQBoundObj.SetProperty, DATA = dataLow
                                      self.upperQBoundObj.SetProperty, DATA = dataUp
                                      
-                                     Widget_Control, Widget_Info(self.wContourBase,FIND_BY_UNAME = 'Lower Q Bound'), SET_VALUE = String(dataLow[0,0])
-                                     Widget_Control, Widget_Info(self.wContourBase,FIND_BY_UNAME = 'Upper Q Bound'), SET_VALUE = String(dataUp[0,0])
                                      self.plotAtQ
                                    END
                                 ELSE:
@@ -144,6 +186,7 @@ PRO as__saxscontourplot::event, event
                              CASE self.settingQBounds OF
                              0 : BEGIN                             
                                    self.rubberBand.GetProperty, DATA = data
+                                   IF self.xscaleType EQ 1 THEN data[0,*] = 10^data[0,*]
                                    IF N_Elements(data) EQ 0 OR event.release NE 1 THEN RETURN
                                    self.rubberBand.SetProperty, DATA = FltArr(2,5), HIDE = 1
                                    self.oContour.GetProperty, GEOM=geom, DATA_VALUES=contourData
@@ -186,32 +229,62 @@ PRO as__saxscontourplot::event, event
                              1 : BEGIN
                                    self.upperQBoundObj.GetProperty, DATA = dataUp
                                    self.lowerQBoundObj.GetProperty, DATA = data
+                                   
+                                   IF self.xscaleType EQ 1 THEN BEGIN
+                                     data[0,*] = 10^data[0,*]
+                                     dataUp[0,*] = 10^dataUp[0,*]
+                                     x = 10^x
+                                   ENDIF
+                                   
                                    data[0,*] = x < dataUp[0,0] 
-                                   self.lowerQBoundObj.SetProperty, DATA = data
                                    Widget_Control, Widget_Info(self.wContourBase,FIND_BY_UNAME = 'Lower Q Bound'), SET_VALUE = String(data[0,0])
+                                   IF self.xscaleType EQ 1 THEN data[0,*] = alog10(data[0,*])
+                                   self.lowerQBoundObj.SetProperty, DATA = data
                                    self.plotAtQ
                                  END
                              2 : BEGIN
                                    self.lowerQBoundObj.GetProperty, DATA = dataLow
                                    self.upperQBoundObj.GetProperty, DATA = data
+                                   
+                                   IF self.xscaleType EQ 1 THEN BEGIN
+                                     data[0,*] = 10^data[0,*]
+                                     dataLow[0,*] = 10^dataLow[0,*]
+                                     x = 10^x
+                                   ENDIF
+                                   
                                    data[0,*] = x > dataLow[0,0]
-                                   self.upperQBoundObj.SetProperty, DATA = data
                                    Widget_Control, Widget_Info(self.wContourBase,FIND_BY_UNAME = 'Upper Q Bound'), SET_VALUE = String(data[0,0])
+                                   IF self.xscaleType EQ 1 THEN data[0,*] = alog10(data[0,*])
+                                   self.upperQBoundObj.SetProperty, DATA = data
                                    self.plotAtQ
                                  END
                              3 : BEGIN
                                    self.lowerQBoundObj.GetProperty, DATA = dataLow
                                    self.upperQBoundObj.GetProperty, DATA = dataUp
+                                   
+                                   IF self.xscaleType EQ 1 THEN BEGIN
+                                     dataLowSave = dataLow[0,0]
+                                     dataUp[0,*] = 10^dataUp[0,*]
+                                     dataLow[0,*] = 10^dataLow[0,*]
+                                     x = 10^x
+                                   ENDIF
                                      
                                    qShift = ((dataUp[0,0] + dataLow[0,0])/2) - x
                                    dataLow[0,*] -= qShift                                    
                                    dataUp[0,*] -= qShift
-                                     
-                                   self.lowerQBoundObj.SetProperty, DATA = dataLow
-                                   self.upperQBoundObj.SetProperty, DATA = dataUp
-                                    
+                                   
                                    Widget_Control, Widget_Info(self.wContourBase,FIND_BY_UNAME = 'Lower Q Bound'), SET_VALUE = String(dataLow[0,0])
                                    Widget_Control, Widget_Info(self.wContourBase,FIND_BY_UNAME = 'Upper Q Bound'), SET_VALUE = String(dataUp[0,0])
+
+                                   IF self.xscaleType EQ 1 THEN BEGIN
+                                     dataUp[0,*] = alog10(dataUp[0,*])
+                                     dataLow[0,*] = alog10(dataLow[0,*])
+                                     IF Total(Finite(dataLow)) LT 4 THEN dataLow[0,*] = dataLowSave
+                                   ENDIF
+                                                                
+                                   self.lowerQBoundObj.SetProperty, DATA = dataLow
+                                   self.upperQBoundObj.SetProperty, DATA = dataUp
+                                   
                                    self.plotAtQ
                                  END
                            ENDCASE                
@@ -260,7 +333,7 @@ PRO as__saxscontourplot::event, event
     'Lower Q Bound' : BEGIN
                         self.lowerQBoundObj.GetProperty, DATA = data
                         event.object.GetProperty, VALUE = val
-                        data[0,*] = val
+                        IF self.xscaleType EQ 1 THEN data[0,*] = alog10(val) ELSE data[0,*] = val  
                         self.lowerQBoundObj.SetProperty, DATA = data
                         self.oContourWindow.Draw
                         self.plotAtQ
@@ -268,7 +341,7 @@ PRO as__saxscontourplot::event, event
     'Upper Q Bound' : BEGIN
                         self.upperQBoundObj.GetProperty, DATA = data
                         event.object.GetProperty, VALUE = val
-                        data[0,*] = val
+                        IF self.xscaleType EQ 1 THEN data[0,*] = alog10(val) ELSE data[0,*] = val
                         self.upperQBoundObj.SetProperty, DATA = data
                         self.oContourWindow.Draw
                         self.plotAtQ
@@ -360,7 +433,15 @@ PRO as__saxscontourplot::fitBetween, CREATE = CREATE, SAVE = SAVE
 
   self.lowerQBoundObj.GetProperty, DATA = lowerBound
   self.upperQBoundObj.GetProperty, DATA = upperBound
+  
+  IF self.xscaleType EQ 1 THEN BEGIN
+    lowerBound = 10^lowerbound
+    upperBound = 10^upperBound
+  ENDIF
+  
+  
   x = self.initX.toArray()
+   
 
   z = reform(self.initZ.toArray(),self.initX.count(),N_Elements((self.initY)[self.yPlotType]))
   loc = [where(x GT lowerBound[0] AND x LT upperBound[0])]
@@ -459,6 +540,11 @@ PRO as__saxscontourplot::plotAtQ, CREATE = create, SAVE = save
   self.lowerQBoundObj.GetProperty, DATA = lowerBound
   self.upperQBoundObj.GetProperty, DATA = upperBound
 
+  IF self.xscaleType EQ 1 THEN BEGIN
+    lowerBound = 10^(lowerBound)
+    upperBound = 10^(upperBound)
+  ENDIF
+
   range = Where(self.initX.toArray() GT lowerBound[0,0] AND self.initX.toArray() LT upperBound[0,0])
   IF range[0] EQ -1 THEN BEGIN
     void = Min(Abs(self.initX.toArray() - lowerBound[0,0]),range)
@@ -542,7 +628,10 @@ PRO as__saxscontourplot::SetAxes, YTITLE = yTitle
   yRange = Max(y) - Min(y)
 
   viewObj.SetProperty, VIEWPLANE_RECT = [-0.15 * xRange + Min(x), -0.15 * yRange + Min(y), xRange + .2*xRange, yRange + .2*yRange]
-  IF xRange GT 0 THEN self.xAxis.SetProperty, RANGE = [Min(x),Max(x)], LOCATION = [0,Min(y),0], TICKLEN = 0.01*yRange, MINOR = 4
+  IF xRange GT 0 THEN BEGIN
+    IF self.xscaleType EQ 1 THEN self.xAxis.SetProperty, RANGE = [Min(10^x),Max(10^x)], LOCATION = [0,Min(y),0], TICKLEN = 0.01*yRange, MINOR = 8, LOG = 1 $
+                            ELSE self.xAxis.SetProperty, RANGE = [Min(x),Max(x)], LOCATION = [0,Min(y),0], TICKLEN = 0.01*yRange, MINOR = 4, LOG = 0
+  ENDIF
   IF yRange GT 0 THEN self.yAxis.SetProperty, RANGE = [Min(y),Max(y)], LOCATION = [Min(x),0,0], TICKLEN = 0.01*xRange
   
   viewObj.SetProperty, VIEWPLANE_RECT = [-0.15 * xRange + Min(x),-0.15 * yRange + Min(y),xRange+0.2*xRange,yRange+0.2*yRange]
@@ -729,6 +818,7 @@ FUNCTION as__saxscontourplot::UpdateContour, x, y, z, YTITLE = yTitle, YSTRINGS 
   IF self.irregular EQ 0 THEN BEGIN
   
     x = Reform((self.initX.toArray())[(self.zoomPos)[0]])
+    
     y = Reform(((self.initY)[self.yPlotType])[(self.zoomPos)[1]])
     IF Size(y,/TNAME) EQ 'STRING' THEN BEGIN
       yStrings = y
@@ -743,7 +833,12 @@ FUNCTION as__saxscontourplot::UpdateContour, x, y, z, YTITLE = yTitle, YSTRINGS 
     reducePoints = 1 + Fix(N_Elements(z) / 1E5)
     self.yAxis.GetProperty, TICKTEXT = tickText
     self.yAxis.SetProperty, RANGE = [Min(y[0:*:reducePoints]),Max(y[0:*:reducePoints])] 
-    self.oContour.SetProperty, DATA_VALUES = self.scale(z[0:*:reducePoints,0:*:reducePoints]), GEOMX = x[0:*:reducePoints], GEOMY= y[0:*:reducePoints] 
+    
+    IF self.xscaleType EQ 1 THEN x = alog10(x)
+    
+    self.oContour.SetProperty, DATA_VALUES = self.scale(z[0:*:reducePoints,0:*:reducePoints]), GEOMX = x[0:*:reducePoints], GEOMY= y[0:*:reducePoints]
+    
+    self.oContour.GetProperty, XRANGE =xrange
     
     IF N_Elements(yStrings) GT 0 THEN tickText.SetProperty, STRINGS = yStrings[0:*:reducePoints] 
       
@@ -861,10 +956,16 @@ FUNCTION as__saxscontourplot::Init, x, y, z, config, FILENAMES=fileNames, NOTIFY
   self.wContourBase = wContourBase
   WIDGET_CONTROL, wContourBase, SET_UVALUE = self
   wControlBase = Widget_Base(wContourBase, /COLUMN, UNAME = 'Contour Type Base')
-  wAxisTypeLabel = Widget_Label(wControlBase, VALUE = 'Y-Axis Type')
+  wYAxisBase = Widget_Base(wControlBase, /COLUMN, /FRAME)
+  wAxisTypeLabel = Widget_Label(wYAxisBase, VALUE = 'Y-Axis Type')
   IF self.yTypeNames.count() GT 0 THEN BEGIN
-    yType = Widget_Combobox(wControlBase, VALUE = self.yTypeNames.toArray(), UNAME = 'Contour Plot Y')
+    yType = Widget_Combobox(wYAxisBase, VALUE = self.yTypeNames.toArray(), UNAME = 'Contour Plot Y')
   ENDIF
+  wXAxisBase = Widget_Base(wControlBase, /COLUMN, /FRAME)
+  wXAxisTypeLabel = Widget_Label(wXAxisBase, VALUE = 'X-Axis Type')
+  wXAxisBaseExclusive = Widget_Base(wXAxisBase, /EXCLUSIVE)
+  wXLinearButton = Widget_Button(wXAxisBaseExclusive, VALUE = 'Linear', UNAME = 'X Linear')
+  wXLogButton = Widget_Button(wXAxisBaseExclusive, VALUE = 'Logarithmic', UNAME = 'X Log')
   wScaleTypeBase = Widget_Base(wControlBase, /COLUMN, UNAME = 'Scale Type Base',/FRAME)
   wScaleTypeLabel = Widget_Label(wScaleTypeBase, VALUE = 'Scale Type')
   wScaleTypeButtonBase = Widget_Base(wScaleTypeBase, /EXCLUSIVE)
@@ -898,6 +999,7 @@ FUNCTION as__saxscontourplot::Init, x, y, z, config, FILENAMES=fileNames, NOTIFY
   wExportPlotQ = Widget_Button(wStratBase, VALUE = 'Export Stratigraphic Slice', UNAME = 'Export Plot Q')
   wContourDraw = Widget_Draw(wContourBase, XSIZE = 640, YSIZE = 480, GRAPHICS_LEVEL = 2, /BUTTON_EVENTS, UNAME = 'Contour Draw')
   
+  Widget_Control, wXLinearButton, /SET_BUTTON
   Widget_Control, linearScale, /SET_BUTTON
   WIDGET_CONTROL, wContourBase, /REALIZE  
   
@@ -1003,6 +1105,7 @@ PRO as__saxscontourplot__Define
            yPlotType      : 0,       $
            wContourBase   : 0l,      $
            irregular      : 0,       $
+           xscaleType     : 0,       $
            scaleType      : 0,       $
            powerValue     : 0.1,     $
            noBlank        : 0,       $

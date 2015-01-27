@@ -966,13 +966,13 @@ PRO AS_ProfileContainerObj::PlotProfile, profile, fname, LIVE = live, REPLOT = R
   IF Ptr_Valid(self.profileRefs) THEN BEGIN
     IF N_Elements(*self.profileRefs) EQ 1 THEN BEGIN
       IF XLOG EQ 0 THEN self.xRange[0] = Max(data[0,Where(data[0,*] GT 0)]) ELSE self.xRange[0] = Max(10^data[0,Where(Finite(data[0,*]))])
-      IF YLOG EQ 0 THEN self.yRange[0] = Max(data[1,*]) ELSE self.yRange[0] = Max(10^data[1,Where(Finite(data[0,*]))])
+      IF YLOG EQ 0 THEN self.yRange[0] = Max(data[1,*]) ELSE self.yRange[0] = Max(10^data[1,Where(Finite(data[1,*]))])
     ENDIF
   ENDIF
 
   IF KeyWord_Set(xLog) THEN BEGIN
              IF self.xRange[0] LE 0 THEN self.xRange[0] = self.xRange[1]
-             self.xRange = [MIN(10^data[0,Where(Finite(data[0,*])AND data[1,*] GT 0)]) < self.xRange[0],MAX(10^data[0,Where(Finite(data[0,*]))]) > self.xRange[1]] 
+             self.xRange = [MIN(10^data[0,Where(Finite(data[0,*]) AND data[1,*] GT 0)]) < self.xRange[0],MAX(10^data[0,Where(Finite(data[0,*]))]) > self.xRange[1]] 
              IF ~KeyWord_Set(live) THEN (*self.profileRefs)[profile].profilePlot->SetProperty, xrange = ALog10(self.xrange) $
                                    ELSE self.livePlot.SetProperty, xrange = ALog10(self.xrange)
   ENDIF ELSE self.xRange = [MIN(data[0,*]) < self.xRange[0],MAX(data[0,*]) > self.xRange[1]] 
