@@ -410,13 +410,9 @@ PRO as_scatterXMLFile::ParseFile, fileName, LOGONLY=logOnly, UPDATE=upDate
     ((*self.loglines)[Where((*self.loglines).type EQ '',/NULL)].type) = 'RAW'
     
     IF (Where(tag_names(*self.loglines) EQ 'GAPLESS_MODE'))[0] GE 0 THEN BEGIN
-      gapless_pos = Where((*self.loglines).Gapless_Mode EQ '1',/NULL)
+      gapless_pos = Where((*self.loglines).Gapless_Mode,/NULL)
       last_filename = ''
-      num_gapless = 0
-      print, gapless_pos
-      FOREACH g, gapless_pos DO BEGIN
-        print, g
-        g -= 2*num_gapless
+      FOREACH g, reverse(gapless_pos) DO BEGIN
         line = (*self.loglines)[g]
         filename = File_Basename(line.logline)
         filename = StrMid(filename, 0, StrLen(filename)-7)
@@ -437,12 +433,11 @@ PRO as_scatterXMLFile::ParseFile, fileName, LOGONLY=logOnly, UPDATE=upDate
         IF count EQ 3 THEN BEGIN
           (*self.loglines)[g_pos_array[0]].ibs = ibs
           (*self.loglines)[g_pos_array[0]].it = it
-          (*self.loglines)[g_pos_array[0]].i0 = i0map
-          (*self.loglines)[g_pos_array[0]].logline = filename + '.tif'
-          second_array_length = N_elements(*self.loglines)-(g_pos_array[2]+1)
-          if second_array_length GT 0 THEN second_array = g_pos_array[2]+1 + findgen(second_array_length) else second_array = g_pos_array[2]+1
-          *self.loglines = (*self.loglines)[[findgen(g_pos_array[0]+1), second_array ]]
-          num_gapless++
+          (*self.loglines)[g_pos_array[0]].i0 = i0
+          (*self.loglines)[g_pos_array[0]].logline = File_Dirname(line.logline, /MARK_DIRECTORY) + filename + '.tif'
+          IF g_pos_array[2] NE 0 THEN *self.loglines = (*self.loglines)[[findgen(g_pos_array[2]), g_pos_array[0] + findgen(N_elements(*self.loglines)-g_pos_array[0])]] $
+                                 ELSE *self.loglines = (*self.loglines)[g_pos_array[0] + findgen(N_elements(*self.loglines)-g_pos_array[0])]
+          
         ENDIF
          
       ENDFOREACH
@@ -871,11 +866,9 @@ NUMRAWIMAGES = numRawImages
 
   IF Arg_Present(rawLog) THEN rawLog = *self.loglines
 
-  IF Arg_Present(numRawImages) THEN BEGIN
-    IF ptr_valid(self.loglines) THEN IF N_Elements(*self.loglines) GT 0 THEN BEGIN 
-      void = Where((*self.loglines).type EQ 'RAW', numRawImages)
-    ENDIF ELSE numRawImages = 0
-  ENDIF
+  IF Arg_Present(numRawImages) AND *self.loglines NE !NULL THEN BEGIN
+    void = Where((*self.loglines).type EQ 'RAW', numRawImages)
+  ENDIF ELSE numRawImages = 0
     
 END
 
