@@ -54,9 +54,19 @@ PRO AS_SaxsImageTools::fitCircle, points
   x = reform(xyellipse[0,*]) + x0
   y = reform(xyellipse[1,*]) + y0
 
-  if abs(angdiff) LT (!pi * 1.25) then $
-    parms = MPFITELLIPSE(x, y, [r,r,x0,y0,0], WEIGHTS=reform(0.75/polar_arc[2,*]^2), /quiet, /circular) $
-  else parms = MPFITELLIPSE(x, y, [r,r,x0,y0,0], WEIGHTS=reform(0.75/polar_arc[2,*]^2), /quiet,/tilt)
+
+  CATCH, error
+  IF error EQ 0 THEN BEGIN 
+    if abs(angdiff) LT (!pi * 1.25) then $
+      parms = MPFITELLIPSE(x, y, [r,r,x0,y0,0], WEIGHTS=reform(0.75/polar_arc[2,*]^2), /quiet, /circular) $
+    else parms = MPFITELLIPSE(x, y, [r,r,x0,y0,0], WEIGHTS=reform(0.75/polar_arc[2,*]^2), /quiet,/tilt)
+  ENDIF ELSE BEGIN
+    a = dialog_message('Error Fitting Ring/Arc')
+    Obj_Destroy, fitCirclesObj
+    RETURN
+  ENDELSE
+  
+  CATCH, /CANCEL
 
   ang = findgen(100)/50.0 * !pi
   xx = parms[2] + parms[0]*cos(ang)

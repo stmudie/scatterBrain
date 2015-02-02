@@ -284,6 +284,7 @@ PRO as_areadetector::GetProperty, $
   CONTROL = control,   $
   SOFTWARETRIGGER = softwareTrigger,   $
   AUTOLOAD= autoLoad,  $
+  GAPLESSMODE = gaplessMode, $
   _Ref_extra = extra 
 
   @as_scatterheader.macro
@@ -296,6 +297,10 @@ PRO as_areadetector::GetProperty, $
   IF Arg_Present(control) THEN control = self.control
   IF Arg_Present(autoLoad) THEN autoLoad = self.autoLoad
   IF Arg_Present(softwareTrigger) THEN softwareTrigger = self.softwareTrigger
+  IF Arg_Present(gaplessMode) THEN BEGIN
+    result = caget('SR13ID01IOC69:Gapless_Mode', gap)
+    gaplessMode = gap
+  ENDIF
   
   self->IDLitComponent::GetProperty, _EXTRA = extra
   self->GetADProperty, _EXTRA = extra  

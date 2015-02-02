@@ -950,6 +950,7 @@ IF Keyword_Set(notifyObj) THEN $
     autoPlotButton = Widget_Button(plotModeBase, VALUE = 'Live Add Plot Mode', UNAME = 'AutoPlot') 
     ignoreLiveButton = Widget_Button(plotModeBase, VALUE = 'Ignore Live Data Mode', UNAME = 'IgnorePlot')
     Widget_Control, ignoreLiveButton, /SET_BUTTON
+    self.oProfiles.SetProperty, IGNORELIVE = 1
     ;self.oProfiles.SetProperty, REALTIME = 1
   ;ENDIF ELSE self.oProfiles.SetProperty, REALTIME = 0
   

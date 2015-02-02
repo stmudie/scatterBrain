@@ -175,6 +175,8 @@ PRO as_scatterXMLFile::ParseFile, fileName, LOGONLY=logOnly, UPDATE=upDate
 
   @as_scatterheader.macro
 
+  currentLength = 0
+
   ; Check filename arguement contains something. If not return.
   IF N_Elements(fileName) EQ 0 THEN BEGIN
     filename = 'error'
@@ -224,7 +226,8 @@ PRO as_scatterXMLFile::ParseFile, fileName, LOGONLY=logOnly, UPDATE=upDate
   ENDIF ELSE BEGIN      ; Complete next section if we only want to read a log file.
     lines = File_Lines(self.xmlfilename)    ; Number of loglines to read
     IF KeyWord_Set(update) THEN BEGIN ; If updating (just want to read lines that have been added since last read).
-      lastShot = N_Elements(*self.loglines) - self.addedLines > 0 ; How many shots have we already read?                       ;  Old Code: matching name instead of using number of shots:  lastShot = Where(StrMatch(logString, '*' + ((*self.loglines).logline)[-1] + '*') EQ 1)
+      currentLength = N_elements(*self.loglines)
+      lastShot = currentLength - self.addedLines + 2*self.addedGapless > 0 ; How many shots have we already read?                       ;  Old Code: matching name instead of using number of shots:  lastShot = Where(StrMatch(logString, '*' + ((*self.loglines).logline)[-1] + '*') EQ 1)
       IF lastShot EQ 1 THEN BEGIN
         IF ((*self.loglines).logline)[-1] EQ '' THEN lastShot = 0
       ENDIF
@@ -410,37 +413,52 @@ PRO as_scatterXMLFile::ParseFile, fileName, LOGONLY=logOnly, UPDATE=upDate
     ((*self.loglines)[Where((*self.loglines).type EQ '',/NULL)].type) = 'RAW'
     
     IF (Where(tag_names(*self.loglines) EQ 'GAPLESS_MODE'))[0] GE 0 THEN BEGIN
-      gapless_pos = Where((*self.loglines).Gapless_Mode,/NULL)
-      last_filename = ''
-      FOREACH g, reverse(gapless_pos) DO BEGIN
-        line = (*self.loglines)[g]
-        fname = File_Basename(line.logline)
-        fname = StrMid(fname, 0, StrLen(fname)-7)
-        IF fname NE last_filename THEN BEGIN
-          last_filename = fname
-          g_pos_array = list(g)
-          count = 1
-          ibs = fix(line.ibs)
-          it = fix(line.it)
-          i0 = fix(line.i0)
-        ENDIF ELSE BEGIN
-          g_pos_array.add, g
-          count += 1
-          ibs += fix(line.ibs)
-          it += fix(line.it)
-          i0 += fix(line.i0)
-        ENDELSE
-        IF count EQ 3 THEN BEGIN
-          (*self.loglines)[g_pos_array[0]].ibs = ibs
-          (*self.loglines)[g_pos_array[0]].it = it
-          (*self.loglines)[g_pos_array[0]].i0 = i0
-          (*self.loglines)[g_pos_array[0]].logline = File_Dirname(line.logline, /MARK_DIRECTORY) + fname + '.tif'
-          IF g_pos_array[2] NE 0 THEN *self.loglines = (*self.loglines)[[findgen(g_pos_array[2]), g_pos_array[0] + findgen(N_elements(*self.loglines)-g_pos_array[0])]] $
-                                 ELSE *self.loglines = (*self.loglines)[g_pos_array[0] + findgen(N_elements(*self.loglines)-g_pos_array[0])]
-          
-        ENDIF
-         
-      ENDFOREACH
+      gapless_pos = Where((*self.loglines)[currentLength-self.gaplessProgress:*].Gapless_Mode EQ 1,/NULL)
+      If gapless_pos NE !NULL THEN BEGIN
+        if N_Elements(gapless_pos) MOD 3 GT 0 THEN BEGIN
+          *self.loglines = (*self.loglines)[0:currentLength-1]
+          return
+        endif
+        gapless_pos += currentLength-self.gaplessProgress
+        
+        last_filename = ''
+        FOREACH g, reverse(gapless_pos) DO BEGIN
+          line = (*self.loglines)[g]
+          fname = File_Basename(line.logline)
+          fname = StrMid(fname, 0, StrLen(fname)-7)
+          IF fname NE last_filename THEN BEGIN
+            last_filename = fname
+            g_pos_array = list(g)
+            count = 1
+            ibs = fix(line.ibs)
+            it = fix(line.it)
+            i0 = fix(line.i0)
+            self.gaplessProgress = 2
+          ENDIF ELSE BEGIN
+            g_pos_array.add, g
+            count += 1
+            ibs += fix(line.ibs)
+            it += fix(line.it)
+            i0 += fix(line.i0)
+            self.gaplessProgress = 3
+          ENDELSE
+          IF count EQ 3 THEN BEGIN
+            print, 'finish_gapless'
+            print, fname
+            print, g_pos_array[2]
+            (*self.loglines)[g_pos_array[0]].ibs = ibs
+            (*self.loglines)[g_pos_array[0]].it = it
+            (*self.loglines)[g_pos_array[0]].i0 = i0
+            (*self.loglines)[g_pos_array[0]].logline = File_Dirname(line.logline, /MARK_DIRECTORY) + fname + '.tif'
+            IF g_pos_array[2] NE 0 THEN *self.loglines = (*self.loglines)[[findgen(g_pos_array[2]), g_pos_array[0] + findgen(N_elements(*self.loglines)-g_pos_array[0])]] $
+                                   ELSE *self.loglines = (*self.loglines)[g_pos_array[0] + findgen(N_elements(*self.loglines)-g_pos_array[0])]
+            self.addedGapless += 1
+            self.gaplessProgress = 0
+            print, (*self.loglines).logline
+          ENDIF
+           
+        ENDFOREACH
+      endif
     ENDIF
     
     IF ~KeyWord_Set(logonly) THEN BEGIN
@@ -1155,6 +1173,8 @@ PRO as_scatterXMLFile__define
            readDtd            : '',        $
            logDtd             : '',        $
            addedLines         : 0,         $
+           addedGapless       : 0,         $
+           gaplessProgress    : 0,         $
            configurations     : Ptr_New(), $
            attConfigurations  : Ptr_New(), $
            detectorDefs       : Ptr_New(), $

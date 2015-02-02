@@ -563,37 +563,37 @@ PRO scatterbrain::event, event
         
         ; ** SCAN MENU **
         ; ** SCAN -> Mode
-        'SCAN_MODE' : BEGIN
-                        ;TODO In future I'll have to talk to all detectors to give them correct template.
-                        detID = 0 
-                        self.scanMode = ~self.scanMode
-                        Widget_Control, event.id, SET_BUTTON = self.scanMode
-                        Widget_Control, Widget_Info(event.top, FIND_BY_UNAME='START'), SENSITIVE = 1
-                        IF self.scanMode THEN BEGIN
-                          IF ~Obj_Valid(self.excelObj) THEN self.excelObj = as_proteinexcelscans('SR13ID01HU02IOC02:','13PIL1:cam1:Acquire')
-                          self.excelObj.ShowExcel
-                          Widget_Control, Widget_Info(event.top, FIND_BY_UNAME='START'), SET_VALUE = 'Start Scan'
-                          Widget_Control, Widget_Info(event.top, FIND_BY_UNAME='START'), GET_VALUE = buttonObj
-                          buttonObj.SetToggle, 1
-                          Widget_Control, Widget_Info(event.top, FIND_BY_UNAME='INITIALISE_SCAN'), SENSITIVE = 1
-                          ;self.areaDetectorObj.SetProperty, detID, FileTemplate = '%s%s.tif'
-                          Widget_Control, Widget_Info(event.top, FIND_BY_UNAME='PAUSE'), SENSITIVE = 1
-                        ENDIF ELSE BEGIN 
-                          Widget_Control, Widget_Info(event.top, FIND_BY_UNAME='START'), SET_VALUE = 'Acquire'
-                          Widget_Control, Widget_Info(event.top, FIND_BY_UNAME='START'), GET_VALUE = buttonObj
-                          buttonObj.SetToggle, 0
-                          Widget_Control, Widget_Info(event.top, FIND_BY_UNAME='INITIALISE_SCAN'), SENSITIVE = 0
-                          self.areaDetectorObj.SetProperty, FileTemplate = '%s%s_%4.4d.tif'
-                          Widget_Control, Widget_Info(event.top, FIND_BY_UNAME='PAUSE'), SENSITIVE = 0
-                        ENDELSE
-                      END
-                      
-        'INITIALISE_SCAN' : result = self.InitialiseScan()
-        
-        'REVEAL_EXCEL' : BEGIN
-                           IF ~Obj_Valid(self.excelObj) THEN self.excelObj = as_proteinexcelscans('SR13ID01HU02IOC02:','13PIL1:cam1:Acquire')
-                           self.excelObj.ShowExcel
-                         END 
+;        'SCAN_MODE' : BEGIN
+;                        ;TODO In future I'll have to talk to all detectors to give them correct template.
+;                        detID = 0 
+;                        self.scanMode = ~self.scanMode
+;                        Widget_Control, event.id, SET_BUTTON = self.scanMode
+;                        Widget_Control, Widget_Info(event.top, FIND_BY_UNAME='START'), SENSITIVE = 1
+;                        IF self.scanMode THEN BEGIN
+;                          IF ~Obj_Valid(self.excelObj) THEN self.excelObj = as_proteinexcelscans('SR13ID01HU02IOC02:','13PIL1:cam1:Acquire')
+;                          self.excelObj.ShowExcel
+;                          Widget_Control, Widget_Info(event.top, FIND_BY_UNAME='START'), SET_VALUE = 'Start Scan'
+;                          Widget_Control, Widget_Info(event.top, FIND_BY_UNAME='START'), GET_VALUE = buttonObj
+;                          buttonObj.SetToggle, 1
+;                          Widget_Control, Widget_Info(event.top, FIND_BY_UNAME='INITIALISE_SCAN'), SENSITIVE = 1
+;                          ;self.areaDetectorObj.SetProperty, detID, FileTemplate = '%s%s.tif'
+;                          Widget_Control, Widget_Info(event.top, FIND_BY_UNAME='PAUSE'), SENSITIVE = 1
+;                        ENDIF ELSE BEGIN 
+;                          Widget_Control, Widget_Info(event.top, FIND_BY_UNAME='START'), SET_VALUE = 'Acquire'
+;                          Widget_Control, Widget_Info(event.top, FIND_BY_UNAME='START'), GET_VALUE = buttonObj
+;                          buttonObj.SetToggle, 0
+;                          Widget_Control, Widget_Info(event.top, FIND_BY_UNAME='INITIALISE_SCAN'), SENSITIVE = 0
+;                          self.areaDetectorObj.SetProperty, FileTemplate = '%s%s_%4.4d.tif'
+;                          Widget_Control, Widget_Info(event.top, FIND_BY_UNAME='PAUSE'), SENSITIVE = 0
+;                        ENDELSE
+;                      END
+;                      
+;        'INITIALISE_SCAN' : result = self.InitialiseScan()
+;        
+;        'REVEAL_EXCEL' : BEGIN
+;                           IF ~Obj_Valid(self.excelObj) THEN self.excelObj = as_proteinexcelscans('SR13ID01HU02IOC02:','13PIL1:cam1:Acquire')
+;                           self.excelObj.ShowExcel
+;                         END 
         
         ; ** HELP MENU **
         ; ** HELP -> Wiki        
@@ -775,7 +775,7 @@ PRO scatterbrain::event, event
                     WHILE control NE 1 DO BEGIN
                       control = -1
                       self.areaDetectorObj.GetProperty, detID, CONTROL = control
-                      IF control EQ 1 THEN self.areaDetectorObj.GetProperty, detID, FILENAME = fileName, FILEPATH = filePath, FILENUMBER = fileNumber, FILETEMPLATE = fileTemplate, NUMIMAGES = numImages, DETECTORSTATE = detectorState, TRIGGERMODE = triggerMode, /GETCAMERAFILE
+                      IF control EQ 1 THEN self.areaDetectorObj.GetProperty, detID, FILENAME = fileName, FILEPATH = filePath, FILENUMBER = fileNumber, FILETEMPLATE = fileTemplate, NUMIMAGES = numImages, DETECTORSTATE = detectorState, TRIGGERMODE = triggerMode, GAPLESSMODE = gaplessMode, /GETCAMERAFILE
                       IF N_Elements(exposureTimeTemp) THEN exposureTime.add, exposureTimeTemp
                       detID++
                       IF control EQ -1 THEN BREAK
@@ -789,7 +789,7 @@ PRO scatterbrain::event, event
                     ENDFOR
                                         
                     IF detectorState EQ !Null THEN RETURN
-                    IF triggerMode EQ 'Gap Less' THEN self.frame_obj.SetProperty, SATURATION = 3*2.^20 ELSE self.frame_obj.SetProperty, SATURATION = 2.^20
+                    IF gaplessMode EQ 1 THEN self.frame_obj.SetProperty, SATURATION = 3*2.^20 ELSE self.frame_obj.SetProperty, SATURATION = 2.^20
                     
                     IF ~self.scanMode AND detectorState NE 'Acquire' THEN BEGIN
                       Widget_Control, event.id, GET_UVALUE = currentFullFileName
@@ -814,7 +814,7 @@ PRO scatterbrain::event, event
                           ENDFOR
                           existingFileList = File_Test(imagePath + fileList)
                           existingFileCount = Total(existingFileList, /INTEGER)
-                          IF existingFileCount NE 0 THEN BEGIN 
+                          IF existingFileCount NE 0 AND gaplessMode NE 1 THEN BEGIN 
                             IF existingFileCount EQ 1 THEN result = Dialog_Message('Warning, IF you start an acquisition you will overwrite an existing file. Press "Ok" and check entered filename.') $
                                                               ELSE result = Dialog_Message('Warning, IF you start an acquisition you will overwrite ' + StrCompress(existingFileCount,/REMOVE_ALL) + ' existing files. Press "Ok" and check filenames.')
                           ENDIF
@@ -833,31 +833,31 @@ PRO scatterbrain::event, event
                       self.scatterXMLGUI_obj->ParseFile, FILENAME = liveLog, /LOGONLY, /UPDATE
                       IF liveLog EQ 'error' THEN self.liveLog = ''
                     ENDIF
-                    IF self.scanMode GT 0 THEN BEGIN
-                      IF self.excelObj.ScanActive() THEN BEGIN
-                        self.scanMode = 2
-                        Widget_Control, Widget_Info(self.wScatterBase, FIND_BY_UNAME='MESBOX'), GET_VALUE = messageText
+;                    IF self.scanMode GT 0 THEN BEGIN
+;                      IF self.excelObj.ScanActive() THEN BEGIN
+;                        self.scanMode = 2
+;                        Widget_Control, Widget_Info(self.wScatterBase, FIND_BY_UNAME='MESBOX'), GET_VALUE = messageText
+;;                        messageBoxSize = (Widget_Info(Widget_Info(self.wScatterBase, FIND_BY_UNAME='MESBOX'),/GEOM)).XSize
+;                        self.excelObj.GetProperty, CURRENTPOINT=currPoint, NUMPOINTS=numPoints
+;;                        messageText = StrJoin(StrSplit(messageText, String(Byte([10B])),/EXTRACT))
+;                        messageText = StrSplit(messageText, '#',/EXTRACT)
+;                        message = messageText[0] + '# Point' + StrCompress(currPoint) + ' of ' + StrCompress(numPoints) + '.'
 ;                        messageBoxSize = (Widget_Info(Widget_Info(self.wScatterBase, FIND_BY_UNAME='MESBOX'),/GEOM)).XSize
-                        self.excelObj.GetProperty, CURRENTPOINT=currPoint, NUMPOINTS=numPoints
-;                        messageText = StrJoin(StrSplit(messageText, String(Byte([10B])),/EXTRACT))
-                        messageText = StrSplit(messageText, '#',/EXTRACT)
-                        message = messageText[0] + '# Point' + StrCompress(currPoint) + ' of ' + StrCompress(numPoints) + '.'
-                        messageBoxSize = (Widget_Info(Widget_Info(self.wScatterBase, FIND_BY_UNAME='MESBOX'),/GEOM)).XSize
-                        result = AS_AddMessage(message, self.wScatterBase,SPLIT=messageBoxSize)
-                      ENDIF ELSE BEGIN
-                        IF self.scanMode EQ 2 THEN BEGIN
-                          self.scanMode = 1
-                          messageBoxSize = (Widget_Info(Widget_Info(self.wScatterBase, FIND_BY_UNAME='MESBOX'),/GEOM)).XSize
-                          message = 'Scan completed.'
-                          ;SPAWN, 'sndrec32 /embedding /play /close "c:\windows\media\tada.wav"', /NOSHELL
-                          WIDGET_CONTROL, Widget_Info(self.wScatterBase, FIND_BY_UNAME='START'), GET_VALUE = buttonObj
-                          buttonObj.setToggle,0
-                          buttonObj.setToggle,1
-                          WIDGET_CONTROL, Widget_Info(self.wScatterBase, FIND_BY_UNAME='START'), SET_VALUE='Start Scan', SENSITIVE = 1
-                          result = AS_AddMessage(message, self.wScatterBase,SPLIT=messageBoxSize)
-                        ENDIF
-                      ENDELSE
-                    ENDIF
+;                        result = AS_AddMessage(message, self.wScatterBase,SPLIT=messageBoxSize)
+;                      ENDIF ELSE BEGIN
+;                        IF self.scanMode EQ 2 THEN BEGIN
+;                          self.scanMode = 1
+;                          messageBoxSize = (Widget_Info(Widget_Info(self.wScatterBase, FIND_BY_UNAME='MESBOX'),/GEOM)).XSize
+;                          message = 'Scan completed.'
+;                          ;SPAWN, 'sndrec32 /embedding /play /close "c:\windows\media\tada.wav"', /NOSHELL
+;                          WIDGET_CONTROL, Widget_Info(self.wScatterBase, FIND_BY_UNAME='START'), GET_VALUE = buttonObj
+;                          buttonObj.setToggle,0
+;                          buttonObj.setToggle,1
+;                          WIDGET_CONTROL, Widget_Info(self.wScatterBase, FIND_BY_UNAME='START'), SET_VALUE='Start Scan', SENSITIVE = 1
+;                          result = AS_AddMessage(message, self.wScatterBase,SPLIT=messageBoxSize)
+;                        ENDIF
+;                      ENDELSE
+;                    ENDIF
                     
         END
         'INDEX'  : BEGIN
@@ -949,18 +949,18 @@ PRO scatterbrain::event, event
               result = AS_AddMessage(mess, self.wScatterBase,SPLIT = messageBoxSize)
               self.areaDetectorObj.Acquire
             
-            ENDIF ELSE BEGIN  
-              Widget_Control, Widget_Info(event.top, FIND_BY_UNAME='START'), SET_VALUE = 'Initialising...'
-              result = self.InitialiseScan()
-              IF result EQ -1 THEN BREAK
-              Widget_Control, Widget_Info(event.top, FIND_BY_UNAME='START'), SET_VALUE = 'Scanning...'
-              Widget_Control, Widget_Info(event.top, FIND_BY_UNAME='START'), SENSITIVE = 0
-              self.excelObj.GetProperty, NUMPOINTS=numPoints, PVS=PVs
-              mess = 'Starting a scan with a total of ' + StrCompress(numPoints,/REMOVE_ALL) + ' points. Process variables used in scan are ' + String(Byte([13B])) + StrJoin(PVs,Byte([13B])) + '.' $
-                     + String(Byte([13B])) + 'Scan Progress #'
-              result = AS_AddMessage(mess, self.wScatterBase, SPLIT = messageBoxSize)
-              self.excelObj.Start, 'test', 'test'
-            ENDELSE
+            ENDIF; ELSE BEGIN  
+;              Widget_Control, Widget_Info(event.top, FIND_BY_UNAME='START'), SET_VALUE = 'Initialising...'
+;              result = self.InitialiseScan()
+;              IF result EQ -1 THEN BREAK
+;              Widget_Control, Widget_Info(event.top, FIND_BY_UNAME='START'), SET_VALUE = 'Scanning...'
+;              Widget_Control, Widget_Info(event.top, FIND_BY_UNAME='START'), SENSITIVE = 0
+;              self.excelObj.GetProperty, NUMPOINTS=numPoints, PVS=PVs
+;              mess = 'Starting a scan with a total of ' + StrCompress(numPoints,/REMOVE_ALL) + ' points. Process variables used in scan are ' + String(Byte([13B])) + StrJoin(PVs,Byte([13B])) + '.' $
+;                     + String(Byte([13B])) + 'Scan Progress #'
+;              result = AS_AddMessage(mess, self.wScatterBase, SPLIT = messageBoxSize)
+;              self.excelObj.Start, 'test', 'test'
+;            ENDELSE
             
 ;            WIDGET_CONTROL, Widget_Info(self.wScatterBase, FIND_BY_UNAME='POLLTYPE'), SENSITIVE=0
 
@@ -1720,53 +1720,53 @@ PRO scatterbrain::ExportCurrentImage, RAW=raw
   
 END
 
-FUNCTION scatterbrain::InitialiseScan
-
-  @as_scatterheader.macro
-
-  ;TODO Need to control all detectors.
-  detID = 0
-  Widget_Control, /HOURGLASS
-  scanParamsResult = self.excelObj.GetScanParams()
-  IF scanParamsResult LT 0 THEN BEGIN
-    result = Dialog_Message('Scan not initialised!', /ERROR)
-    RETURN, -1
-  ENDIF
-  
-  IF scanParamsResult LT 7 THEN BEGIN
-    self.excelObj.GetProperty, SAMPLENAMES = sampleNames
-    self.frame_obj.GetProperty, IMAGEPATH = imagePath
-    IF self.checkScanFiles EQ 1 THEN BEGIN
-      existingFileList = File_Test(imagePath + sampleNames + '.tif')
-      existingFileCount = Total(existingFileList, /INTEGER)
-      IF existingFileCount NE 0 THEN BEGIN 
-        IF existingFileCount EQ 1 THEN result = Dialog_Message('Warning, IF you start the Scan you will overwrite an existing file. Press "Cancel" and check entered filenames, or "Ok" to ignore.', /ERROR, /CANCEL, /DEFAULT_CANCEL) $
-                                  ELSE result = Dialog_Message('Warning, IF you start the Scan you will overwrite ' + StrCompress(existingFileCount,/REMOVE_ALL) + ' existing files. Press "Cancel" and check filenames, or "Ok" to ignore.', /ERROR, /CANCEL, /DEFAULT_CANCEL)
-        IF result EQ 'Cancel' THEN RETURN, -1
-      ENDIF
-    ENDIF
-  ENDIF
-
-  CASE scanParamsResult OF
-    7: BEGIN
-         self.areaDetectorObj.SetProperty, FileTemplate = '%s%s_%4.4d.tif'
-         self.excelObj.InitialiseScan, /NONAMES
-         self.areaDetectorObj.SetProperty, detID, FileName = self.filenames.next
-       END
-    8: BEGIN 
-         self.areaDetectorObj.SetProperty, FileTemplate = '%s%s_%4.4d.tif'
-         self.excelObj.InitialiseScan
-       END     
-    ELSE: BEGIN
-            self.areaDetectorObj.SetProperty, FileTemplate = '%s%s.tif'
-            self.excelObj.InitialiseScan
-          END
-  ENDCASE
-  Widget_Control, HOURGLASS = 0
-
-  RETURN, 1
-
-END
+;FUNCTION scatterbrain::InitialiseScan
+;
+;  @as_scatterheader.macro
+;
+;  ;TODO Need to control all detectors.
+;  detID = 0
+;  Widget_Control, /HOURGLASS
+;  scanParamsResult = self.excelObj.GetScanParams()
+;  IF scanParamsResult LT 0 THEN BEGIN
+;    result = Dialog_Message('Scan not initialised!', /ERROR)
+;    RETURN, -1
+;  ENDIF
+;  
+;  IF scanParamsResult LT 7 THEN BEGIN
+;    self.excelObj.GetProperty, SAMPLENAMES = sampleNames
+;    self.frame_obj.GetProperty, IMAGEPATH = imagePath
+;    IF self.checkScanFiles EQ 1 THEN BEGIN
+;      existingFileList = File_Test(imagePath + sampleNames + '.tif')
+;      existingFileCount = Total(existingFileList, /INTEGER)
+;      IF existingFileCount NE 0 THEN BEGIN 
+;        IF existingFileCount EQ 1 THEN result = Dialog_Message('Warning, IF you start the Scan you will overwrite an existing file. Press "Cancel" and check entered filenames, or "Ok" to ignore.', /ERROR, /CANCEL, /DEFAULT_CANCEL) $
+;                                  ELSE result = Dialog_Message('Warning, IF you start the Scan you will overwrite ' + StrCompress(existingFileCount,/REMOVE_ALL) + ' existing files. Press "Cancel" and check filenames, or "Ok" to ignore.', /ERROR, /CANCEL, /DEFAULT_CANCEL)
+;        IF result EQ 'Cancel' THEN RETURN, -1
+;      ENDIF
+;    ENDIF
+;  ENDIF
+;
+;  CASE scanParamsResult OF
+;    7: BEGIN
+;         self.areaDetectorObj.SetProperty, FileTemplate = '%s%s_%4.4d.tif'
+;         self.excelObj.InitialiseScan, /NONAMES
+;         self.areaDetectorObj.SetProperty, detID, FileName = self.filenames.next
+;       END
+;    8: BEGIN 
+;         self.areaDetectorObj.SetProperty, FileTemplate = '%s%s_%4.4d.tif'
+;         self.excelObj.InitialiseScan
+;       END     
+;    ELSE: BEGIN
+;            self.areaDetectorObj.SetProperty, FileTemplate = '%s%s.tif'
+;            self.excelObj.InitialiseScan
+;          END
+;  ENDCASE
+;  Widget_Control, HOURGLASS = 0
+;
+;  RETURN, 1
+;
+;END
 
 PRO scatterbrain::updateRecentFileList
 
@@ -2405,13 +2405,13 @@ FUNCTION scatterbrain::init     $
                       , VALUE='Area Detector')
         ACQUIRE_SETUP = Widget_Button(MENU_ACQUIRE, UNAME='ACQ_PVMAP' $
                       , VALUE='PV Map')
-        MENU_SCAN = Widget_Button(SAXS_BASE_MBAR, UNAME='MENU_SCAN', /MENU, VALUE='Scan')
-        
-        SCAN_MODE = Widget_Button(MENU_SCAN, /CHECKED_MENU, VALUE = 'Scan Mode', UNAME='SCAN_MODE')
-        
-        INITIALISE_SCAN = Widget_Button(MENU_SCAN, VALUE = 'Initialise Scan', SENSITIVE = 0, UNAME='INITIALISE_SCAN')
-        
-        REVEAL_EXCEL = Widget_Button(MENU_SCAN, VALUE = 'Reveal Excel', SENSITIVE = 1, UNAME='REVEAL_EXCEL')
+;        MENU_SCAN = Widget_Button(SAXS_BASE_MBAR, UNAME='MENU_SCAN', /MENU, VALUE='Scan')
+;        
+;        SCAN_MODE = Widget_Button(MENU_SCAN, /CHECKED_MENU, VALUE = 'Scan Mode', UNAME='SCAN_MODE')
+;        
+;        INITIALISE_SCAN = Widget_Button(MENU_SCAN, VALUE = 'Initialise Scan', SENSITIVE = 0, UNAME='INITIALISE_SCAN')
+;        
+;        REVEAL_EXCEL = Widget_Button(MENU_SCAN, VALUE = 'Reveal Excel', SENSITIVE = 1, UNAME='REVEAL_EXCEL')
 
         ACQUIRE_EXPORT_LUT = Widget_Button(MENU_ACQUIRE, VALUE = 'Export LUT', UNAME = 'ACQ_EXPORTLUT')
         
@@ -2691,7 +2691,7 @@ FUNCTION scatterbrain::init     $
               , scale = 0.4, textLocation = [0.5,0.5], textColour = [255,255,255], UNAME='STOP')
 ;      acAreaDetector = Widget_Button(wRightTopScatterBase, VALUE='Poll AreaDetector', sensitive=1 $
 ;              ,XSIZE = 8,YSIZE=30,UNAME='Poll AreaDetector')
-      IF KeyWord_Set(startExcel) THEN self.excelObj = as_proteinexcelscans('SR13ID01HU02IOC02:','13PIL1:cam1:Acquire')
+;      IF KeyWord_Set(startExcel) THEN self.excelObj = as_proteinexcelscans('SR13ID01HU02IOC02:','13PIL1:cam1:Acquire')
     endif ;else begin
 
     ; Create Profile Objects
