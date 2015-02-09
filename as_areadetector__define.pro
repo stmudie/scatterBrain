@@ -357,6 +357,18 @@ PRO as_areadetector::GetADProperty, $
   IF Arg_Present(fullFileName) THEN BEGIN
     IF fileValidTemp THEN fullFileName = String(self.ADFileObj->GetProperty('FullFileName_RBV')) ELSE $
     IF camFileValid THEN fullFileName = String(self.ADCamFileObj->GetProperty('FullFileName_RBV')) ELSE fullFileName = ''
+    self.GetProperty, GAPLESSMODE = gap
+    IF gap and StrLen(File_Basename(fullFileName)) GT 3 THEN BEGIN
+      SWITCH StrMid(File_Basename(fullFileName,'.tif'),2,3,/REVERSE_OFFSET) OF
+        '_UR':
+        '_CR':
+        '_LL': BEGIN
+                 fullFileName = StrMid(fullFileName, 0, StrLen(fullFileName) - 7) + '.tif'
+                 BREAK
+               END
+        ELSE :
+      ENDSWITCH
+    ENDIF
   ENDIF
   IF Arg_Present(fileNumber) THEN BEGIN
     IF fileValid THEN fileNumber = String(self.ADFileObj->GetProperty('FileNumber_RBV')) ELSE $

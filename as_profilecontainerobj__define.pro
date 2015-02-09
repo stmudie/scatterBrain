@@ -1577,7 +1577,7 @@ PRO AS_ProfileContainerObj::GetProperty, $
 
 END
 
-PRO AS_ProfileContainerObj::SetProperty, NORMTYPE = normType, REALTIME = realTime, IGNORELIVE = ignoreLive, SHOWERRORBARS = showErrorBars, NOTIFY_OBJ = notifyObj
+PRO AS_ProfileContainerObj::SetProperty, NORMTYPE = normType, REALTIME = realTime, IGNORELIVE = ignoreLive, SHOWERRORBARS = showErrorBars, MEDMEAN = medMean, NOTIFY_OBJ = notifyObj
 
 @as_scatterheader.macro
 
@@ -1595,6 +1595,9 @@ IF KeyWord_Set(showErrorBars) THEN self.showErrorPlot, showErrorBars
 IF Keyword_Set(notifyObj) THEN $
     IF TypeName(notifyObj[0]) EQ 'NOTIFY' $
       THEN self.notifyObj = List(notifyObj,/EXTRACT)
+
+IF N_Elements(medMean) EQ 1 THEN self.medmean = medmean
+
 
 END
 

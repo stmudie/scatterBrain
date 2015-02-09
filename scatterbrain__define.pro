@@ -438,6 +438,8 @@ PRO scatterbrain::event, event
                                  Widget_Control, pseudoLog, SET_BUTTON = ~step
                                  Widget_Control, binSize, SENSITIVE = step
                                  ;binSize = CW_Field(self.settingsBase, TITLE = 'q-vector bin size', VALUE = step, /FLOATING, /RETURN_EVENTS, UNAME = 'Q BIN SIZE')
+                                 meanmedminButtons = CW_BGROUP(self.settingsBase, ['Mean', 'Median', 'Min'], LABEL_TOP = 'Pixel Value Mode', /ROW, /EXCLUSIVE, UNAME = 'PIX VAL MODE')
+                                 Widget_Control, meanmedminButtons, SET_VALUE=self.settingsObj.pixValMode
                                  errorBarsButtons = CW_BGROUP(self.settingsBase, ['None','Last Selected Only', 'All'],LABEL_TOP = 'Show Error Bars',/ROW,/EXCLUSIVE, UNAME = 'SHOW ERROR BARS')
                                  Widget_Control, errorBarsButtons, SET_VALUE=self.settingsObj.ErrorBars
                                  startingDirectory = Widget_Button(self.settingsBase, VALUE = 'Set Starting Directory', UNAME = 'STARTING DIRECTORY')
@@ -486,6 +488,10 @@ PRO scatterbrain::event, event
                          self.frame_obj.SetProperty, step = step
                          self.settingsObj.SetProperty, binsize = step
                        END
+        'PIX VAL MODE' : BEGIN
+                            self.settingsObj.pixValMode = event.value
+                            self.profiles_obj.SetProperty, MEDMEAN = event.value
+                         END
         'STARTING DIRECTORY' : BEGIN
                                  startingDirectory = Dialog_Pickfile(/DIRECTORY)
                                  IF File_Test(startingDirectory, /DIRECTORY) THEN self.settingsObj.startingDirectory1 = startingDirectory
@@ -2705,6 +2711,7 @@ FUNCTION scatterbrain::init     $
     profilePalette_obj.SetProperty, RED_VALUES = red, GREEN_VALUES = green, BLUE_VALUES = blue
     profiles_obj = Obj_New('AS_ProfileContainerObj', GROUPLEADER= wScatterBase, plotPalette = profilePalette_obj)
     profiles_obj.showErrorPlot, self.settingsObj.errorBars
+    profiles_obj.SetProperty, MEDMEAN = self.settingsObj.pixValMode
     
 ;    ;Create box object for setting zoom on frame.
 ;    DATA = Transpose([[0,0,0,0,0],[0,0,0,0,0]])

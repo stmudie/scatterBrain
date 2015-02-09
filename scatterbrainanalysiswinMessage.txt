@@ -1,3 +1,6 @@
+Version 2.70
+New Gapless Mode. Other bug fixes.
+
 Version 2.67
 Lots of small, but important, updates.
 

@@ -577,8 +577,8 @@ FUNCTION AS_CakeObj::Cake, isec=isec;, NOPROFILE = noProfile, LIVE = live
                     profile[i] = min(temp)
                     error[i] = 2 * stddev((*self.frame.rawData)[(*self.cake.lut)[(*self.cake.lut)[i]:(*self.cake.lut)[i+1]-1]]) / sqrt((*self.cake.count)[i])
                 endif else begin
-                    profile[i] = profdata.offset       ; if not enough pixels
-                    error[i] = 1
+;                    profile[i] = profdata.offset       ; if not enough pixels
+;                    error[i] = 1
                 endelse
             endfor
         end

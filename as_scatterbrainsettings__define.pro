@@ -27,9 +27,9 @@ FUNCTION as_scatterBrainSettings::init
   self.recentFile = Ptr_New(replicate({RECENTFILE},8))
   self.attRecentFile = Ptr_New({ATTRIBUTESRECENTFILE, recentFile :['']})
   
-  void = {GENERAL, generalSettings : '', zingerThresh : '', binSize : '', startingdirectory1 : '', startingDirectory2 : '', autoCheckLiveLogFile: '', autoCheckUpdates : '', errorBars : ''}
+  void = {GENERAL, generalSettings : '', zingerThresh : '', binSize : '', startingdirectory1 : '', startingDirectory2 : '', autoCheckLiveLogFile: '', autoCheckUpdates : '', errorBars : '', pixValMode : ''}
   self.general = Ptr_New({GENERAL})
-  self.attGeneral = Ptr_New({ATTRIBUTESGENERAL, generalSettings : ['zingerThresh', 'binSize', 'startingdirectory1', 'startingDirectory2', 'autoCheckLiveLogFile', 'autoCheckUpdates', 'errorBars']})
+  self.attGeneral = Ptr_New({ATTRIBUTESGENERAL, generalSettings : ['zingerThresh', 'binSize', 'startingdirectory1', 'startingDirectory2', 'autoCheckLiveLogFile', 'autoCheckUpdates', 'errorBars', 'pixValMode']})
     
   RETURN, self.as_xmlparamfile::init()
 
@@ -169,7 +169,8 @@ PRO as_scatterBrainSettings::GetProperty, $
   STARTINGDIRECTORY2 = startingDirectory2, $
   AUTOCHECKLIVELOGFILE = autoCheckLiveLogFile, $
   AUTOCHECKUPDATES = autoCheckUpdates, $
-  ERRORBARS = errorBars
+  ERRORBARS = errorBars, $
+  PIXVALMODE = pixValMode
 
   @as_scatterheader.macro
 
@@ -199,6 +200,7 @@ PRO as_scatterBrainSettings::GetProperty, $
   IF Arg_Present(autoCheckLiveLogFile) THEN autoCheckLiveLogFile = Fix((*self.general).autoCheckLiveLogFile)
   IF Arg_Present(autoCheckUpdates) THEN autoCheckUpdates = Fix((*self.general).autoCheckUpdates)
   IF Arg_Present(errorBars) THEN errorBars = Fix((*self.general).errorBars)
+  IF Arg_Present(pixValMode) THEN pixValMode = Fix((*self.general).pixValMode)
 
 END
 
@@ -229,7 +231,8 @@ PRO as_scatterBrainSettings::SetProperty, $
   AUTOCHECKUPDATES = autoCheckUpdates, $
   AUTOCHECKLIVELOGFILE = autoCheckLiveLogFile, $
   NOSAVE = noSave, $
-  ERRORBARS = errorBars
+  ERRORBARS = errorBars, $
+  PIXVALMODE = pixValMode
 
   @as_scatterheader.macro
 
@@ -298,6 +301,7 @@ PRO as_scatterBrainSettings::SetProperty, $
     IF N_Elements(autoCheckUpdates) GT 0 THEN (*self.general).autoCheckUpdates = KeyWord_Set(autoCheckUpdates)
   ENDIF
   IF N_Elements(errorBars) AND Ptr_Valid(self.general) THEN (*self.general).errorBars = String(errorBars)
+  IF N_Elements(pixValMode) AND Ptr_Valid(self.general) THEN (*self.general).pixValMode = String(pixValMode)
   
   IF ~KeyWord_Set(NOSAVE) THEN self.SaveFile
   
