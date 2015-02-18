@@ -443,9 +443,6 @@ PRO as_scatterXMLFile::ParseFile, fileName, LOGONLY=logOnly, UPDATE=upDate
             self.gaplessProgress = 3
           ENDELSE
           IF count EQ 3 THEN BEGIN
-            print, 'finish_gapless'
-            print, fname
-            print, g_pos_array[2]
             (*self.loglines)[g_pos_array[0]].ibs = ibs
             (*self.loglines)[g_pos_array[0]].it = it
             (*self.loglines)[g_pos_array[0]].i0 = i0
@@ -454,7 +451,7 @@ PRO as_scatterXMLFile::ParseFile, fileName, LOGONLY=logOnly, UPDATE=upDate
                                    ELSE *self.loglines = (*self.loglines)[g_pos_array[0] + findgen(N_elements(*self.loglines)-g_pos_array[0])]
             self.addedGapless += 1
             self.gaplessProgress = 0
-            print, (*self.loglines).logline
+
           ENDIF
            
         ENDFOREACH
