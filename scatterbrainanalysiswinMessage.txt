@@ -1,3 +1,6 @@
+Version 2.71
+Fixes to gapless mode, and NaN normalisation on new experiment.
+
 Version 2.70
 New Gapless Mode. Other bug fixes.
 

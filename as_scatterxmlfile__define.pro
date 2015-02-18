@@ -132,7 +132,7 @@ FUNCTION as_scatterXMLFile::init, NOTIFYOBJECT = notifyObject
               '<CAMERADEFS BEAMX="" BEAMY="" LENGTH="" STOPANGLE="" STOPRADIUS="" STOPWIDTH="" WAVELENGTH="" WAXSANGLE=""></CAMERADEFS>' + $
               '<USERMASKS></USERMASKS>' + $
               '<COUNTERDEFS BEAMSTOP="" INCIDENT="" TRANSMISSION=""></COUNTERDEFS>' + $
-              '<NORMALISATION ABSCAL="" USEABSCAL="" I0NORM="" IBSNORM="" NORMTYPE=""></NORMALISATION>' + $
+              '<NORMALISATION ABSCAL="" USEABSCAL="" I0NORM="1" IBSNORM="1" NORMTYPE=""></NORMALISATION>' + $
               '</CONFIGURATION>' + $
               '</Parameters>' + $
               '<Experiment>' + $
@@ -415,37 +415,57 @@ PRO as_scatterXMLFile::ParseFile, fileName, LOGONLY=logOnly, UPDATE=upDate
     IF (Where(tag_names(*self.loglines) EQ 'GAPLESS_MODE'))[0] GE 0 THEN BEGIN
       gapless_pos = Where((*self.loglines)[currentLength-self.gaplessProgress:*].Gapless_Mode EQ 1,/NULL)
       If gapless_pos NE !NULL THEN BEGIN
-        if N_Elements(gapless_pos) MOD 3 GT 0 THEN BEGIN
-          *self.loglines = (*self.loglines)[0:currentLength-1]
-          return
-        endif
+;       
+        case N_Elements(gapless_pos) of 
+            2: BEGIN
+                *self.loglines = (*self.loglines)[Where(indgen(N_Elements(*self.loglines)) NE 1)]
+                *self.loglines = (*self.loglines)[Where(indgen(N_Elements(*self.loglines)) NE 0)]
+                return
+               END
+            1: BEGIN
+                *self.loglines = (*self.loglines)[Where(indgen(N_Elements(*self.loglines)) NE 0)]
+                return
+               END
+            else:
+        endcase
+
+
         gapless_pos += currentLength-self.gaplessProgress
-        
+        count = 3
         last_filename = ''
-        FOREACH g, reverse(gapless_pos) DO BEGIN
+        FOREACH g, reverse(gapless_pos), index DO BEGIN
+          
           line = (*self.loglines)[g]
           fname = File_Basename(line.logline)
           fname = StrMid(fname, 0, StrLen(fname)-7)
           IF fname NE last_filename THEN BEGIN
+            
+            case count of 
+              2: BEGIN
+                  *self.loglines = (*self.loglines)[Where(indgen(N_Elements(*self.loglines)) NE g_pos_array[0])]
+                  *self.loglines = (*self.loglines)[Where(indgen(N_Elements(*self.loglines)) NE g_pos_array[1])]
+                 END
+              1: *self.loglines = (*self.loglines)[Where(indgen(N_Elements(*self.loglines)) NE g_pos_array[0])]
+              else:
+            endcase
+            
             last_filename = fname
             g_pos_array = list(g)
             count = 1
-            ibs = fix(line.ibs)
-            it = fix(line.it)
-            i0 = fix(line.i0)
+            ibs = fix(line.ibs, TYPE=3)
+            it = fix(line.it, TYPE=3)
+            i0 = fix(line.i0, TYPE=3)
             self.gaplessProgress = 2
           ENDIF ELSE BEGIN
             g_pos_array.add, g
             count += 1
-            ibs += fix(line.ibs)
-            it += fix(line.it)
-            i0 += fix(line.i0)
+            ibs += fix(line.ibs, TYPE=3)
+            it += fix(line.it, TYPE=3)
+            i0 += fix(line.i0, TYPE=3)
             self.gaplessProgress = 3
           ENDELSE
           IF count EQ 3 THEN BEGIN
-            print, 'finish_gapless'
-            print, fname
-            print, g_pos_array[2]
+            (*self.loglines)[g_pos_array[0]].Gapless_Mode = 0
             (*self.loglines)[g_pos_array[0]].ibs = ibs
             (*self.loglines)[g_pos_array[0]].it = it
             (*self.loglines)[g_pos_array[0]].i0 = i0
@@ -454,7 +474,7 @@ PRO as_scatterXMLFile::ParseFile, fileName, LOGONLY=logOnly, UPDATE=upDate
                                    ELSE *self.loglines = (*self.loglines)[g_pos_array[0] + findgen(N_elements(*self.loglines)-g_pos_array[0])]
             self.addedGapless += 1
             self.gaplessProgress = 0
-            print, (*self.loglines).logline
+            IF Obj_Valid(progressBarObj) THEN progressBarObj->Update, 70 + 29*index/N_Elements(gapless_pos)
           ENDIF
            
         ENDFOREACH
@@ -801,7 +821,14 @@ NUMRAWIMAGES = numRawImages
     
   IF Arg_Present(cake) THEN cake = { a: 0 }
  
-  IF Arg_Present(normParams) THEN normParams = { absCal : Double((*self.configurations)[normParams].absCal), useAbsCal : Fix((*self.configurations)[normParams].useAbsCal), I0Norm : Long((*self.configurations)[normParams].I0Norm), IBSNorm : Long((*self.configurations)[normParams].IBSNorm), normType : Fix((*self.configurations)[normParams].normType) }
+  IF Arg_Present(normParams) THEN BEGIN
+    IBSNorm = Long((*self.configurations)[normParams].IBSNorm) 
+    IF IBSNorm EQ 0 THEN IBSNorm = 1L
+    I0Norm = Long((*self.configurations)[normParams].I0Norm)
+    IF I0Norm EQ 0 THEN I0Norm = 1L
+    
+    normParams = { absCal : Double((*self.configurations)[normParams].absCal), useAbsCal : Fix((*self.configurations)[normParams].useAbsCal), I0Norm : I0Norm, IBSNorm : IBSNorm, normType : Fix((*self.configurations)[normParams].normType) }
+  ENDIF
  
   IF Arg_Present(frame) THEN BEGIN
   
