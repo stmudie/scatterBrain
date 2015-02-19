@@ -294,7 +294,7 @@ PRO as_scatterXMLFile::ParseFile, fileName, LOGONLY=logOnly, UPDATE=upDate
       ENDFOREACH
       ; If "update" cancelled need to reform DTD, using whole logfile
       IF KeyWord_Set(update) EQ 0 THEN BEGIN
-        progressBarObj = Obj_New('progressBar',/FAST,/NOCANCEL,/START,TEXT='Opening file.')
+        IF ~Keyword_set(logonly) THEN progressBarObj = Obj_New('progressBar',/FAST,/NOCANCEL,/START,TEXT='Opening file.')
         xml = StrJoin(['<?xml version="1.0" encoding="UTF-8"?>','<scatterLog>',logString,'</scatterLog>'],/SINGLE)
         self.AS_XMLPARAMFILE::ParseFile, xml, /XML_STRING
         IF xml EQ 'error' THEN BEGIN
@@ -415,22 +415,20 @@ PRO as_scatterXMLFile::ParseFile, fileName, LOGONLY=logOnly, UPDATE=upDate
     IF (Where(tag_names(*self.loglines) EQ 'GAPLESS_MODE'))[0] GE 0 THEN BEGIN
       gapless_pos = Where((*self.loglines)[currentLength-self.gaplessProgress:*].Gapless_Mode EQ 1,/NULL)
       If gapless_pos NE !NULL THEN BEGIN
-;       
-        case N_Elements(gapless_pos) of 
-            2: BEGIN
-                *self.loglines = (*self.loglines)[Where(indgen(N_Elements(*self.loglines)) NE 1)]
-                *self.loglines = (*self.loglines)[Where(indgen(N_Elements(*self.loglines)) NE 0)]
-                return
-               END
-            1: BEGIN
-                *self.loglines = (*self.loglines)[Where(indgen(N_Elements(*self.loglines)) NE 0)]
-                return
-               END
-            else:
-        endcase
-
 
         gapless_pos += currentLength-self.gaplessProgress
+
+
+        IF N_Elements(gapless_pos) LE 2 THEN BEGIN
+          SWITCH N_Elements(gapless_pos) OF
+            2: *self.loglines = (*self.loglines)[Where(indgen(N_Elements(*self.loglines)) NE gapless_pos[1], /NULL)]
+            1: *self.loglines = (*self.loglines)[Where(indgen(N_Elements(*self.loglines)) NE gapless_pos[0], /NULL)]
+          ENDSWITCH
+          IF Obj_Valid(progressBarObj) THEN progressBarObj->Update, 100
+          IF Obj_Valid(progressBarObj) THEN progressBarObj->Destroy
+          RETURN
+        ENDIF
+
         count = 3
         last_filename = ''
         FOREACH g, reverse(gapless_pos), index DO BEGIN
