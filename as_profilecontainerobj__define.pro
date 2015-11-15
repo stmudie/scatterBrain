@@ -1,3 +1,12 @@
+PRO as_profilecontainerobj_fitsaveevent, event
+  
+  @as_scatterheader.macro
+
+  Widget_Control, event.top, GET_UVALUE=as_profilecontainerobj
+  as_profilecontainerobj->baseEvent, event
+  
+END
+
 PRO as_profilecontainerobj_baseevent, event
 
   @as_scatterheader.macro
@@ -33,7 +42,9 @@ PRO AS_ProfileContainerObj::baseEvent, event
                       self->NotifyObject, {type: 'Resize', x: x, y: y}
                     END
    'SAVE SINGLE'  : self.SaveProfiles
+   'SAVE SINGLE NO BACK'  : self.SaveProfiles, /NOBACKSAVE
    'SAVE MULTIPLE': self.SaveProfiles, /MULTIPLE
+   'SAVE MULTIPLE NO BACK': self.SaveProfiles, /MULTIPLE, /NOBACKSAVE
    'SAVE PLOT IMAGE' : self.SavePlotImage
    'Norm'         : BEGIN
                       IF ~Obj_Valid(self.normGUI) THEN self.normGUI = as_normalisation(GROUPLEADER=self.wBase, NOTIFY_OBJ = [{OBJECT:self, METHOD:'SetNormParams'},{OBJECT:self, METHOD:'UpdatePlot'}])
@@ -67,6 +78,29 @@ PRO AS_ProfileContainerObj::baseEvent, event
    'Help'         : BEGIN
                       Widget_Control, self.groupleader, GET_UVALUE = scatterBrain
                       scatterBrain.help, 'Plot_Control' 
+                    END
+   'Save Fits'    : BEGIN
+                      Widget_Control, self.wFitStore, GET_VALUE = data
+                      
+                      files = list()
+                      int = list()
+                      pos = list()
+                      width = list()
+                      offset = list()
+                      grad = list()
+                      
+                      FOREACH d, data DO BEGIN
+                        files.add, d.filename
+                        int.add, d.int
+                        pos.add, d.pos
+                        width.add, d.width
+                        offset.add, d.offset
+                        grad.add, d.grad
+                      ENDFOREACH
+                                                                  
+                      file = Dialog_Pickfile()
+                      Write_CSV, file, {filename: files.toarray(), intensity: int.toarray(), position: pos.toarray(), $
+                                        width: width.toarray(), offset: offset.toarray(), grad: grad.toarray()}
                     END
   ENDCASE               
 
@@ -398,8 +432,11 @@ FUNCTION AS_ProfileContainerObj::Init, GROUPLEADER=groupLeader, PLOTPALETTE = pl
   wDraw = Widget_Draw(self.wBase, XSIZE = self.drawSize[0], YSIZE = self.drawSize[1], GRAPHICS_LEVEL=2, /BUTTON_EVENTS, /EXPOSE_EVENTS, RETAIN = 2, EVENT_PRO='as_profilecontainerobj_drawEvent')
   Widget_Control, wMenuBase, SET_UNAME = 'menuBar'
   wSaveMenu = Widget_Button(wMenuBase, /MENU, VALUE = 'Save Profiles')
-  wSaveSingleFile = Widget_Button(wSaveMenu, VALUE = 'Save ALL profiles to ONE large file', UNAME = 'SAVE SINGLE')
-  wSaveSingleFile = Widget_Button(wSaveMenu, VALUE = 'Save EACH profile to individual files', UNAME = 'SAVE MULTIPLE')
+  wSaveSingleFile = Widget_Button(wSaveMenu, VALUE = 'Save EACH profile (excluding backgrounds) to individual files', UNAME = 'SAVE MULTIPLE NO BACK')
+  wSaveSingleFile = Widget_Button(wSaveMenu, VALUE = 'Save ALL profiles (excluding backgrounds) to ONE large file', UNAME = 'SAVE SINGLE NO BACK')
+  wSaveSingleFile = Widget_Button(wSaveMenu, VALUE = 'Save ALL profiles (including backgrounds) to ONE large file', UNAME = 'SAVE SINGLE')
+  wSaveSingleFile = Widget_Button(wSaveMenu, VALUE = 'Save EACH profile (including backgrounds) to individual files', UNAME = 'SAVE MULTIPLE')
+  
   wSaveImage = Widget_Button(wSaveMenu, VALUE = 'Save current plot as image', UNAME = 'SAVE PLOT IMAGE') 
   
   ;wNormMenu = Widget_Button(wMenuBase, /MENU, VALUE = 'Normalisation')
@@ -496,7 +533,7 @@ FUNCTION AS_ProfileContainerObj::GetProfiles, plotIndex
   
 END
 
-PRO AS_ProfileContainerObj::SaveProfiles, fileName, MULTIPLE=multiple
+PRO AS_ProfileContainerObj::SaveProfiles, fileName, MULTIPLE=multiple, NOBACKSAVE = NOBACKSAVE
 
   @as_scatterheader.macro
   
@@ -511,11 +548,21 @@ PRO AS_ProfileContainerObj::SaveProfiles, fileName, MULTIPLE=multiple
   IF fileName EQ '' THEN RETURN
  
   profileList = list()
+  backList = list()
   nameList = list()
   maxElem = 0
+  
+  IF KeyWord_Set(NOBACKSAVE) THEN BEGIN
+    FOR profileIndex = 0, N_Elements(*self.profileRefs) - 1 DO BEGIN
+      profileRef = (*self.profileRefs)[profileIndex]
+      profileRef.profiles.GetProperty, BACKOBJ = backObj
+      IF Obj_Valid(backObj) THEN backList.add, backObj
+    ENDFOR
+  ENDIF  
     
   FOR profileIndex = 0, N_Elements(*self.profileRefs) - 1 DO BEGIN
     profileRef = (*self.profileRefs)[profileIndex]
+    IF KeyWord_Set(NOBACKSAVE) THEN IF (Where(backlist EQ profileRef.profiles))[0] NE -1 THEN CONTINUE
     profileList.add, profileRef.profiles.GetData(/BACK, XLOG=0, YLOG=0)
     profileRef.profiles.GetProperty, fname=name
     nameList.add, name
@@ -650,9 +697,10 @@ PRO AS_ProfileContainerObj::SetPowerPlot, power, SLIDE = slide
 
 END
 
-FUNCTION AS_ProfileContainerObj::FitPeak, index, FULLRANGE = fullRange, PLOT = plot
+FUNCTION AS_ProfileContainerObj::FitPeak, index, FULLRANGE = fullRange, PLOT = plot, PARAMS = params
   
   @as_scatterheader.macro
+
 
   temp = IntArr(N_Elements(index))
   peak = Float(temp)
@@ -660,7 +708,27 @@ FUNCTION AS_ProfileContainerObj::FitPeak, index, FULLRANGE = fullRange, PLOT = p
   FOR i = 0, N_Elements(index) - 1 DO temp[i] = Where((*self.profileRefs).refNum EQ index[i])
   index = temp
 
-  FOREACH j, index DO peak = ((*self.profileRefs)[j].profiles).FitPeak(self.xRangeZoom, PEAKSIGMA = peakSigma, CHI = fitChi, PLOT = fitPlot)
+  FOREACH j, index DO BEGIN
+    peakParams = !Null
+    peak = ((*self.profileRefs)[j].profiles).FitPeak(self.xRangeZoom, PARAMS = peakParams, PEAKSIGMA = peakSigma, CHI = fitChi, PLOT = fitPlot)
+    ((*self.profileRefs)[j].profiles).GetProperty, FName = filename
+    
+    print, peakParams
+    
+    IF NOT Widget_Info(self.wFitStore, /VALID) THEN BEGIN
+      wFitStoreBase = Widget_Base(GROUP_LEADER = self.wBase, /COLUMN, UVALUE = self)
+      self.wFitStore = Widget_Table(wFitStoreBase, COLUMN_LABELS = ['File', 'Intensity', 'Position', 'Width', 'Offset', 'Gradient'], COLUMN_WIDTHS = [200, 50, 50, 50, 50 ,50], $
+        VALUE = {filename: filename, int: peakParams[0], pos: peakParams[1], width: peakParams[2], Offset: peakParams[3], Grad: peakParams[4]}, XSIZE = 6, YSIZE = 1, SCR_YSIZE = 500)
+      wSaveButton = Widget_Button(wFitStoreBase, VALUE = 'SAVE', EVENT_PRO = 'as_profilecontainerobj_fitsaveevent', UNAME = 'Save Fits')
+      Widget_Control, wFitStoreBase, /REALIZE
+    ENDIF ELSE BEGIN
+      Widget_Control, self.wFitStore, USE_TABLE_SELECT = 1, INSERT_ROWS = 1
+      Widget_Control, self.wFitStore, USE_TABLE_SELECT = [0, 0, 5, 0], $
+                      SET_VALUE = [{filename: filename, int: peakParams[0], pos: peakParams[1], width: peakParams[2], Offset: peakParams[3], Grad: peakParams[4]}]
+    ENDELSE
+  ENDFOREACH
+ 
+    
  
   IF ~Obj_Valid(self.qCalibGUI) THEN BEGIN
                         Widget_Control, self.groupleader, GET_UVALUE = scatterBrain
@@ -692,6 +760,9 @@ FUNCTION AS_ProfileContainerObj::FitPeak, index, FULLRANGE = fullRange, PLOT = p
   self.messageObj.SetProperty, CHAR_DIMENSIONS = [0.03,0.03], STRINGS = 'Fit: Peak = ' + StrCompress(String(peak, FORMAT = '(D6.4)'), /REMOVE_ALL) + ', Peak Sigma = ' + StrCompress(String(peakSigma, FORMAT = '(E10.2)'), /REMOVE_ALL) + ', Chi = ' + StrCompress(String(fitChi, FORMAT = '(D10.3)'), /REMOVE_ALL)
   
   self.UpdatePlot, /KEEPFIT
+  
+  
+  
   
   RETURN, peak
 
@@ -1630,6 +1701,7 @@ PRO AS_ProfileContainerObj__Define
    void = {AS_ProfileContainerObj , $
                INHERITS IDLgrModel,  $
                wBase              : 0L       , $
+               wFitStore          : 0L       , $
                profileWindow      : Obj_New(), $
                profileView        : Obj_New(), $
                groupLeader        : 0L       , $

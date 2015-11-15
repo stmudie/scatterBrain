@@ -2089,7 +2089,7 @@ PRO scatterbrain::PlotControlCallback, event
                     self.frame_obj.SetProperty, AUTOSCALE = 0
                     result = self.ProcessImage(event.filenames, /SAVESUMMED)
                    END
-    'CONTOUR'    : self.contour, event.filenames, event.indices, add = event.add
+    'CONTOURPLOT': self.contour, event.filenames, event.indices, add = event.add
     'QMARKER'    : BEGIN
                     self.frame_obj.Overlay_QCirc, event.q
                     IF obj_valid(self.frame_obj2) THEN self.frame_obj2.Overlay_QCirc, event.q

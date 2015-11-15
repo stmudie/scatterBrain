@@ -322,7 +322,8 @@ CASE TAG_NAMES( event, /STRUCTURE ) OF
                                        index[i] = temp
                                     ENDFOR
                                     
-                                    peak  = self.oProfiles->FitPeak(index) 
+                                    peak  = self.oProfiles->FitPeak(index)
+                                    
                                    END
                   'Width' :        BEGIN
                                     selProfile = WIDGET_INFO( self.wProfileTree, /TREE_SELECT )
@@ -495,7 +496,7 @@ CASE TAG_NAMES( event, /STRUCTURE ) OF
                                        self.oProfiles.GetProperty, FNAME=temp
                                        filenames.add, temp
                                      ENDFOR
-                                     self.notify, {CONTOUR, filenames : filenames, indices : indices, add : add}
+                                     self.notify, {CONTOURPLOT, filenames : filenames, indices : indices, add : add}
                 
                                    END
                   'Hide'         : BEGIN
